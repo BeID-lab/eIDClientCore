@@ -1,0 +1,369 @@
+EFCARDACCESS DEFINITIONS ::=
+
+BEGIN
+
+
+bsi-de OBJECT IDENTIFIER ::= { itu-t(0) identified-organization(4) etsi(0) reserved(127) etsi-identified-organization(0) 7 }
+
+SecurityInfo ::= SEQUENCE {
+	protocol OBJECT IDENTIFIER,
+	requiredData ANY DEFINED BY protocol,
+	optionalData ANY DEFINED BY protocol OPTIONAL
+}
+
+SecurityInfos ::= SET OF SecurityInfo
+
+AlgorithmIdentifier ::= SEQUENCE {
+	algorithm	OBJECT IDENTIFIER,
+	parameters	ANY DEFINED BY algorithm OPTIONAL
+}
+
+SubjectPublicKeyInfo ::= SEQUENCE {
+	algorithm		AlgorithmIdentifier,
+	subjectPublicKey	BIT STRING
+}
+
+FieldID ::= SEQUENCE {  
+    fieldType   OBJECT IDENTIFIER,
+    parameters  ANY DEFINED BY fieldType 
+}
+
+ECParameters  ::= SEQUENCE {
+    version   ECPVer,
+    fieldID   FieldID,
+    curve     Curve,
+    base      ECPoint,  
+    order     INTEGER,  
+    cofactor  INTEGER  OPTIONAL 
+}
+
+ECPVer ::= INTEGER {ecpVer1(1)}
+
+ Curve  ::= SEQUENCE {
+    a     FieldElement,
+    b     FieldElement,
+    seed  BIT STRING  OPTIONAL 
+}
+
+FieldElement ::= OCTET STRING   
+
+ECPoint  ::= OCTET STRING                           
+
+
+-- ----
+-- PACE
+-- ----
+
+id-PACE					OBJECT IDENTIFIER ::= { bsi-de protocols(2) smartcard(2) 4 }
+
+id-PACE-DH				OBJECT IDENTIFIER ::= {PACE 1}
+
+id-PACE-DH-3DES-CBC-CBC			OBJECT IDENTIFIER ::= {DH 1}
+id-PACE-DH-AES-CBC-CMAC-128		OBJECT IDENTIFIER ::= {DH 2}
+id-PACE-DH-AES-CBC-CMAC-192		OBJECT IDENTIFIER ::= {DH 3}
+id-PACE-DH-AES-CBC-CMAC-256		OBJECT IDENTIFIER ::= {DH 4}
+
+id-PACE-ECDH				OBJECT IDENTIFIER ::= {PACE 2}
+
+id-PACE-ECDH-3DES-CBC-CBC		OBJECT IDENTIFIER ::= {ECDH 1}
+id-PACE-ECDH-AES-CBC-CMAC-128		OBJECT IDENTIFIER ::= {ECDH 2}
+id-PACE-ECDH-AES-CBC-CMAC-192		OBJECT IDENTIFIER ::= {ECDH 3}
+id-PACE-ECDH-AES-CBC-CMAC-256		OBJECT IDENTIFIER ::= {ECDH 4}
+
+PACEInfo ::= SEQUENCE {
+	protocol	OBJECT IDENTIFIER,
+	version		INTEGER,			-- MUST be 1
+	parameterId	INTEGER OPTIONAL
+}
+
+
+PACEDomainParameterInfo ::= SEQUENCE {
+	protocol 	OBJECT IDENTIFIER,
+	domainParameter AlgorithmIdentifier,
+	parameterId 	INTEGER OPTIONAL
+}
+
+-- ------------------
+-- Chip Autentication
+-- ------------------
+
+id-CA 				OBJECT IDENTIFIER ::= { bsi-de protocols(2) smartcard(2) 3 }
+
+id-CA-DH 			OBJECT IDENTIFIER ::= {CA 1}
+
+id-CA-DH-3DES-CBC-CBC		OBJECT IDENTIFIER ::= {DH 1}
+id-CA-DH-AES-CBC-CMAC-128	OBJECT IDENTIFIER ::= {DH 2}
+id-CA-DH-AES-CBC-CMAC-192	OBJECT IDENTIFIER ::= {DH 3}
+id-CA-DH-AES-CBC-CMAC-256	OBJECT IDENTIFIER ::= {DH 4}
+
+id-CA-ECDH			OBJECT IDENTIFIER ::= {CA 2}
+
+id-CA-ECDH-3DES-CBC-CBC		OBJECT IDENTIFIER ::= {ECDH 1}
+id-CA-ECDH-AES-CBC-CMAC-128	OBJECT IDENTIFIER ::= {ECDH 2}
+id-CA-ECDH-AES-CBC-CMAC-192	OBJECT IDENTIFIER ::= {ECDH 3}
+id-CA-ECDH-AES-CBC-CMAC-256	OBJECT IDENTIFIER ::= {ECDH 4}
+
+ChipAuthenticationInfo ::= SEQUENCE {
+	protocol	OBJECT IDENTIFIER ( id-CA-DH | id-CA-ECDH ), 
+	version		INTEGER,			 -- MUST be 1 or 2
+	keyId		INTEGER OPTIONAL
+}
+
+ChipAuthenticationDomainParameterInfo ::= SEQUENCE {
+	protocol		OBJECT IDENTIFIER ( id-CA-DH | id-CA-ECDH ),
+	domainParameter		AlgorithmIdentifier,
+	keyId			INTEGER OPTIONAL
+}
+
+id-PK				OBJECT IDENTIFIER ::= { bsi-de protocols(2) smartcard(2) 1 }
+id-PK-DH			OBJECT IDENTIFIER ::= {PK 1}
+id-PK-ECDH			OBJECT IDENTIFIER ::= {PK 2}
+
+ChipAuthenticationPublicKeyInfo ::= SEQUENCE {
+	protocol			OBJECT IDENTIFIER ( id-PK-DH | id-PK-ECDH ),
+	chipAuthenticationPublicKey	SubjectPublicKeyInfo,
+	keyId				INTEGER OPTIONAL
+}
+
+-- ---------------------
+-- Terinal Autentication
+-- ---------------------
+
+id-TA			OBJECT IDENTIFIER ::= { bsi-de protocols(2) smartcard(2) 2}
+
+id-TA-RSA		OBJECT IDENTIFIER ::= {TA 1}
+
+id-TA-RSA-v1-5-SHA-1	OBJECT IDENTIFIER ::= {RSA 1}
+id-TA-RSA-v1-5-SHA-256	OBJECT IDENTIFIER ::= {RSA 2}
+id-TA-RSA-PSS-SHA-1	OBJECT IDENTIFIER ::= {RSA 3}
+id-TA-RSA-PSS-SHA-256	OBJECT IDENTIFIER ::= {RSA 4}
+
+id-TA-ECDSA		OBJECT IDENTIFIER ::= {TA 2}
+id-TA-ECDSA-SHA-1	OBJECT IDENTIFIER ::= {ECDSA 1}
+id-TA-ECDSA-SHA-224	OBJECT IDENTIFIER ::= {ECDSA 2}
+id-TA-ECDSA-SHA-256	OBJECT IDENTIFIER ::= {ECDSA 3}
+
+FileID ::= SEQUENCE {
+	fid	OCTET STRING (SIZE(2)),
+	sfid	OCTET STRING (SIZE(1)) OPTIONAL
+}
+
+TerminalAuthenticationInfo ::= SEQUENCE {
+	protocol	OBJECT IDENTIFIER,
+	version		INTEGER, 			-- MUST be 1 or 2
+	efCVCA		FileID OPTIONAL
+}
+
+-- -------------------------
+-- Restricted Identification
+-- -------------------------
+
+id-RI			OBJECT IDENTIFIER ::= { bsi-de protocols(2) smartcard(2) 5}
+
+id-RI-DH		OBJECT IDENTIFIER ::= {RI 1}
+
+id-RI-DH-SHA-1		OBJECT IDENTIFIER ::= {DH 1}
+id-RI-DH-SHA-224	OBJECT IDENTIFIER ::= {DH 2}
+id-RI-DH-SHA-256	OBJECT IDENTIFIER ::= {DH 3}
+id-RI-ECDH		OBJECT IDENTIFIER ::= {RI 2}
+id-RI-ECDH-SHA-1	OBJECT IDENTIFIER ::= {ECDH 1}
+id-RI-ECDH-SHA-224	OBJECT IDENTIFIER ::= {ECDH 2}
+id-RI-ECDH-SHA-256	OBJECT IDENTIFIER ::= {ECDH 3}
+
+ProtocolParams ::= SEQUENCE {
+	version		INTEGER,			-- MUST be 1
+	keyId		INTEGER,
+	authorizedOnly	BOOLEAN
+}
+
+RestrictedIdentificationInfo ::= SEQUENCE {
+	protocol	OBJECT IDENTIFIER,
+	params		ProtocolParams,
+	maxKeyLen	INTEGER OPTIONAL
+}
+
+-- ---------------
+-- CardInfoLocator
+-- ---------------
+
+id-CI		OBJECT IDENTIFIER ::= {bsi-de protocols(2) smartcard(2) 6}
+
+CardInfoLocator ::= SEQUENCE {
+	protocol 	OBJECT IDENTIFIER,
+	url		IA5String,
+	efCardInfo	FileID OPTIONAL
+}
+
+ContentType ::= OBJECT IDENTIFIER
+
+EncapsulatedContentInfo ::= SEQUENCE {
+  eContentType	ContentType,
+  eContent [0]	EXPLICIT OCTET STRING OPTIONAL
+}
+
+CMSVersion ::= INTEGER { v0(0), v1(1), v2(2), v3(3), v4(4), v5(5) }
+DigestAlgoritmsIdentifiers ::= SET OF DigestAlgorithmIdentifier
+DigestAlgorithmIdentifier ::= AlgorithmIdentifier
+
+OtherCertificateFormat ::= SEQUENCE {
+       otherCertFormat		OBJECT IDENTIFIER,
+       otherCert		ANY DEFINED BY otherCertFormat
+}
+
+CertificateChoices ::= CHOICE {
+	certificate				Certificate,
+	other [3] IMPLICIT			OtherCertificateFormat
+}
+
+CertificateSet ::= SET OF CertificateChoices
+
+Certificate  ::=  SEQUENCE  {
+     tbsCertificate       TBSCertificate,
+     signatureAlgorithm   AlgorithmIdentifier,
+     signature            BIT STRING  }
+
+TBSCertificate  ::=  SEQUENCE  {
+     version         [0]  Version DEFAULT v1,
+     serialNumber         CertificateSerialNumber,
+     signature            AlgorithmIdentifier,
+     issuer               Name,
+     validity             Validity,
+     subject              Name,
+     subjectPublicKeyInfo SubjectPublicKeyInfo,
+     issuerUniqueID  [1]  IMPLICIT UniqueIdentifier OPTIONAL,
+                          -- If present, version MUST be v2 or v3
+     subjectUniqueID [2]  IMPLICIT UniqueIdentifier OPTIONAL,
+                          -- If present, version MUST be v2 or v3
+     extensions      [3]  Extensions OPTIONAL
+                          -- If present, version MUST be v3 --  }
+                          
+Version  ::=  INTEGER  {  v1(0), v2(1), v3(2)  }
+
+CertificateSerialNumber  ::=  INTEGER
+
+Name ::= CHOICE { -- only one possibility for now --
+      rdnSequence  RDNSequence }
+
+Validity ::= SEQUENCE {
+     notBefore      XTime,
+     notAfter       XTime  }
+
+XTime ::= CHOICE {
+     utcTime        UTCTime,
+     generalTime    GeneralizedTime }
+     
+UniqueIdentifier  ::=  BIT STRING                          
+
+Extension  ::=  SEQUENCE  {
+     extnID      OBJECT IDENTIFIER,
+     critical    BOOLEAN DEFAULT FALSE,
+     extnValue   OCTET STRING  }
+     
+Extensions  ::=  SEQUENCE SIZE (1..MAX) OF Extension
+
+RelativeDistinguishedName  ::= SET SIZE (1 .. MAX) OF AttributeTypeAndValue
+
+RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
+
+DistinguishedName ::=   RDNSequence
+
+Attribute       ::=     SEQUENCE {
+      type              AttributeType,
+      values    SET OF AttributeValue
+}  -- at least one value is required
+
+AttributeType           ::=  OBJECT IDENTIFIER
+
+AttributeValue          ::=  ANY
+
+AttributeTypeAndValue           ::=     SEQUENCE {
+        type    AttributeType,
+        value   AttributeValue }
+
+RevocationInfoChoices ::= SET OF RevocationInfoChoice
+	
+RevocationInfoChoice ::= CHOICE {
+	crl 			CertificateList,
+        other [1] IMPLICIT	OtherRevocationInfoFormat
+}
+
+OtherRevocationInfoFormat ::= SEQUENCE {
+	otherRevInfoFormat	OBJECT IDENTIFIER,
+        otherRevInfo		ANY DEFINED BY otherRevInfoFormat
+}
+
+CertificateList  ::=  SEQUENCE  {
+	tbsCertList		TBSCertList,
+	signatureAlgorithm	AlgorithmIdentifier,
+	signature		BIT STRING
+}
+
+TBSCertList  ::=  SEQUENCE  {
+	version			Version OPTIONAL,					-- if present, MUST be v2
+	signature		AlgorithmIdentifier,
+	issuer			Name,
+	thisUpdate		XTime,
+	nextUpdate		XTime OPTIONAL,
+	revokedCertificates	RevokedCertificates OPTIONAL,				-- if present, MUST be v2
+	crlExtensions           [0] Extensions OPTIONAL
+}
+
+RevokedCertificates ::= SEQUENCE OF RevokedCertificate
+
+RevokedCertificate ::= SEQUENCE	{
+		userCertificate		CertificateSerialNumber,
+		revocationDate		XTime,
+		crlEntryExtensions	Extensions OPTIONAL				-- if present, MUST be v2
+}      
+
+SignerInfos ::= SET OF SignerInfo
+
+SignatureValue ::= OCTET STRING
+
+SignedAttribute ::= SEQUENCE {
+	attrType	OBJECT IDENTIFIER,
+	attrValue	ANY DEFINED BY attrType
+}
+
+SignedAttributes ::= SET OF SignedAttribute
+
+SignerInfo ::= SEQUENCE {
+ 	version			CMSVersion,
+	sid			SignerIdentifier,
+ 	digestAlgorithm		DigestAlgorithmIdentifier,
+ 	signedAttr [0]	IMPLICIT SignedAttributes,
+ 	signatureAlgorithm	AlgorithmIdentifier,
+ 	signature	SignatureValue
+}
+
+SignerIdentifier ::= CHOICE {
+	issuerAndSerialNumber		IssuerAndSerialNumber,
+	subjectKeyIdentifier [0]	SubjectKeyIdentifier
+}
+
+SignatureAlgorithmIdentifier ::= AlgorithmIdentifier
+
+IssuerAndSerialNumber ::= SEQUENCE {
+        issuer		Name,
+        serialNumber	CertificateSerialNumber
+}
+
+KeyIdentifier ::= OCTET STRING
+
+SubjectKeyIdentifier ::= KeyIdentifier
+       
+SignedData ::= SEQUENCE{
+ 	version			    CMSVersion,
+ 	digestAlgorithms	DigestAlgoritmsIdentifiers,
+ 	encapContentInfo	EncapsulatedContentInfo,
+ 	certificates [0]	IMPLICIT CertificateSet OPTIONAL,
+ 	crls [1]		    IMPLICIT RevocationInfoChoices OPTIONAL,
+ 	signerInfos		    SignerInfos
+}
+
+ContentInfo ::= SEQUENCE{
+ 	contentType			ContentType,
+    content [0]			EXPLICIT ANY DEFINED BY contentType
+} 
+
+END

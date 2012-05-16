@@ -1,0 +1,7 @@
+LIBRARY	"eIDClientConnection"
+
+EXPORTS
+	eIDClientConnectionStart
+	eIDClientConnectionEnd
+	eIDClientConnectionSendRequest
+	

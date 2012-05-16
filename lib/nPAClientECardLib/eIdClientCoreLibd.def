@@ -1,0 +1,4 @@
+LIBRARY	"eIdClientCoreLibd"
+
+EXPORTS
+  nPAeIdPerformAuthenticationProtocolPcSc

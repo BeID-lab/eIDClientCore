@@ -1,0 +1,94 @@
+EIDAPP DEFINITIONS ::=
+
+BEGIN
+
+bsi-de OBJECT IDENTIFIER ::= { itu-t(0) identified-organization(4) etsi(reserved(127) etsi-identified-organization(0) 7 }
+
+id-eID OBJECT IDENTIFIER ::= { bsi-de applications(3) 2 }
+
+DocumentType ::= [APPLICATION 1] ICAOString (SIZE (2))
+
+IssuingState ::= [APPLICATION 2] ICAOCountry
+
+DateOfExpiry ::= [APPLICATION 3] Date
+
+GivenNames ::= [APPLICATION 4] UTF8String
+
+FamilyNames ::= [APPLICATION 5] UTF8String
+
+ArtisticName ::= [APPLICATION 6] UTF8String
+
+AcademicTitle ::= [APPLICATION 7] UTF8String
+
+DateOfBirth ::= [APPLICATION 8] Date
+
+PlaceOfBirth ::= [APPLICATION 9] GeneralPlace
+
+Nationality ::= [APPLICATION 10] ICAOCountry
+
+Sex ::= [APPLICATION 11] ICAOSex
+
+OptionalDataR ::= [APPLICATION 12] SET OF OptionalData
+
+PlaceOfResidence ::= [APPLICATION 17] GeneralPlace
+
+CommunityID ::= [APPLICATION 18] OCTET STRING
+
+ResidencePermitI ::= [APPLICATION 19] Text
+
+ResidencePermitII::= [APPLICATION 20] Text
+
+OptionalDataRW ::= [APPLICATION 21] SET OF OptionalData
+
+ICAOString ::= PrintableString (FROM ("A".. "Z" | " "))
+
+ICAOCountry ::= ICAOString (SIZE (1|3)) -- ICAO country code
+
+ICAOSex ::= PrintableString (FROM ("M"|"F"|" "))
+
+Date ::= NumericString (SIZE (8)) -- YYYYMMDD
+
+Place ::= SEQUENCE {
+	street		[10] UTF8String OPTIONAL,
+	city		[11] UTF8String,
+	state		[12] UTF8String OPTIONAL,
+	country		[13] ICAOCountry,
+	zipcode		[14] PrintableString OPTIONAL
+}
+
+GeneralPlace ::= CHOICE {
+	structuredPlace	Place,
+	freetextPlace	[1] UTF8String,
+	noPlaceInfo		[2] UTF8String
+}
+
+Text ::= CHOICE {
+	uncompressed	[1] UTF8String,
+	compressed		[2] OCTET STRING
+}
+
+OptionalData ::= SEQUENCE {
+	type	OBJECT IDENTIFIER,
+	data	ANY DEFINED BY type OPTIONAL
+}
+
+id-AuxiliaryData OBJECT IDENTIFIER ::= { bsi-de applications(3) mrtd(1) 4 }
+
+id-DateOfBirth OBJECT IDENTIFIER ::= { id-AuxiliaryData 1 }
+
+id-DateOfExpiry OBJECT IDENTIFIER ::= { id-AuxiliaryData 2 }
+
+id-CommunityID OBJECT IDENTIFIER ::= { id-AuxiliaryData 3 }
+
+ValidityDate ::= [APPLICATION 19] IMPLICIT Date
+
+AgeVerificationDate ::= [APPLICATION 19] IMPLICIT Date
+
+AuxDataTemplate ::= [APPLICATION 19] IMPLICIT SEQUENCE {
+	auxID    	OBJECT IDENTIFIER,
+	extInfo		ANY DEFINED BY auxID
+}
+
+AuxiliaryAuthenticatedData ::=  [APPLICATION 7] IMPLICIT SET OF AuxDataTemplate
+
+END
