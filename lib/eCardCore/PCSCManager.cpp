@@ -19,6 +19,9 @@
 #if defined(WIN32)
 #  include <tchar.h>
 #endif
+#if !(defined(UNICODE) || defined(_UNICODE))
+#include <string.h>
+#endif
 
 #if defined(_DEBUG) && !defined(WINCE)
 # include <crtdbg.h>
@@ -72,11 +75,7 @@ void PCSCManager::findReaders (
     return;
   }
 
-#if !defined(__APPLE__)
   DWORD dwSize = 0;
-#else
-  uint32_t dwSize = 0;
-#endif
   
   // Do it this way because no SCARD_AUTOALOCATE on Linux
   if ( ( retValue = SCardListReaders ( hScardContext, NULL,
@@ -87,7 +86,7 @@ void PCSCManager::findReaders (
     return;
   }
 
-#if !defined(__APPLE__)
+#if defined(WIN32) || defined(WINCE)
   LPTSTR readers = new TCHAR[dwSize];
 #else
   char* readers = new char[dwSize];
@@ -108,7 +107,7 @@ void PCSCManager::findReaders (
     return;
   }
 
-#if !defined(__APPLE__)
+#if defined(WIN32) || defined(WINCE)
   LPTSTR pReader = readers;
 #else
   char* pReader = readers;

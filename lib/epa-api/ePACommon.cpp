@@ -20,6 +20,9 @@
 #include <CertificateDescription.h>
 
 #include <vector>
+#if defined(WIN32) && !defined(_WIN32_WCE)
+#include <windows.h>
+#endif
 
 /*!
  *
@@ -39,7 +42,7 @@ void hexdump(
 	
 	if (caption)
 	{
-#if !defined(__APPLE__) && !defined(_WIN32_WCE)
+#if defined(WIN32) && !defined(_WIN32_WCE)
 		OutputDebugStringA(caption);
 		OutputDebugStringA("\n");
 #endif
@@ -83,7 +86,7 @@ void hexdump(
 		
 		char* message = new char[2048];
 		sprintf(message,  "%s\n", szBuf);
-#if !defined(__APPLE__) && !defined(_WIN32_WCE)
+#if defined(WIN32) && !defined(_WIN32_WCE)
 		OutputDebugStringA(message);
 #endif
 		delete [] message;
@@ -478,7 +481,7 @@ bool verifyResponse_AES(
 	// Check for the right types of data
 	if (dataPart[0] != 0x99 && dataPart[0] != 0x87)
 	{
-#if !defined(__APPLE__) && !defined(_WIN32_WCE)
+#if defined(WIN32) && !defined(_WIN32_WCE)
 		OutputDebugStringA("Verify MAC failed! Invalid data format!");
 #endif
 		return false;
@@ -504,7 +507,7 @@ bool verifyResponse_AES(
 	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
 	if (memcmp(&dataPart[dataPart.size() - 8], &calculatedMAC_[0], 8))
 	{
-#if !defined(__APPLE__) && !defined(_WIN32_WCE)
+#if defined(WIN32) && !defined(_WIN32_WCE)
 		hexdump("Original MAC:   ", (void*) &dataPart[dataPart.size() - 8], 8);
 		hexdump("Calculated MAC: ", (void*) &calculatedMAC_[0], 8);
 		OutputDebugStringA("Verify MAC failed! Cryptographic error\n");

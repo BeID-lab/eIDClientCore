@@ -13,6 +13,7 @@
 #define __ECARDTYPES_INCLUDED__
 
 #include <cassert>
+#include <stddef.h>
 
 #define IN
 #define OUT
@@ -37,12 +38,14 @@ typedef unsigned int UINT32;
 
 typedef unsigned long ULONG;
 
+typedef void * LPVOID;
+
 #define ECARD_INVALID_HANDLE_VALUE ((ECARD_HANDLE) 0xFFFFFFFF)
 
 /*!
  * @enum ECARD_PROTOCOL
  */
-typedef enum ECARD_PROTOCOL
+enum ECARD_PROTOCOL
 {
   PROTOCOL_CTAPI,
   PROTOCOL_PCSC,
@@ -56,7 +59,7 @@ typedef enum ECARD_PROTOCOL
 /*!
  * @enum ECARD_PIN_STATE
  */
-typedef enum ECARD_PIN_STATE
+enum ECARD_PIN_STATE
 {
   PIN_STATE_ACTIVATED,   // The PIN is not activated
   PIN_STATE_NOT_ACTIVE,  // The PIN is activated

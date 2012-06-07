@@ -1,0 +1,27 @@
+BUILT_SOURCES = AcademicTitle.c AgeVerificationDate.c AlgorithmIdentifier.c ANY.c ArtisticName.c asn_codecs_prim.c asn_SEQUENCE_OF.c asn_SET_OF.c Attribute.c AttributeTypeAndValue.c AttributeType.c AttributeValue.c AuxDataTemplate.c AuxiliaryAuthenticatedData.c ber_decoder.c ber_tlv_length.c ber_tlv_tag.c BIT_STRING.c BOOLEAN.c CardInfoLocator.c CertificateBody.c Certificate.c CertificateChoices.c CertificateDescription.c CertificateExtensions.c CertificateHolderAuthorizationTemplate.c CertificateList.c CertificateSerialNumber.c CertificateSet.c ChipAuthenticationDomainParameterInfo.c ChipAuthenticationInfo.c ChipAuthenticationPublicKeyInfo.c CMSVersion.c CommunityID.c constraints.c constr_CHOICE.c constr_SEQUENCE.c constr_SEQUENCE_OF.c constr_SET_OF.c constr_TYPE.c ContentInfo.c ContentType.c Curve.c CVCertificate.c Date.c DateOfBirth.c DateOfExpiry.c der_encoder.c DigestAlgorithmIdentifier.c DigestAlgoritmsIdentifiers.c DiscretionaryDataTemplate.c DistinguishedName.c DocumentType.c ECParameters.c ECPoint.c ECPVer.c EncapsulatedContentInfo.c Extension.c Extensions.c FamilyNames.c FieldElement.c FieldID.c FileID.c GeneralPlace.c GivenNames.c HtmlTermsOfUsage.c IA5String.c ICAOCountry.c ICAOSex.c ICAOString.c INTEGER.c IssuerAndSerialNumber.c IssuingState.c KeyIdentifier.c Name.c Nationality.c NativeEnumerated.c NativeInteger.c NumericString.c OBJECT_IDENTIFIER.c OCTET_STRING.c OptionalData.c OptionalDataR.c OptionalDataRW.c OtherCertificateFormat.c OtherRevocationInfoFormat.c PACEDomainParameterInfo.c PACEInfo.c PdfTermsOfUsage.c per_decoder.c per_encoder.c per_support.c Place.c PlaceOfBirth.c PlaceOfResidence.c PlainTermsOfUsage.c PrintableString.c ProtocolParams.c PublicKey.c RDNSequence.c RelativeDistinguishedName.c ResidencePermitI.c ResidencePermitII.c RestrictedIdentificationInfo.c RevocationInfoChoice.c RevocationInfoChoices.c RevokedCertificate.c RevokedCertificates.c SecurityInfo.c SecurityInfos.c Sex.c SignatureAlgorithmIdentifier.c SignatureValue.c SignedAttribute.c SignedAttributes.c SignedData.c SignerIdentifier.c SignerInfo.c SignerInfos.c SubjectKeyIdentifier.c SubjectPublicKeyInfo.c TBSCertificate.c TBSCertList.c TerminalAuthenticationInfo.c Text.c UniqueIdentifier.c UTCTime.c UTF8String.c Validity.c ValidityDate.c Version.c xer_decoder.c xer_encoder.c xer_support.c XTime.c \
+				AcademicTitle.h AgeVerificationDate.h AlgorithmIdentifier.h ANY.h ArtisticName.h asn_application.h asn_codecs.h asn_codecs_prim.h asn_internal.h asn_SEQUENCE_OF.h asn_SET_OF.h asn_system.h Attribute.h AttributeTypeAndValue.h AttributeType.h AttributeValue.h AuxDataTemplate.h AuxiliaryAuthenticatedData.h ber_decoder.h ber_tlv_length.h ber_tlv_tag.h BIT_STRING.h BOOLEAN.h CardInfoLocator.h CertificateBody.h CertificateChoices.h CertificateDescription.h CertificateExtensions.h Certificate.h CertificateHolderAuthorizationTemplate.h CertificateList.h CertificateSerialNumber.h CertificateSet.h ChipAuthenticationDomainParameterInfo.h ChipAuthenticationInfo.h ChipAuthenticationPublicKeyInfo.h CMSVersion.h CommunityID.h constraints.h constr_CHOICE.h constr_SEQUENCE.h constr_SEQUENCE_OF.h constr_SET_OF.h constr_TYPE.h ContentInfo.h ContentType.h Curve.h CVCertificate.h Date.h DateOfBirth.h DateOfExpiry.h der_encoder.h DigestAlgorithmIdentifier.h DigestAlgoritmsIdentifiers.h DiscretionaryDataTemplate.h DistinguishedName.h DocumentType.h ECParameters.h ECPoint.h ECPVer.h EncapsulatedContentInfo.h Extension.h Extensions.h FamilyNames.h FieldElement.h FieldID.h FileID.h GeneralizedTime.h GeneralPlace.h GivenNames.h HtmlTermsOfUsage.h IA5String.h ICAOCountry.h ICAOSex.h ICAOString.h INTEGER.h IssuerAndSerialNumber.h IssuingState.h KeyIdentifier.h Name.h Nationality.h NativeEnumerated.h NativeInteger.h NumericString.h OBJECT_IDENTIFIER.h OCTET_STRING.h OptionalData.h OptionalDataR.h OptionalDataRW.h OtherCertificateFormat.h OtherRevocationInfoFormat.h PACEDomainParameterInfo.h PACEInfo.h PdfTermsOfUsage.h per_decoder.h per_encoder.h per_support.h Place.h PlaceOfBirth.h PlaceOfResidence.h PlainTermsOfUsage.h PrintableString.h ProtocolParams.h PublicKey.h RDNSequence.h RelativeDistinguishedName.h ResidencePermitI.h ResidencePermitII.h RestrictedIdentificationInfo.h RevocationInfoChoice.h RevocationInfoChoices.h RevokedCertificate.h RevokedCertificates.h SecurityInfo.h SecurityInfos.h Sex.h SignatureAlgorithmIdentifier.h SignatureValue.h SignedAttribute.h SignedAttributes.h SignedData.h SignerIdentifier.h SignerInfo.h SignerInfos.h SubjectKeyIdentifier.h SubjectPublicKeyInfo.h TBSCertificate.h TBSCertList.h TerminalAuthenticationInfo.h Text.h UniqueIdentifier.h UTCTime.h UTF8String.h ValidityDate.h Validity.h Version.h xer_decoder.h xer_encoder.h xer_support.h XTime.h
+ASN1 = definitions/TerminalCertificate.asn1 \
+	   definitions/CertificateDesription.asn1 \
+	   definitions/eIDApplication.asn1 \
+	   definitions/efCardAccess.asn1
+
+EXTRA_DIST  = $(ASN1) GeneralizedTime-putenv.c
+MAINTAINERCLEANFILES = $(BUILT_SOURCES) GeneralizedTime.c Makefile.am.sample
+
+libeidasn1_la_SOURCES = $(BUILT_SOURCES)
+if WIN32
+libeidasn1_la_SOURCES += GeneralizedTime-putenv.c
+else
+libeidasn1_la_SOURCES += GeneralizedTime.c
+endif
+
+noinst_HEADERS = eIDHelper.h eIDOID.h
+
+noinst_LTLIBRARIES = libeidasn1.la
+
+Makefile.am.sample: $(ASN1)
+	for file in $(ASN1); do \
+		$(ASN1C) $${file}; \
+		done
+
+$(BUILT_SOURCES): Makefile.am.sample

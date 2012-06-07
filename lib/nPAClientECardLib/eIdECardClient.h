@@ -8,10 +8,10 @@
 #define XML_STATIC
 #include <expat.h>
 
-#include "nPAClient.h";
+#include "nPAClient.h"
 using namespace Bundesdruckerei::nPA;
 
-#include "eIdClientCoreLib.h";
+#include "eIdClientCoreLib.h"
 
 using namespace std;
 

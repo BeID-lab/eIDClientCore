@@ -9,6 +9,7 @@
 #define __NPACLIENT_INCLUDED__
 
 #include <map>
+#include <string.h>
 
 #include <eIdUtils.h>
 using namespace Bundesdruckerei::eIdUtils;

@@ -22,6 +22,8 @@
 #  include <winscard.h>
 #else
 #  include <PCSC/winscard.h>
+#  include <PCSC/reader.h>
+#  include <stdint.h>
 #endif
 
 

@@ -4,16 +4,11 @@
 #if defined(WIN32)
 #	include <windows.h>
 #	include <tchar.h>
-# define LOAD_LIBRARY(libName)						LoadLibrary(libName)
-# define GET_FUNCTION(hModule, funcName)	GetProcAddress((HMODULE) hModule, funcName)
-# define FREE_LIBRARY(hModule)						FreeLibrary((HMODULE) hModule)
-#endif
-
-#if defined(__APPLE__)
-# include <dlfcn.h>
-# define LOAD_LIBRARY(libName)					  dlopen(libName, RTLD_LAZY)
-# define GET_FUNCTION(hModule, funcName)	dlsym(hModule, funcName)
-# define FREE_LIBRARY(hModule)						dlclose(hModule)
+#   include <wininet.h>
+#   include <wincrypt.h>
+#else
+# define WINAPI
+# include <pthread.h>
 #endif
 
 #define	READ_BUFFER	8192
@@ -24,15 +19,15 @@
 #include <time.h>
 #include <vector>
 #include <iomanip>
-
-#include <windows.h>
-#include <Wininet.h>
-#include <wincrypt.h>
+#include <string.h>
+#include <sstream>
 
 #define XML_STATIC
 #include <expat.h>
 
 #include <eIdClientCoreLib.h>
+#include <eCardTypes.h>
+#include <eIDClientConnection.h>
 
 using namespace std;
 
@@ -265,57 +260,47 @@ public:
 
 string strRefresh = "";
 
-DWORD WINAPI getSamlResponseThread( LPVOID lpParam )
+#ifdef _WIN32
+DWORD
+#else
+void *
+#endif
+WINAPI getSamlResponseThread( LPVOID lpParam )
 {
-  URL	urlIDP(strRefresh.c_str());
+    URL	urlIDP(strRefresh.c_str());
 
-  string	strResult = "";
-  int		secureFlags = INTERNET_FLAG_RELOAD|INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE|INTERNET_FLAG_IGNORE_CERT_CN_INVALID;
-  HINTERNET	hSession = 0x00;
-  HINTERNET	hConnect = 0x00;
-  HINTERNET	hRequest = 0x00;
+    string	strResult = "";
+    EIDCLIENT_CONNECTION_HANDLE connection;
+    EID_CLIENT_CONNECTION_ERROR connection_status;
+    char sz[READ_BUFFER];
 
-  hSession = InternetOpen(AGENTNAME, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-  if(hSession)
-  {
-	hConnect = InternetConnect(hSession, urlIDP._hostname.c_str(), INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
-    if(hConnect)
+    connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(),
+            urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
+    if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
     {
-	  hRequest = HttpOpenRequest(hConnect, "GET", urlIDP._path.c_str(), NULL, "", NULL, secureFlags, 0);
-	  if(hRequest)
-	  {
-        DWORD dwFlags;
-        DWORD dwBuffLen = sizeof(dwFlags);
-        
-		InternetQueryOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS, (LPVOID)&dwFlags, &dwBuffLen);
-        dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
-        InternetSetOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS,&dwFlags, sizeof (dwFlags) );
+        /* Send a GET request */
+        string get("GET ");
+        get += urlIDP._path;
+        get += " HTTP/1.1\r\n";
 
-        int result =  HttpSendRequest(hRequest, NULL, 0, NULL, 0);
-        DWORD dwNumberOfBytesRead;
-        char sz[READ_BUFFER];
-        do
-        {
-          result = InternetReadFile(hRequest, sz, READ_BUFFER - 1, &dwNumberOfBytesRead);												
-          sz[dwNumberOfBytesRead] = '\0';
-          int x = strlen(sz);
-          strResult += sz;
-          memset(sz, 0, READ_BUFFER);	
+        get += "Host: ";
+        get += urlIDP._hostname;
+        get += ":";
+        get += urlIDP._port;
+        get += "\r\n\r\n";
+
+        connection_status = eIDClientConnectionSendRequest(connection,
+                get.c_str(), sz, sizeof sz);
+        if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+            strResult += sz;
+            strResult = strResult.substr(strResult.find("<html"));
         }
-        while(result && dwNumberOfBytesRead != 0);	
-        InternetCloseHandle(hRequest);
-		hRequest = 0x00;
-      }
-	  InternetCloseHandle(hConnect);
-	  hConnect = 0x00;
     }
-    InternetCloseHandle(hSession);
-	hSession = 0x00;
-  }
+    connection_status = eIDClientConnectionEnd(connection);
 
-  cout << strResult.c_str() << endl;
+    cout << strResult << endl;
 
-  return 0;
+    return 0;
 }
 
 void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error)
@@ -371,6 +356,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			{
 			  std::cout << "nPA client perform CA failed with code : " << HEX(error) << std::endl;
 			}
+#ifdef _WIN32
 			HANDLE  hThread;
 			DWORD   dwThreadId;
 			hThread = CreateThread( 
@@ -380,6 +366,12 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
             NULL,          // argument to thread function 
             0,                      // use default creation flags 
             &dwThreadId);   // returns the thread identifier 
+#else
+            /* TODO thread cleanup */
+            pthread_t hThread;
+            if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
+                std::cout << "Could not create getSamlResponseThread" << std::endl;
+#endif
 
 		  break;
 		case NPACLIENT_STATE_READ_ATTRIBUTES:
@@ -439,77 +431,52 @@ string str_replace (string rep, string wit, string in)
 }
 
 int getAuthenticationParams(const char* const cServerName,
-							const unsigned short pPort,
+							const char* const pPort,
 							const char* const cPath,
-							const char* const cUserName,
-							const char* const cPassWord,
 							string &strIdpAddress,
 							string &strSessionIdentifier,
 							string &strPathSecurityParameters)
 {
   string	strResult = "";
-  int		secureFlags = INTERNET_FLAG_RELOAD|INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE|INTERNET_FLAG_IGNORE_CERT_CN_INVALID;
-  HINTERNET	hSession = 0x00;
-  HINTERNET	hConnect = 0x00;
-  HINTERNET	hRequest = 0x00;
+  EIDCLIENT_CONNECTION_HANDLE connection;
+  EID_CLIENT_CONNECTION_ERROR connection_status;
+  char sz[READ_BUFFER];
 
-  hSession = InternetOpen(AGENTNAME, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-  if(hSession)
+  connection_status = eIDClientConnectionStart(&connection,
+          cServerName, pPort, cPath, 0, NULL);
+  if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
-    if( (cUserName != 0x00) && (cPassWord != 0x00) )
-	{
-	  hConnect = InternetConnect(hSession, cServerName, pPort, cUserName, cPassWord, INTERNET_SERVICE_HTTP, 0, 0);
-	}
-	else
-	{
-	  hConnect = InternetConnect(hSession, cServerName, pPort, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
-	}
-    if(hConnect)
-    {
-      hRequest = HttpOpenRequest(hConnect, "GET", cPath, NULL, "", NULL, secureFlags, 0);
-	  if(hRequest)
-	  {
-        DWORD dwFlags;
-        DWORD dwBuffLen = sizeof(dwFlags);
-        
-		InternetQueryOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS, (LPVOID)&dwFlags, &dwBuffLen);
-        dwFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
-        InternetSetOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS,&dwFlags, sizeof (dwFlags) );
+      /* Send a GET request */
+      string get("GET ");
+      get += cPath;
+      get += " HTTP/1.1\r\n";
 
-        int result =  HttpSendRequest(hRequest, NULL, 0, NULL, 0);
-        DWORD dwNumberOfBytesRead;
-        char sz[READ_BUFFER];
-        do
-        {
-          result = InternetReadFile(hRequest, sz, READ_BUFFER - 1, &dwNumberOfBytesRead);												
-          sz[dwNumberOfBytesRead] = '\0';
-          int x = strlen(sz);
+      get += "Host: ";
+      get += cServerName;
+      get += cPath;
+      get += ":";
+      get += pPort;
+      get += "\r\n\r\n";
+
+      connection_status = eIDClientConnectionSendRequest(connection,
+              get.c_str(), sz, sizeof sz);
+      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
           strResult += sz;
-          memset(sz, 0, READ_BUFFER);	
-        }
-        while(result && dwNumberOfBytesRead != 0);	
-        InternetCloseHandle(hRequest);
-		hRequest = 0x00;
+          strResult = strResult.substr(strResult.find("<html"));
       }
-	  InternetCloseHandle(hConnect);
-	  hConnect = 0x00;
-    }
-    InternetCloseHandle(hSession);
-	hSession = 0x00;
   }
-
-  cout << strResult.c_str() << endl;
+  eIDClientConnectionEnd(connection);
 
   CeIdObject		eIdObject;
 
   eIdObject.GetParams(strResult);
 
-  cout << eIdObject.m_strAction.c_str() << endl;
-  cout << eIdObject.m_strMethod.c_str() << endl;
-  cout << eIdObject.m_strSAMLRequest.c_str() << endl;
-  cout << eIdObject.m_strSigAlg.c_str() << endl;
-  cout << eIdObject.m_strSignature.c_str() << endl;
-  cout << eIdObject.m_strRelayState.c_str() << endl;
+  cout << "Action is\t" << eIdObject.m_strAction.c_str() << endl;
+  cout << "Method is\t" << eIdObject.m_strMethod.c_str() << endl;
+  cout << "SAMLRequest is\t" << eIdObject.m_strSAMLRequest.c_str() << endl;
+  cout << "SigAlg is\t" << eIdObject.m_strSigAlg.c_str() << endl;
+  cout << "Signature is\t" << eIdObject.m_strSignature.c_str() << endl;
+  cout << "RelayState is\t" << eIdObject.m_strRelayState.c_str() << endl;
 
   URL	urlIDP(eIdObject.m_strAction.c_str());
   string strContentType = "Content-Type: application/x-www-form-urlencoded";
@@ -524,64 +491,43 @@ int getAuthenticationParams(const char* const cServerName,
     strData += "&RelayState=";
     strData += eIdObject.m_strRelayState;
   }
-
-  secureFlags = INTERNET_FLAG_RELOAD|INTERNET_FLAG_KEEP_CONNECTION|INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_PRAGMA_NOCACHE|INTERNET_FLAG_SECURE;
+  std::stringstream out;
+  out << strData.length();
+  string strContentLength = "Content-Length: " + out.str();
 
   strResult = "";
-  hSession = InternetOpen(AGENTNAME, INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-  if(hSession)
+  connection_status = eIDClientConnectionStart(&connection,
+          urlIDP._hostname.c_str(), "443", urlIDP._path.c_str(),
+          0, NULL);
+  if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
-    hConnect = InternetConnect(hSession, urlIDP._hostname.c_str(), INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
-    if(hConnect)
-    {
-      hRequest = HttpOpenRequest(hConnect, "POST", urlIDP._path.c_str(), NULL, "", NULL, secureFlags, 0);
-//      hRequest = HttpOpenRequest(hConnect, "POST", urlIDP._path.c_str(), NULL, "", NULL, INTERNET_FLAG_KEEP_CONNECTION, 0);
-      if(hRequest)
-	  {
-//        char cookie[]="Cookie: cookie1=1;cookie2=2"; 
-//        HttpAddRequestHeaders(hRequest, cookie, (TCHAR)-1L, HTTP_ADDREQ_FLAG_REPLACE);
-// Create a session cookie.
-
-//		bool  bReturn = InternetSetCookie(urlIDP._hostname.c_str(), NULL, TEXT("TestData = Test"));
-
-        DWORD dwSecFlags;
-        DWORD dwSecBuffLen = sizeof(dwSecFlags);
-        InternetQueryOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS, (LPVOID)&dwSecFlags, &dwSecBuffLen);
-        dwSecFlags |= SECURITY_FLAG_IGNORE_UNKNOWN_CA;
-        InternetSetOption (hRequest, INTERNET_OPTION_SECURITY_FLAGS, &dwSecFlags, sizeof (dwSecFlags) );
-        int result =  HttpSendRequest(hRequest, strContentType.c_str(), strlen(strContentType.c_str()), (void *)strData.c_str(), strlen(strData.c_str()));
-		if(result)
-		{
-          DWORD dwNumberOfBytesRead;
-          char sz[READ_BUFFER];
-          do
-          {
-            result = InternetReadFile(hRequest, sz, READ_BUFFER - 1, &dwNumberOfBytesRead);												
-            sz[dwNumberOfBytesRead] = '\0';
-            int x = strlen(sz);
-            strResult += sz;
-            memset(sz, 0, READ_BUFFER);	
-          }
-          while(result && dwNumberOfBytesRead != 0);
-		}
-		else
-		{
-          int lastErr = GetLastError();
-		  cout << "HttpSendRequest returns with error code : " << lastErr << endl;
-		}
-        InternetCloseHandle(hRequest);
-		hRequest = 0x00;
+      string request;
+      if (strcmp(eIdObject.m_strMethod.c_str(), "post") == 0) {
+          /* Send a POST request */
+          request += "POST ";
+      } else {
+          /* Send a GET request */
+          request += "GET ";
       }
-      InternetCloseHandle(hConnect);
-	  hConnect = 0x00;
-    }
-    InternetCloseHandle(hSession);
-	hSession = 0x00;
+      request += urlIDP._path + " HTTP/1.1\r\n";
+
+      request += "Host: " + urlIDP._hostname + ":" + "443" + "\r\n";
+      request += strContentType + "\r\n";
+      request += strContentLength + "\r\n\r\n";
+
+      request += strData;
+
+      connection_status = eIDClientConnectionSendRequest(connection,
+              request.c_str(), sz, sizeof sz);
+      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+          strResult += sz;
+
+          strResult = strResult.substr(strResult.find("<HTML"));
+      }
   }
+  eIDClientConnectionEnd(connection);
 
   string response2 = strResult;
-	
-  cout << response2.c_str() << endl;
 
   response2 = str_replace("<PSK>", "", response2);
   response2 = str_replace("</PSK>", "", response2);
@@ -593,6 +539,10 @@ int getAuthenticationParams(const char* const cServerName,
   strIdpAddress = eIdObject.m_strServerAddress;
   strSessionIdentifier = eIdObject.m_strSessionID;
   strPathSecurityParameters = eIdObject.m_strPSK;
+
+  cout << "IdpAddress is\t" + strIdpAddress + "\n";
+  cout << "SessionIdentifier is\t" + strSessionIdentifier + "\n";
+  cout << "PathSecurityParameters is\t" + strPathSecurityParameters + "\n";
 
   strRefresh = eIdObject.m_strRefreshAddress;
 
@@ -608,35 +558,7 @@ int main(int argc, char** argv)
   char buffer[500];
 
   std::vector<double> diffv;
-  
-  // Load the library
-  void* hClientUI = 0x00;
-
-#if defined(WIN32)
-#if defined(_DEBUG) || defined(DEBUG)
-  hClientUI = LOAD_LIBRARY(_T("eIdClientCored.dll"));
-#else
-  hClientUI = LOAD_LIBRARY(_T("eIdClientCore.dll"));
-#endif
-#endif	
-#if defined(__APPLE__)
-	hClientUI = LOAD_LIBRARY("nPAClientECardLib.dylib");
-#endif
 	
-  if (0x00 == hClientUI)
-  {
-    std::cout << "ERROR: Could not load nPAClientECardLib library." << std::endl;
-#if defined(__APPLE__)	
-    std::cout << dlerror() << std::endl;
-#endif
-    return 0x00;
-  }
-	
-//  assert(0x00 != hClientUI);
-
-  nPAeIdPerformAuthenticationProtocolPcSc_t nPAeIdPerformAuthenticationProtocolPcSc = (nPAeIdPerformAuthenticationProtocolPcSc_t) GET_FUNCTION(hClientUI, "nPAeIdPerformAuthenticationProtocolPcSc");
-//  assert(0x00 != nPAeIdPerformAuthenticationProtocolPcSc_t);
-
   while (0 == retValue)
   {
     time_t start;
@@ -647,7 +569,7 @@ int main(int argc, char** argv)
     string strPathSecurityParameters = "";
 	string strRef = "";
 
-	getAuthenticationParams("eidservices.bundesdruckerei.de", 443, "/ExampleSP/saml/Login", NULL, NULL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
 	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 

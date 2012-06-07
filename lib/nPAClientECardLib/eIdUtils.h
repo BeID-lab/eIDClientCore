@@ -10,6 +10,7 @@
 
 #include <time.h>
 #include <vector>
+#include <iostream>
 
 
 void debugOut(const char* format, ...);

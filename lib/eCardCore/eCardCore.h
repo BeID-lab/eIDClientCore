@@ -24,7 +24,7 @@
 #   define __STDCALL__ __stdcall
 #else // Linux related stuff
 #   define ECARD_API
-#   define __STDCALL__ __attribute__((stdcall))
+#   define __STDCALL__
 #endif
 
 /*!

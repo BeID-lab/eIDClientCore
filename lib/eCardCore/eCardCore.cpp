@@ -19,6 +19,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "eCardCore.h"
 
@@ -56,8 +57,8 @@ void eCardCore_info(
   char newMessage[4096];
   vsprintf(newMessage, format, params);
 
-#if !defined(__APPLE__)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
+#if defined(WIN32)
+  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
@@ -81,8 +82,8 @@ void eCardCore_debug(
   char newMessage[4096];
   vsprintf(newMessage, format, params);
 
-#if !defined(__APPLE__)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
+#if defined(WIN32)
+  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
@@ -106,8 +107,8 @@ void eCardCore_warn(
   char newMessage[4096];
   vsprintf(newMessage, format, params);
 
-#if !defined(__APPLE__)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
+#if defined(WIN32)
+  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;

@@ -10,15 +10,17 @@ using namespace Bundesdruckerei::eIdUtils;
 
 #include <string>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <cstdio>
 
 #if defined(WIN32)
 #	include <windows.h>
-//#	include <tchar.h>
+#else
+#include <stdarg.h>
 #endif
 
-#if defined(__APPLE__)
+#if !defined(WIN32)
 
 // _itoa isn't standard compliant :( I think to define _itoa is the best way to
 // solve this problem.
@@ -39,7 +41,7 @@ char* _itoa (int value, char * str, int base)
   return str;
 }
 
-#endif // #if defined(__APPLE__)
+#endif
 
 //Loggingfunctions
 void debugOut(
