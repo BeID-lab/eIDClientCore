@@ -21,13 +21,13 @@ struct gnutls_data
 	gnutls_psk_client_credentials_t		psk_credentials;
 };
 
-static void _gnutls_log_func( int level, const char* msg)
+static void _gnutls_log_func( int level, const char* const msg)
 {
     fprintf (stderr, "GnuTLS Debug: %s", msg);
 } 
 
 void
-gnutls_disconnect(const void * driver_data)
+gnutls_disconnect(const void * const driver_data)
 {
     struct gnutls_data *data;
     ssize_t ret;
@@ -47,7 +47,7 @@ gnutls_disconnect(const void * driver_data)
     gnutls_global_deinit();
 }
 
-void * gnutls_connect(int fd, const unsigned char *psk, size_t psk_len, const char *sid, const char *hostname)
+void * gnutls_connect(int fd, const unsigned char *const psk, size_t psk_len, const char *const sid, const char *const hostname)
 {
     struct gnutls_data *data;
     int status;
@@ -123,7 +123,7 @@ err:
     return data;
 }
 
-ssize_t gnutls_recv (const void * driver_data, void *buffer, size_t buffer_size)
+ssize_t gnutls_recv (const void * const driver_data, void *const buffer, size_t buffer_size)
 {
     struct gnutls_data *data;
     ssize_t ret;
@@ -147,7 +147,7 @@ err:
     return ret;
 }
 
-ssize_t gnutls_send (const void * driver_data, const void *buffer, size_t buffer_size)
+ssize_t gnutls_send (const void * const driver_data, const void *const buffer, size_t buffer_size)
 {
     struct gnutls_data *data;
     ssize_t ret;

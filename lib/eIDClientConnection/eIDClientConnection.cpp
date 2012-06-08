@@ -34,24 +34,24 @@ typedef struct
     void *ssl_tls_driver_data;
 } socket_st;
 
-ssize_t my_recv (const socket_st * sock, void *buffer, size_t buffer_size);
-ssize_t my_send (const socket_st * sock, const void *buffer, size_t buffer_size);
+ssize_t my_recv (const socket_st * const sock, const void *const buffer, size_t buffer_size);
+ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size);
 
 
 struct ssl_tls_driver {
-    ssize_t (*send) (const void * driver_data, const void *buffer, size_t buffer_size);
-    ssize_t (*recv) (const void * driver_data, void *buffer, size_t buffer_size);
-    void * (*connect) (int fd, const unsigned char *psk, size_t psk_len, const char *sid, const char *hostname);
-    void (*disconnect) (const void * driver_data);
+    ssize_t (*send) (const void * const driver_data, const void *const buffer, size_t buffer_size);
+    ssize_t (*recv) (const void * const driver_data, void *const buffer, size_t buffer_size);
+    void * (*connect) (int fd, const unsigned char *const psk, size_t psk_len, const char *const sid, const char *const hostname);
+    void (*disconnect) (const void * const driver_data);
 };
 
 struct ssl_tls_driver ssl_tls_driver;
 
 
-void getContent(const char* const data, const int nDataLength, char* const bufResult, const int nBufResultLength);
+void getContent(const char* const data, const int nDataLength, const char* const bufResult, const int nBufResultLength);
 
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *hostname, const char *port, const char *path, const char *sid, const char* pskKey)
+extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port, const char *const path, const char *const sid, const char* const pskKey)
 {
 	socket_st *sock = (socket_st *) malloc(sizeof *sock);
 
@@ -115,7 +115,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTI
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, const int nBufResultLength)
+extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, int nBufResultLength)
 {
     ssize_t ret;
     socket_st *sock;
@@ -140,7 +140,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_
 /* 
  * Wrapper around send/recv, which uses ssl/tls if needed
  */
-ssize_t my_recv (const socket_st * sock, void *buffer, size_t buffer_size)
+ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size)
 {
     if (sock->secure)
         return ssl_tls_driver.recv (sock->ssl_tls_driver_data, buffer, buffer_size);
@@ -148,7 +148,7 @@ ssize_t my_recv (const socket_st * sock, void *buffer, size_t buffer_size)
     return recv (sock->fd, buffer, buffer_size, MSG_WAITALL);
 }
 
-ssize_t my_send (const socket_st * sock, const void *buffer, size_t buffer_size)
+ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size)
 {
     ssize_t sent;
     ssize_t ret;

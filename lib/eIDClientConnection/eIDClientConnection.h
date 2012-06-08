@@ -31,7 +31,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 
 EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection);
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, const int nBufResultLength);
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, int nBufResultLength);
 
 
 typedef EID_CLIENT_CONNECTION_ERROR (*eIDClientConnectionStart_t)(P_EIDCLIENT_CONNECTION_HANDLE, const char * const, const char * const, const char * const, const char* const, const char* const);

@@ -13,7 +13,7 @@
 #include <unistd.h>
 #endif
 
-int my_connectsocket (const char *hostname, const char *port, const char *path);
+int my_connectsocket (const char *const hostname, const char *const port, const char *const path);
 int my_closesocket(int s);
 
 int my_closesocket(int s)
@@ -28,7 +28,7 @@ int my_closesocket(int s)
 #endif
 }
 
-int my_connectsocket (const char *hostname, const char *port, const char *path)
+int my_connectsocket (const char *const hostname, const char *const port, const char *const path)
 {
     struct addrinfo hints, *res, *cur_res;
     int fd = -1, err;
