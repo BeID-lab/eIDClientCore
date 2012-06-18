@@ -300,6 +300,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
   NPACLIENT_HANDLE hClient,
   const char* password,
   chat_t chatSelectedByUser,
+  nPADataBuffer_t &certificateDescription,
   unsigned char* retryCounter /*unused*/)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
@@ -315,7 +316,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
   nPAClient* pnPAClient = (nPAClient*) hClient;
 
   if ((error = pnPAClient->performPACE(password, 
-    chatSelectedByUser, retryCounter)) != NPACLIENT_ERROR_SUCCESS)
+    chatSelectedByUser, certificateDescription, retryCounter)) != NPACLIENT_ERROR_SUCCESS)
   {
     // @TODO: Log event ...
     return error;
@@ -527,14 +528,6 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
 		strServiceURL.assign((const char*)serviceURL.pDataBuffer, serviceURL.bufferSize);
 	}
   }
-  // Free temporarily allocated data. May some of this data are not allocated so far, 
-  // but we should try to deallocate them anyway.
-  nPAFreeDataBuffer(&bufChatFromCertificate);
-  nPAFreeDataBuffer(&bufChatRequired);
-  nPAFreeDataBuffer(&bufChatOptional);
-  nPAFreeDataBuffer(&certificateDescription);
-  nPAFreeDataBuffer(&serviceName);
-  nPAFreeDataBuffer(&serviceURL);
 
   //paramPACE.chatFromCertificate = chatFromCertificate;
   //paramPACE.chatRequired = chatRequired;
@@ -564,7 +557,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
 //  userSelectedChat = paramPACE.userSelectedChat;
   unsigned char retryCounter = (unsigned char) 0xFF;
 
-  error = nPAPerformPACE(hnPAClient, strPIN.c_str(), userSelectedChat, &retryCounter);
+  error = nPAPerformPACE(hnPAClient, strPIN.c_str(), userSelectedChat, certificateDescription, &retryCounter);
 
   fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
   
@@ -610,6 +603,15 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
   }
 
   nPAFinalizeProtocol(hnPAClient);
+
+  // Free temporarily allocated data. May some of this data are not allocated so far, 
+  // but we should try to deallocate them anyway.
+  nPAFreeDataBuffer(&bufChatFromCertificate);
+  nPAFreeDataBuffer(&bufChatRequired);
+  nPAFreeDataBuffer(&bufChatOptional);
+  nPAFreeDataBuffer(&certificateDescription);
+  nPAFreeDataBuffer(&serviceName);
+  nPAFreeDataBuffer(&serviceURL);
 
   return NPACLIENT_ERROR_SUCCESS; 
 }

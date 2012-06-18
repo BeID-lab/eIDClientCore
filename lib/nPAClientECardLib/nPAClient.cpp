@@ -565,6 +565,7 @@ bool nPAClient::getServiceURL(
 NPACLIENT_ERROR nPAClient::performPACE(
   const char* password,
   chat_t chatSelectedByUser,
+  nPADataBuffer_t &certificateDescription,
   unsigned char* retryCounter /*unused*/)
 {
   // Check the state of the protocol. We can only run PACE if the
@@ -578,6 +579,10 @@ NPACLIENT_ERROR nPAClient::performPACE(
   BYTE_INPUT_DATA passwordInput;
   passwordInput.dataSize = strlen(password);
   passwordInput.pData = (BYTE*) password;
+
+  BYTE_INPUT_DATA certificateDescriptionInput;
+  certificateDescriptionInput.dataSize = strlen(password);
+  certificateDescriptionInput.pData = (BYTE*) password;
 
   std::vector<BYTE> chat_;
   chat_.push_back(0x7F); chat_.push_back(0x4C);
@@ -624,8 +629,8 @@ NPACLIENT_ERROR nPAClient::performPACE(
 
   // Running the protocol
   ECARD_STATUS status = ECARD_SUCCESS; 
-  if ((status = m_clientProtocol->PACE(chatInput, passwordInput, 
-    PIN, *retryCounter)) != ECARD_SUCCESS)
+  if ((status = m_clientProtocol->PACE(chatInput, certificateDescriptionInput,
+                  passwordInput, PIN, *retryCounter)) != ECARD_SUCCESS)
   {
     // @TODO: Do logging ...
 

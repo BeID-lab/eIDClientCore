@@ -60,6 +60,7 @@ public:
    */
   ECARD_STATUS PACE(
     IN const BYTE_INPUT_DATA& chat,
+    IN const BYTE_INPUT_DATA& certificate_description,
     IN const BYTE_INPUT_DATA& password,
     IN KEY_REFERENCE keyReference,
     OUT unsigned char& PINCount);

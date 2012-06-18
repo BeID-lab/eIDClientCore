@@ -57,6 +57,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   IN ECARD_HANDLE hCard,
   IN KEY_REFERENCE keyReference,
   IN BYTE_INPUT_DATA chat,
+  IN BYTE_INPUT_DATA certificate_description,
   IN BYTE_INPUT_DATA password,
   IN BYTE_INPUT_DATA efCardAccess,
   IN OUT BYTE_OUTPUT_DATA& kMac,

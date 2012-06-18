@@ -25,6 +25,21 @@ namespace Bundesdruckerei
 	class ePACard : public ICard
     {
     public:
+      bool subSystemSupportsPACE(void)
+      {
+          IReader* reader = ( IReader* ) m_subSystem;
+          if (!reader)
+              return false;
+          return reader->supportsPACE();
+      };
+      PaceOutput subSystemEstablishPACEChannel(PaceInput input)
+      {
+          IReader* reader = ( IReader* ) m_subSystem;
+          if (!reader)
+              return PaceOutput();
+          return reader->establishPACEChannel(input);
+      };
+
       /*!
        * ctor
        */

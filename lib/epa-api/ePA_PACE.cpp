@@ -683,6 +683,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   IN ECARD_HANDLE hCard,
   IN KEY_REFERENCE keyReference,
   IN BYTE_INPUT_DATA chat,
+  IN BYTE_INPUT_DATA certificate_description,
   IN BYTE_INPUT_DATA password,
   IN BYTE_INPUT_DATA efCardAccess,
   IN OUT BYTE_OUTPUT_DATA& kMac,
@@ -703,6 +704,48 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   if (0x00 == ePA_)
     return ECARD_INVALID_EPA;
 
+  if (ePA_->subSystemSupportsPACE()) {
+      enum PaceInput::PinID pin_id;
+      switch (keyReference) {
+          case MRZ:
+              pin_id = PaceInput::mrz;
+              break;
+          case CAN:
+              pin_id = PaceInput::can;
+              break;
+          case PIN:
+              pin_id = PaceInput::pin;
+              break;
+          case PUK:
+              pin_id = PaceInput::puk;
+              break;
+          default:
+              pin_id = PaceInput::undef;
+      }
+      vector<BYTE> v_password, v_chat, v_certificate_description;
+
+      v_password.reserve(password.dataSize);
+      v_password.resize(password.dataSize);
+      memcpy(&v_password[0], password.pData, password.dataSize);
+
+      v_chat.reserve(chat.dataSize);
+      v_chat.resize(chat.dataSize);
+      memcpy(&v_chat[0], chat.pData, chat.dataSize);
+
+      //v_certificate_description.reserve(certificate_description.dataSize);
+      //v_certificate_description.resize(certificate_description.dataSize);
+      //memcpy(&v_certificate_description[0], certificate_description.pData, certificate_description.dataSize);
+
+      PaceOutput output = ePA_->subSystemEstablishPACEChannel(PaceInput(pin_id, v_password, v_chat, v_certificate_description));
+
+      car_cvca.m_dataSize = output.get_car_curr().size();
+      car_cvca.m_pDataBuffer = kMac.m_allocator(output.get_car_curr().size());
+      memcpy(car_cvca.m_pDataBuffer, &output.get_car_curr()[0], output.get_car_curr().size());
+
+      x_Puk_ICC_DH2.m_dataSize = output.get_id_icc().size();
+      x_Puk_ICC_DH2.m_pDataBuffer = x_Puk_ICC_DH2.m_allocator(output.get_id_icc().size());
+      memcpy(x_Puk_ICC_DH2.m_pDataBuffer, &output.get_id_icc()[0], output.get_id_icc().size());
+  } else {
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
   if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, efCardAccess.pData, efCardAccess.dataSize).code != RC_OK)
@@ -850,6 +893,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
   asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
   asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+  }
   
   return ECARD_SUCCESS;
 }

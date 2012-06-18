@@ -75,6 +75,7 @@ ePAClientProtocol::~ePAClientProtocol(
  */
 ECARD_STATUS ePAClientProtocol::PACE(
   IN const BYTE_INPUT_DATA& chat,
+  IN const BYTE_INPUT_DATA& certificate_description,
   IN const BYTE_INPUT_DATA& password,
   IN KEY_REFERENCE keyReference,
   OUT unsigned char& PINCount)
@@ -97,7 +98,7 @@ ECARD_STATUS ePAClientProtocol::PACE(
   BYTE_OUTPUT_DATA x_Puk_ICC_DH2_(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
    
   // Run the PACE protocol.
-  if (ECARD_SUCCESS != (status_ = ePAPerformPACE(m_hCard, keyReference, chat, password,
+  if (ECARD_SUCCESS != (status_ = ePAPerformPACE(m_hCard, keyReference, chat, certificate_description, password,
 	  efCardAccess_, kMac_, kEnc_, car_cvca_, x_Puk_ICC_DH2_, &PINCount)))
     return status_;
 

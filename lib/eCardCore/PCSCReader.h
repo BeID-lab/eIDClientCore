@@ -18,14 +18,11 @@
 #include "IReader.h"
 #include "ICardDetector.h"
 
-#if defined(WIN32) || defined(WINCE)
-#  include <winscard.h>
+#include <winscard.h>
+#ifdef _WIN32
 #else
-#  include <PCSC/winscard.h>
-#  include <PCSC/reader.h>
-#  include <stdint.h>
+#include <reader.h>
 #endif
-
 
 /*!
  * @class PCSCReader
@@ -35,12 +32,9 @@ class PCSCReader : public IReader
 {
   private:
     SCARDHANDLE m_hCard;            // Handle to a card
-#if !defined(__APPLE__)
     DWORD m_dwProtocol;             // Actual used protocol (T1/T0)
-#else
-    uint32_t m_dwProtocol;
-#endif
     SCARDCONTEXT m_hScardContext;   // Handle to the PCSC subsystem
+	DWORD m_ioctl_pace;
 
   public:
     /*!
@@ -101,6 +95,11 @@ class PCSCReader : public IReader
      */
     vector<BYTE> getATRForPresentCard(
       void);
+
+    bool supportsPACE(void);
+
+	PaceOutput establishPACEChannel(
+			PaceInput);
 };
 
 #endif

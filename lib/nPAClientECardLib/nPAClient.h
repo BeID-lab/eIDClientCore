@@ -295,6 +295,7 @@ namespace Bundesdruckerei
       NPACLIENT_ERROR performPACE(
         const char* password,
         chat_t chatSelectedByUser,
+        nPADataBuffer_t &certificateDescription,
         unsigned char* retryCounter /*unused*/);
 
       /*
