@@ -34,7 +34,7 @@ typedef struct
     void *ssl_tls_driver_data;
 } socket_st;
 
-ssize_t my_recv (const socket_st * const sock, const void *const buffer, size_t buffer_size);
+ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size);
 ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size);
 
 
