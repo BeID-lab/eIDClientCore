@@ -654,7 +654,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 {
   std::vector<unsigned char> efCardAccess;
   std::vector<unsigned char> idPICC;
-  std::vector<unsigned char> dvcaCertificate;
+  std::list<ByteData> list_certificates;
 
   // Check the state of the protocol. We can only run TA if the
   // PACE protocol is done.
@@ -675,15 +675,21 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
       idPICC.push_back(idPICC_.m_pDataBuffer[i]);
 
 
-  if (!m_Idp->getTerminalAuthenticationData(efCardAccess, m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, dvcaCertificate, 
+  if (!m_Idp->getTerminalAuthenticationData(efCardAccess, m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates, 
       m_x_Puk_IFD_DH_CA_, m_y_Puk_IFD_DH_CA_))
   {
     return NPACLIENT_ERROR_TA_INITIALIZATION_FAILD;
   }
 
-  BYTE_INPUT_DATA dvCertificate_;
-  dvCertificate_.dataSize = dvcaCertificate.size();
-  dvCertificate_.pData = &dvcaCertificate[0];
+  std::list<BYTE_INPUT_DATA> _list_certificates;
+  while (!list_certificates.empty()) {
+      BYTE_INPUT_DATA _cert;
+      vector<unsigned char> cert = list_certificates.front().data();
+      list_certificates.pop_front();
+      _cert.dataSize = cert.size();
+      _cert.pData = &cert[0];
+      _list_certificates.push_back(_cert);
+  }
 
   ByteData termCertificate = m_Idp->getTerminalCertificate();
   ByteData authenticatedAuxiliaryData = m_Idp->getAuthenticatedAuxiliaryData();
@@ -721,7 +727,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 
   ECARD_STATUS status = ECARD_SUCCESS;
   // Run the Terminal authentication until the signature action.
-  if ((status = m_clientProtocol->TerminalAuthentication(IN dvCertificate_, 
+  if ((status = m_clientProtocol->TerminalAuthentication(IN _list_certificates, 
       IN terminalCertificate_, IN x_Puk_IFD_DH_, IN authenticatedAuxiliaryData_, OUT toBeSigned_)) != ECARD_SUCCESS)
   {
     return NPACLIENT_ERROR_TA_FAILED;

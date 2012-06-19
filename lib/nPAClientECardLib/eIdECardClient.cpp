@@ -237,7 +237,7 @@ bool eIdECardClient::getTerminalAuthenticationData(
   std::vector<unsigned char> chat,
   std::string cvCACHAR,
   std::vector<unsigned char> idPICC,
-  std::vector<unsigned char>& dvcaCertificate,
+  std::list<ByteData> list_certificates,
   std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
   std::vector<unsigned char>& y_Puk_IFD_DH_CA_
   )
@@ -261,12 +261,14 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	m_strLastMsgUUID = strNewMessageID;
 
 	string cert1;
-	if(!CertList.empty())
+    while (!CertList.empty())
 	{
 		cert1 = CertList.front();
+		CertList.pop_front();
+        ByteData myCert = Hex2Byte(cert1.c_str(), cert1.length());
+        list_certificates.push_back(myCert);
 	}
 
-	ByteData myCert = Hex2Byte(cert1.c_str(), cert1.length());
 	ByteData myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
 
   assert(!myKey.data().empty());
@@ -279,8 +281,6 @@ bool eIdECardClient::getTerminalAuthenticationData(
 
 //	for (int i = 0; i < cert1.length() / 2; i++)
 //		dvcaCertificate.push_back(myCert[i]);
-
-	dvcaCertificate = myCert.data();
 
 	assert(ephPubKey.size() % 4 == 0);
   if(!(ephPubKey.size() % 4 == 0)) return false;

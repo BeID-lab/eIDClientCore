@@ -128,7 +128,7 @@ ECARD_STATUS ePAClientProtocol::PACE(
 /**
  */
 ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
-  IN const BYTE_INPUT_DATA& dvCertificate,
+  IN const std::list<BYTE_INPUT_DATA> list_certificates,
   IN const BYTE_INPUT_DATA& terminalCertificate,
   IN const BYTE_INPUT_DATA& x_PuK_IFD_DH_CA,
   IN const BYTE_INPUT_DATA& authenticatedAuxiliaryData,
@@ -160,7 +160,7 @@ ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
   // Do work
   ECARD_STATUS status_ = ECARD_SUCCESS;
   if (ECARD_SUCCESS != (status_ = ePAPerformTA(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, efCardAccess_, 
-    carCVCA_, dvCertificate, terminalCertificate, x_PuK_ICC_DH2_, x_PuK_IFD_DH_CA, authenticatedAuxiliaryData, toBeSigned)))
+    carCVCA_, list_certificates, terminalCertificate, x_PuK_ICC_DH2_, x_PuK_IFD_DH_CA, authenticatedAuxiliaryData, toBeSigned)))
     return status_;
 
   return ECARD_SUCCESS;

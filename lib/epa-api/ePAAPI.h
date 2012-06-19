@@ -9,6 +9,7 @@
 #define __EPAAPI_INCLUDED__
 
 #include <eCardCore.h>
+#include <list>
 
 /**
  * @file ePAAPI.h
@@ -76,7 +77,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @param ssc                 [IN][OUT] The send sequence counter for secure messaging. The initial value MUST be 0.
  * @param efCardAccess        [IN] The content of the EF.CardAccess file.
  * @param car_cvca            [IN] The CAR of the CVCA stored into the chip.
- * @param dvCertificate       [IN] The raw certificate of the DVCA.
+ * @param list_certificates   [IN] The raw list of link certificates and DVCA certificate.
  * @param terminalCertificate [IN] The raw certificate of the terminal.
  * @param x_Puk_ICC_DH2       [IN] The x part of PuK.ICC.DH2. This data will be provided by the PACE operation. @see ePAPerformPACE
  * @param x_Puk_ICC_DH_CA     [IN] The x part of PuK.IFD_DH_CA. This data is part of the public key used for the chip 
@@ -94,7 +95,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   IN OUT unsigned long long &ssc,
   IN BYTE_INPUT_DATA efCardAccess,
   IN BYTE_INPUT_DATA car_cvca,
-  IN BYTE_INPUT_DATA dvCertificate,
+  IN std::list<BYTE_INPUT_DATA> list_certificates,
   IN BYTE_INPUT_DATA terminalCertificate,
   IN BYTE_INPUT_DATA x_Puk_ICC_DH2,
   IN BYTE_INPUT_DATA x_Puk_IFD_DH_CA,

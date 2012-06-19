@@ -15,7 +15,6 @@ using namespace Bundesdruckerei::nPA;
 
 using namespace std;
 
-typedef list<string>	certificateList_t;
 typedef list<string>	APDUList_t;
 
 #include <time.h>
@@ -88,7 +87,7 @@ public:
         std::vector<unsigned char> chat,
         std::string cvCACHAR,
         std::vector<unsigned char> idPICC,
-        std::vector<unsigned char>& dvcaCertificate,
+        std::list<ByteData> list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_);
 

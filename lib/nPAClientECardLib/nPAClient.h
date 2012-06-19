@@ -9,6 +9,7 @@
 #define __NPACLIENT_INCLUDED__
 
 #include <map>
+#include <list>
 #include <string.h>
 
 #include <eIdUtils.h>
@@ -29,6 +30,8 @@ struct CmpChar{
 typedef std::map<char *, char **, CmpChar> CharMap;
 typedef std::map<char *, char **, CmpChar>::iterator CharMapIt;
 typedef std::map<char *, char **, CmpChar>::const_iterator CharMapConstIt;
+
+typedef std::list<std::string>	certificateList_t;
 
 namespace Bundesdruckerei
 {
@@ -138,7 +141,7 @@ namespace Bundesdruckerei
         std::vector<unsigned char> chat,
         std::string cvCACHAR,
         std::vector<unsigned char> idPICC,
-        std::vector<unsigned char>& dvcaCertificate,
+        std::list<ByteData> list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
 

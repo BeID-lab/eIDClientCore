@@ -27,6 +27,9 @@ USING_NAMESPACE(CryptoPP)
 // Start implementation
 // ---------------------------------------------------------------------------
 
+    /* TODO unify perform_TA_Step_A and perform_TA_Step_C.
+     * TODO unify perform_TA_Step_B perform_TA_Step_D */
+
 /*
  *
  */
@@ -518,7 +521,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   IN OUT unsigned long long &ssc,
   IN BYTE_INPUT_DATA efCardAccess,
   IN BYTE_INPUT_DATA carCVCA,
-  IN BYTE_INPUT_DATA dvcaCertificate,
+  IN std::list<BYTE_INPUT_DATA> list_certificates,
   IN BYTE_INPUT_DATA terminalCertificate,
   IN BYTE_INPUT_DATA x_Puk_ICC_DH2,
   IN BYTE_INPUT_DATA x_Puk_IFD_DH_CA,
@@ -598,32 +601,40 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   for (size_t i = 0; i < x_Puk_IFD_DH_CA.dataSize; i++)
     x_Puk_IFD_DH_.push_back(x_Puk_IFD_DH_CA.pData[i]);
 
-  if (ECARD_SUCCESS != (status = perform_TA_Step_A(carCVCA, ssc, kEnc, kMac, card_)))
-  {
-    asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-    asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-    return status;
+  /* TODO verify the chain of certificates in the middle ware */
+
+  BYTE_INPUT_DATA _current_car = carCVCA;
+  while (!list_certificates.empty()) {
+      hexdump("CAR: ", _current_car.pData, _current_car.dataSize);
+
+      if (ECARD_SUCCESS != (status = perform_TA_Step_A(_current_car, ssc, kEnc, kMac, card_)))
+      {
+          asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
+          asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+          return status;
+      }
+
+      BYTE_INPUT_DATA cert;
+      cert = list_certificates.front();
+      list_certificates.pop_front();
+
+      if (ECARD_SUCCESS != (status = perform_TA_Step_B(ssc, kEnc, kMac, cert, card_)))
+      {
+          asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
+          asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+          return status;
+      }
+
+      std::string current_car = getCAR(cert);
+      _current_car.dataSize = current_car.size();
+      _current_car.pData    = (PBYTE) &current_car[0];
   }
 
-  if (ECARD_SUCCESS != (status = perform_TA_Step_B(ssc, kEnc, kMac, dvcaCertificate, card_)))
+  if (ECARD_SUCCESS != (status = perform_TA_Step_C(_current_car, ssc, kEnc, kMac, card_)))
   {
-    asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-    asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-    return status;
-  }
-
-  std::string carDVCA_ = getCAR(terminalCertificate);
-  hexdump("TERM CAR: ", &carDVCA_[0], carDVCA_.size());
-
-  BYTE_INPUT_DATA carDVCA;
-  carDVCA.dataSize = carDVCA_.size();
-  carDVCA.pData    = (PBYTE) &carDVCA_[0];
-
-  if (ECARD_SUCCESS != (status = perform_TA_Step_C(carDVCA, ssc, kEnc, kMac, card_)))
-  {
-    asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-    asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-    return status;
+      asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
+      asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+      return status;
   }
 
   if (ECARD_SUCCESS != (status = perform_TA_Step_D(ssc, kEnc, kMac, terminalCertificate, card_)))

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <list>
 
 /**
  */
@@ -73,7 +74,7 @@ public:
    * @param toBeSigned The data which will be signed by the eID server.
    */
   ECARD_STATUS TerminalAuthentication(
-    IN const BYTE_INPUT_DATA& dvCertificate,
+    IN const std::list<BYTE_INPUT_DATA> list_certificates,
     IN const BYTE_INPUT_DATA& terminalCertificate,
     IN const BYTE_INPUT_DATA& x_PuK_IFD_DH_CA,
     IN const BYTE_INPUT_DATA& authenticatedAuxiliaryData,
