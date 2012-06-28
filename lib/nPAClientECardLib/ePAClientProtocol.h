@@ -60,9 +60,9 @@ public:
    * @param keyReference 
    */
   ECARD_STATUS PACE(
-    IN const BYTE_INPUT_DATA& chat,
-    IN const BYTE_INPUT_DATA& certificate_description,
-    IN const BYTE_INPUT_DATA& password,
+    IN const std::vector<unsigned char>& chat,
+    IN const std::vector<unsigned char>& certificate_description,
+    IN const std::vector<unsigned char>& password,
     IN KEY_REFERENCE keyReference,
     OUT unsigned char& PINCount);
 
@@ -74,11 +74,11 @@ public:
    * @param toBeSigned The data which will be signed by the eID server.
    */
   ECARD_STATUS TerminalAuthentication(
-    IN const std::list<BYTE_INPUT_DATA> list_certificates,
-    IN const BYTE_INPUT_DATA& terminalCertificate,
-    IN const BYTE_INPUT_DATA& x_PuK_IFD_DH_CA,
-    IN const BYTE_INPUT_DATA& authenticatedAuxiliaryData,
-    IN OUT BYTE_OUTPUT_DATA& toBeSigned);
+    IN std::list<std::vector<unsigned char> >& list_certificates,
+    IN const std::vector<unsigned char>& terminalCertificate,
+    IN const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
+    IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
+    IN OUT std::vector<unsigned char>& toBeSigned);
 
   /**
    * @brief Send the signature, created by the eID server, to the chip.
@@ -86,39 +86,39 @@ public:
    * @param signature The signature data.
    */
   ECARD_STATUS SendSignature(
-    IN const BYTE_INPUT_DATA& signature);
+    IN const std::vector<unsigned char>& signature);
 
   /**
    * @brief Perform the chip authentication.
    */
   ECARD_STATUS ChipAuthentication(
-    IN const BYTE_INPUT_DATA& x_Puk_IFD_DH,
-    IN const BYTE_INPUT_DATA& y_Puk_IFD_DH,
-    IN OUT BYTE_OUTPUT_DATA& GeneralAuthenticationResult);
+    IN const std::vector<unsigned char>& x_Puk_IFD_DH,
+    IN const std::vector<unsigned char>& y_Puk_IFD_DH,
+    IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
 
   /**
    * @brief Get the PACE domain parameter info from EF.CardAccess.
    */
 //  ECARD_STATUS GetPACEDomainParamter(
-//    IN OUT BYTE_OUTPUT_DATA& pacedp);
+//    IN OUT std::vector<unsigned char>& pacedp);
 
   /**
    * @brief Get the EF.CardAccess.
    */
   ECARD_STATUS GetEFCardAccess(
-    IN OUT BYTE_OUTPUT_DATA& efCardAccess);
+    IN OUT std::vector<unsigned char>& efCardAccess);
 
   /**
    * @brief Get the EF.CardSecurity.
    */
   ECARD_STATUS GetEFCardSecurity(
-  IN OUT BYTE_OUTPUT_DATA& efCardSecurity);
+  IN OUT std::vector<unsigned char>& efCardSecurity);
 
   /**
    * @brief Get the IDPICC.
    */
   ECARD_STATUS GetIDPICC(
-    IN OUT BYTE_OUTPUT_DATA& idPICC);
+    IN OUT std::vector<unsigned char>& idPICC);
 
   std::string GetCARCVCA() { return m_carCVCA;}
 
@@ -126,7 +126,7 @@ public:
    * @brief change PIN
    */
 //  ECARD_STATUS ChangePIN(
-//    IN const BYTE_INPUT_DATA& pin);
+//    IN const std::vector<unsigned char>& pin);
 
   /**
    * @brief reset retry counter PIN

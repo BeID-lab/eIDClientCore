@@ -25,23 +25,23 @@ ECARD_STATUS __STDCALL__ ePAGetFileSize(
 ECARD_STATUS __STDCALL__ ePAGetFileSize(
   IN ECARD_HANDLE hCard,
   IN USHORT fid,
-  IN BYTE_INPUT_DATA& kEnc,
-  IN BYTE_INPUT_DATA& kMac,
+  IN std::vector<unsigned char>& kEnc,
+  IN std::vector<unsigned char>& kMac,
   IN unsigned long long& ssc,
   IN OUT PDWORD dwSize);
 
 ECARD_STATUS __STDCALL__ ePAReadFile(
   IN ECARD_HANDLE hCard,
   IN size_t bytesToRead,
-  IN OUT BYTE_OUTPUT_DATA& fileContent);
+  IN OUT std::vector<unsigned char>& fileContent);
 
 ECARD_STATUS __STDCALL__ ePAReadFile(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA& kEnc,
-  IN BYTE_INPUT_DATA& kMac,
+  IN std::vector<unsigned char>& kEnc,
+  IN std::vector<unsigned char>& kMac,
   IN unsigned long long& ssc,
   IN size_t bytesToRead,
-  IN OUT BYTE_OUTPUT_DATA& fileContent);
+  IN OUT std::vector<unsigned char>& fileContent);
 
 /**
  */
@@ -74,9 +74,9 @@ ePAClientProtocol::~ePAClientProtocol(
 /**
  */
 ECARD_STATUS ePAClientProtocol::PACE(
-  IN const BYTE_INPUT_DATA& chat,
-  IN const BYTE_INPUT_DATA& certificate_description,
-  IN const BYTE_INPUT_DATA& password,
+  IN const std::vector<unsigned char>& chat,
+  IN const std::vector<unsigned char>& certificate_description,
+  IN const std::vector<unsigned char>& password,
   IN KEY_REFERENCE keyReference,
   OUT unsigned char& PINCount)
 {
@@ -87,15 +87,14 @@ ECARD_STATUS ePAClientProtocol::PACE(
     return status_;
 
   // Setup input variables
-  BYTE_INPUT_DATA efCardAccess_;
-  efCardAccess_.dataSize = m_efCardAccess.size();
-  efCardAccess_.pData = &m_efCardAccess[0];
+  std::vector<unsigned char> efCardAccess_;
+  efCardAccess_ = m_efCardAccess;
 
   // Setup output variables
-  BYTE_OUTPUT_DATA kMac_(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
-  BYTE_OUTPUT_DATA kEnc_(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
-  BYTE_OUTPUT_DATA car_cvca_(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
-  BYTE_OUTPUT_DATA x_Puk_ICC_DH2_(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
+  std::vector<unsigned char> kMac_;
+  std::vector<unsigned char> kEnc_;
+  std::vector<unsigned char> car_cvca_;
+  std::vector<unsigned char> x_Puk_ICC_DH2_;
    
   // Run the PACE protocol.
   if (ECARD_SUCCESS != (status_ = ePAPerformPACE(m_hCard, keyReference, chat, certificate_description, password,
@@ -103,24 +102,17 @@ ECARD_STATUS ePAClientProtocol::PACE(
     return status_;
 
   // Copy the PACE results for further usage.
-  for (size_t i = 0; i < kMac_.m_dataSize; i++)
-    m_kMac.push_back(kMac_.m_pDataBuffer[i]);
-
-  for (size_t i = 0; i < kEnc_.m_dataSize; i++)
-    m_kEnc.push_back(kEnc_.m_pDataBuffer[i]);
-
-  for (size_t i = 0; i < car_cvca_.m_dataSize; i++)
-    m_carCVCA.push_back(car_cvca_.m_pDataBuffer[i]);
+  m_kMac = kMac_;
+  m_kEnc = kEnc_;
+  m_carCVCA = std::string ( car_cvca_.begin(), car_cvca_.end() );
 
   // try to pad this to 20 bytes TODO remove
-  if (x_Puk_ICC_DH2_.m_dataSize < 0x20) 
+  if (x_Puk_ICC_DH2_.size() < 0x20) 
   {
-	for (size_t i = 0; i < 20 - x_Puk_ICC_DH2_.m_dataSize; i++)
-	  m_x_Puk_ICC_DH2.push_back(0x00);
+      m_x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
   }
 
-  for (size_t i = 0; i < x_Puk_ICC_DH2_.m_dataSize; i++)
-    m_x_Puk_ICC_DH2.push_back(x_Puk_ICC_DH2_.m_pDataBuffer[i]);
+  m_x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
 
   return ECARD_SUCCESS;
 }
@@ -128,42 +120,35 @@ ECARD_STATUS ePAClientProtocol::PACE(
 /**
  */
 ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
-  IN const std::list<BYTE_INPUT_DATA> list_certificates,
-  IN const BYTE_INPUT_DATA& terminalCertificate,
-  IN const BYTE_INPUT_DATA& x_PuK_IFD_DH_CA,
-  IN const BYTE_INPUT_DATA& authenticatedAuxiliaryData,
-  IN OUT BYTE_OUTPUT_DATA& toBeSigned)
+  IN std::list<std::vector<unsigned char> >& list_certificates,
+  IN const std::vector<unsigned char>& terminalCertificate,
+  IN const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
+  IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
+  IN OUT std::vector<unsigned char>& toBeSigned)
 {
   // Setup input variables
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_ = m_kEnc;
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_ = m_kMac;
 
-  BYTE_INPUT_DATA carCVCA_;
-  carCVCA_.dataSize = m_carCVCA.size();
-  carCVCA_.pData = (BYTE*) &m_carCVCA[0];
+  std::vector<unsigned char> carCVCA_;
+  carCVCA_ = std::vector<unsigned char> ( m_carCVCA.begin(), m_carCVCA.end() );
 
-  BYTE_INPUT_DATA efCardAccess_;
-  efCardAccess_.dataSize = m_efCardAccess.size();
-  efCardAccess_.pData = &m_efCardAccess[0];
+  std::vector<unsigned char> efCardAccess_;
+  efCardAccess_ = m_efCardAccess;
 
-  BYTE_INPUT_DATA x_PuK_ICC_DH2_;
-  x_PuK_ICC_DH2_.dataSize = m_x_Puk_ICC_DH2.size();
-  x_PuK_ICC_DH2_.pData = &m_x_Puk_ICC_DH2[0];
+  std::vector<unsigned char> x_PuK_ICC_DH2_;
+  x_PuK_ICC_DH2_ = m_x_Puk_ICC_DH2;
  
-  //assert(0x20 == x_PuK_ICC_DH2_.dataSize);
+  //assert(0x20 == x_PuK_ICC_DH2_.size());
 
   // Do work
-  ECARD_STATUS status_ = ECARD_SUCCESS;
-  if (ECARD_SUCCESS != (status_ = ePAPerformTA(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, efCardAccess_, 
-    carCVCA_, list_certificates, terminalCertificate, x_PuK_ICC_DH2_, x_PuK_IFD_DH_CA, authenticatedAuxiliaryData, toBeSigned)))
-    return status_;
-
-  return ECARD_SUCCESS;
+  return ePAPerformTA(m_hCard, kEnc_, kMac_, m_SendSequenceCounter,
+          efCardAccess_, carCVCA_, list_certificates, terminalCertificate,
+          x_PuK_ICC_DH2_, x_PuK_IFD_DH_CA, authenticatedAuxiliaryData,
+          toBeSigned);
 }
 
 /**
@@ -188,33 +173,32 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardAccess(
   //  return status_;
  
   // Read the content of EF.CardAccess.
-  BYTE_OUTPUT_DATA fileDataSmall(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
+  std::vector<unsigned char> fileDataSmall;
   if (ECARD_SUCCESS != (status_ = ePAReadFile(m_hCard, 4, fileDataSmall)))
     return status_;
 
-  if (fileDataSmall.m_pDataBuffer[1] == 0x81)
+  if (fileDataSmall[1] == 0x81)
   {
-    fileSize = fileDataSmall.m_pDataBuffer[2];
+    fileSize = fileDataSmall[2];
     fileSize += 3;
   }
 
-  if (fileDataSmall.m_pDataBuffer[1] == 0x82)
+  if (fileDataSmall[1] == 0x82)
   {
-    fileSize = fileDataSmall.m_pDataBuffer[2] << 8;
-    fileSize += fileDataSmall.m_pDataBuffer[3];
+    fileSize = fileDataSmall[2] << 8;
+    fileSize += fileDataSmall[3];
     fileSize += 4; 
   }
 
   // Read the content of EF.CardAccess.
-  BYTE_OUTPUT_DATA fileData(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
+  std::vector<unsigned char> fileData;
   if (ECARD_SUCCESS != (status_ = ePAReadFile(m_hCard, fileSize, fileData)))
     return status_;
 
   // May check the data size and resize the buffer!!!
 
   // Copy the content for further usage.
-  for (size_t i = 0 ; i < fileData.m_dataSize; i++)
-    m_efCardAccess.push_back(fileData.m_pDataBuffer[i]); 
+  m_efCardAccess = fileData; 
 
   return ECARD_SUCCESS;
 }
@@ -237,13 +221,12 @@ ECARD_STATUS ePAClientProtocol::read_EF_ChipSecurity(
     return status_;
 
   // Read the content of EF.CardAccess.
-  BYTE_OUTPUT_DATA fileData(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
+  std::vector<unsigned char> fileData;
   if (ECARD_SUCCESS != (status_ = ePAReadFile(m_hCard, fileSize, fileData)))
     return status_;
 
   // Copy the content for further usage.
-  for (size_t i = 0 ; i < fileData.m_dataSize; i++)
-    m_efCardAccess.push_back(fileData.m_pDataBuffer[i]); 
+  m_efCardAccess = fileData; 
 
   return ECARD_SUCCESS;
 }
@@ -255,13 +238,11 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardSecurity(
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_ = m_kEnc;
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_ = m_kMac;
 
   // Query the size of EF.CardSecurity. The selction of the file is implicid here. So we
   // have no SELCT on EF.CardSecurity before.
@@ -270,13 +251,12 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardSecurity(
     return status_;
 
   // Read the content of EF.CardSecurity.
-  BYTE_OUTPUT_DATA fileData(&ePAClientProtocol_allocator, &ePAClientProtocol_deallocator);
+  std::vector<unsigned char> fileData;
   if (ECARD_SUCCESS != (status_ = ePAReadFile(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, fileSize, fileData)))
     return status_;
 
   // Copy the content for further usage.
-  for (size_t i = 0 ; i < fileData.m_dataSize; i++)
-    m_efCardSecurity.push_back(fileData.m_pDataBuffer[i]); 
+  m_efCardSecurity = fileData; 
 
   return ECARD_SUCCESS;
 }
@@ -284,16 +264,14 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardSecurity(
 /**
  */
 ECARD_STATUS ePAClientProtocol::SendSignature(
-  IN const BYTE_INPUT_DATA& signature)
+  IN const std::vector<unsigned char>& signature)
 {
   // Setup input variables
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_ = m_kEnc;
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_ = m_kMac;
 
   return ePASendSignature(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, signature);
 }
@@ -301,27 +279,25 @@ ECARD_STATUS ePAClientProtocol::SendSignature(
 /**
  */
 ECARD_STATUS ePAClientProtocol::ChipAuthentication(
-  IN const BYTE_INPUT_DATA& x_Puk_IFD_DH,
-  IN const BYTE_INPUT_DATA& y_Puk_IFD_DH,
-  IN OUT BYTE_OUTPUT_DATA& GeneralAuthenticationResult)
+  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
+  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
+  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult)
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
-  //assert(0x20 == x_Puk_IFD_DH.dataSize);
-  //assert(0x20 == y_Puk_IFD_DH.dataSize);
+  //assert(0x20 == x_Puk_IFD_DH.size());
+  //assert(0x20 == y_Puk_IFD_DH.size());
 
   // Read EF.CardAccess from the chip.
   if (ECARD_SUCCESS != (status_ = read_EF_CardSecurity()))
     return status_;
 
   // Setup input variables
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_ = m_kEnc;
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_ = m_kMac;
 
   if (ECARD_SUCCESS != (status_ = ePAPerformCA(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
     return status_;
@@ -332,11 +308,9 @@ ECARD_STATUS ePAClientProtocol::ChipAuthentication(
 /**
  */
 ECARD_STATUS ePAClientProtocol::GetEFCardAccess(
-  IN OUT BYTE_OUTPUT_DATA& efCardAccess)
+  IN OUT std::vector<unsigned char>& efCardAccess)
 {
-  efCardAccess.m_dataSize = m_efCardAccess.size();
-  efCardAccess.m_pDataBuffer = efCardAccess.m_allocator(m_efCardAccess.size());
-  memcpy(efCardAccess.m_pDataBuffer, &m_efCardAccess[0], m_efCardAccess.size());        
+  efCardAccess = m_efCardAccess;
   
   return ECARD_SUCCESS;
 }
@@ -344,11 +318,9 @@ ECARD_STATUS ePAClientProtocol::GetEFCardAccess(
 /**
  */
 ECARD_STATUS ePAClientProtocol::GetEFCardSecurity(
-  IN OUT BYTE_OUTPUT_DATA& efCardSecurity)
+  IN OUT std::vector<unsigned char>& efCardSecurity)
 {
-  efCardSecurity.m_dataSize = m_efCardSecurity.size();
-  efCardSecurity.m_pDataBuffer = efCardSecurity.m_allocator(m_efCardSecurity.size());
-  memcpy(efCardSecurity.m_pDataBuffer, &m_efCardSecurity[0], m_efCardSecurity.size());        
+  efCardSecurity = m_efCardSecurity;
   
   return ECARD_SUCCESS;
 }
@@ -356,11 +328,9 @@ ECARD_STATUS ePAClientProtocol::GetEFCardSecurity(
 /**
  */
 ECARD_STATUS ePAClientProtocol::GetIDPICC(
-  IN OUT BYTE_OUTPUT_DATA& idPICC)
+  IN OUT std::vector<unsigned char>& idPICC)
 {
-  idPICC.m_dataSize = m_x_Puk_ICC_DH2.size();
-  idPICC.m_pDataBuffer = idPICC.m_allocator(m_x_Puk_ICC_DH2.size());
-  memcpy(idPICC.m_pDataBuffer, &m_x_Puk_ICC_DH2[0], m_x_Puk_ICC_DH2.size());        
+  idPICC = m_x_Puk_ICC_DH2;
   
   return ECARD_SUCCESS;
 }
@@ -368,16 +338,16 @@ ECARD_STATUS ePAClientProtocol::GetIDPICC(
 /**
  */
 /*ECARD_STATUS ePAClientProtocol::ChangePIN(
-    IN const BYTE_INPUT_DATA& pin)
+    IN const std::vector<unsigned char>& pin)
 {
   // Setup input variables
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_.size() = m_kEnc.size();
+  kEnc_ = &m_kEnc[0];
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_.size() = m_kMac.size();
+  kMac_ = &m_kMac[0];
 
   ECARD_STATUS status_ = ECARD_SUCCESS;
   if (ECARD_SUCCESS != (status_ = ePAChangePIN(m_hCard, kEnc_, kMac_, m_SendSequenceCounter, pin)))
@@ -389,13 +359,13 @@ ECARD_STATUS ePAClientProtocol::GetIDPICC(
 ECARD_STATUS ePAClientProtocol::ResetRetryCounterPIN()
 {
   // Setup input variables
-  BYTE_INPUT_DATA kEnc_;
-  kEnc_.dataSize = m_kEnc.size();
-  kEnc_.pData = &m_kEnc[0];
+  std::vector<unsigned char> kEnc_;
+  kEnc_.size() = m_kEnc.size();
+  kEnc_ = &m_kEnc[0];
 
-  BYTE_INPUT_DATA kMac_;
-  kMac_.dataSize = m_kMac.size();
-  kMac_.pData = &m_kMac[0];
+  std::vector<unsigned char> kMac_;
+  kMac_.size() = m_kMac.size();
+  kMac_ = &m_kMac[0];
 
   ECARD_STATUS status_ = ECARD_SUCCESS;
   if (ECARD_SUCCESS != (status_ = ePAResetRetryCounterPIN(m_hCard, kEnc_, kMac_, m_SendSequenceCounter)))

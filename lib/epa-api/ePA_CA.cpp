@@ -8,8 +8,8 @@ using namespace Bundesdruckerei::nPA;
 /**
  */ 
 ECARD_STATUS __STDCALL__ perform_CA_Step_B( 
-  BYTE_INPUT_DATA kEnc,
-  BYTE_INPUT_DATA kMac, 
+  std::vector<unsigned char> kEnc,
+  std::vector<unsigned char> kMac, 
   unsigned long long& ssc, 
   ePACard* ePA_ ) 
 {
@@ -60,39 +60,39 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 /**
  */
 ECARD_STATUS __STDCALL__ perform_CA_Step_C( 
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac, 
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac, 
   IN OUT unsigned long long& ssc, 
   IN ePACard* ePA_,
-  IN BYTE_INPUT_DATA x_Puk_IFD_DH,
-  IN BYTE_INPUT_DATA y_Puk_IFD_DH,
-  IN OUT BYTE_OUTPUT_DATA& GeneralAuthenticationResult) 
+  IN std::vector<unsigned char> x_Puk_IFD_DH,
+  IN std::vector<unsigned char> y_Puk_IFD_DH,
+  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult) 
 {
   CardCommand GenralAuthenticate_;
   GenralAuthenticate_ << 0x0C << 0x86 << 0x00 << 0x00;
 
-  int fillerX_ = 32 - x_Puk_IFD_DH.dataSize;
-  int fillerY_ = 32 - y_Puk_IFD_DH.dataSize;
+  int fillerX_ = 32 - x_Puk_IFD_DH.size();
+  int fillerY_ = 32 - y_Puk_IFD_DH.size();
 
   std::vector<unsigned char> dataPart_;
   // '7C' || L7C || '80' || L80 || ('04' || x(PuK.IFD.DH) || y(PuK.IFD.DH))
   dataPart_.push_back(0x7C);
-  dataPart_.push_back((x_Puk_IFD_DH.dataSize + fillerX_ + y_Puk_IFD_DH.dataSize + fillerY_) + 3);
+  dataPart_.push_back((x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_) + 3);
   dataPart_.push_back(0x80);
-  dataPart_.push_back((x_Puk_IFD_DH.dataSize + fillerX_ + y_Puk_IFD_DH.dataSize + fillerY_) + 1);
+  dataPart_.push_back((x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_) + 1);
   dataPart_.push_back(0x04);
 
   for (size_t i = 0; i < fillerX_; i++)
     dataPart_.push_back(0x00);
 
-  for (size_t i = 0; i < x_Puk_IFD_DH.dataSize; i++)
-    dataPart_.push_back(x_Puk_IFD_DH.pData[i]);
+  for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
+    dataPart_.push_back(x_Puk_IFD_DH[i]);
 
   for (size_t i = 0; i < fillerY_; i++)
     dataPart_.push_back(0x00);
 
-  for (size_t i = 0; i < y_Puk_IFD_DH.dataSize; i++)
-    dataPart_.push_back(y_Puk_IFD_DH.pData[i]);
+  for (size_t i = 0; i < y_Puk_IFD_DH.size(); i++)
+    dataPart_.push_back(y_Puk_IFD_DH[i]);
 
 
   // Build the SM related structures.
@@ -133,9 +133,7 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
   std::vector<unsigned char> decryptedDataPart = decryptResponse_AES(kEnc, returnedData, ssc);
   hexdump("###-> Decrypted response (GENERAL AUTHENTICATE): ", &decryptedDataPart[0], decryptedDataPart.size());
 
-  GeneralAuthenticationResult.m_dataSize = decryptedDataPart.size();
-  GeneralAuthenticationResult.m_pDataBuffer = GeneralAuthenticationResult.m_allocator(decryptedDataPart.size());
-  memcpy(GeneralAuthenticationResult.m_pDataBuffer, &decryptedDataPart[0], decryptedDataPart.size());
+  GeneralAuthenticationResult = decryptedDataPart;
 
   return ECARD_SUCCESS;
 }
@@ -144,12 +142,12 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA x_Puk_IFD_DH,
-  IN BYTE_INPUT_DATA y_Puk_IFD_DH,
-  IN OUT BYTE_OUTPUT_DATA& GeneralAuthenticationResult)
+  IN std::vector<unsigned char> x_Puk_IFD_DH,
+  IN std::vector<unsigned char> y_Puk_IFD_DH,
+  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)

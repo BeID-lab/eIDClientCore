@@ -86,8 +86,8 @@ ECARD_STATUS __STDCALL__ ePAGetFileSize(
 ECARD_STATUS __STDCALL__ ePAGetFileSize(
   IN ECARD_HANDLE hCard,
   IN USHORT fid,
-  IN BYTE_INPUT_DATA& kEnc,
-  IN BYTE_INPUT_DATA& kMac,
+  IN std::vector<unsigned char>& kEnc,
+  IN std::vector<unsigned char>& kMac,
   IN unsigned long long& ssc,
   IN OUT PDWORD dwSize)
 {
@@ -166,7 +166,7 @@ ECARD_STATUS __STDCALL__ ePAGetFileSize(
 ECARD_STATUS __STDCALL__ ePAReadFile(
   IN ECARD_HANDLE hCard,
   IN size_t bytesToRead,
-  IN OUT BYTE_OUTPUT_DATA& fileContent)
+  IN OUT std::vector<unsigned char>& fileContent)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
@@ -186,9 +186,7 @@ ECARD_STATUS __STDCALL__ ePAReadFile(
     return ECARD_READ_ERROR;
 
   // Allocate the output buffer and copy the file content into.
-  fileContent.m_dataSize = fileData.size();
-  fileContent.m_pDataBuffer = fileContent.m_allocator(fileContent.m_dataSize);
-  memcpy(fileContent.m_pDataBuffer, &fileData[0], fileContent.m_dataSize);
+  fileContent = fileData;
 
   return ECARD_SUCCESS;
 }
@@ -197,11 +195,11 @@ ECARD_STATUS __STDCALL__ ePAReadFile(
  */
 ECARD_STATUS __STDCALL__ ePAReadFile(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA& kEnc,
-  IN BYTE_INPUT_DATA& kMac,
+  IN std::vector<unsigned char>& kEnc,
+  IN std::vector<unsigned char>& kMac,
   IN unsigned long long& ssc,
   IN size_t bytesToRead,
-  IN OUT BYTE_OUTPUT_DATA& fileContent)
+  IN OUT std::vector<unsigned char>& fileContent)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
@@ -275,9 +273,7 @@ ECARD_STATUS __STDCALL__ ePAReadFile(
       content.push_back(decryptedDataPart[i]);
   }
 
-  fileContent.m_dataSize = content.size();
-  fileContent.m_pDataBuffer = fileContent.m_allocator(content.size());
-  memcpy(fileContent.m_pDataBuffer, &content[0], content.size());
+  fileContent = content;
 
   return ECARD_SUCCESS;
 }
@@ -287,8 +283,8 @@ ECARD_STATUS __STDCALL__ ePAReadFile(
 */
 ECARD_STATUS __STDCALL__ ePASendAPDU(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA capdu,
-  IN OUT BYTE_OUTPUT_DATA& rapdu)
+  IN std::vector<unsigned char> capdu,
+  IN OUT std::vector<unsigned char>& rapdu)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
@@ -304,15 +300,13 @@ ECARD_STATUS __STDCALL__ ePASendAPDU(
 
   CardCommand command;
 
-  for (size_t i = 0; i < capdu.dataSize; i++)
-    command.push_back(capdu.pData[i]);
+  for (size_t i = 0; i < capdu.size(); i++)
+    command.push_back(capdu[i]);
 
   std::vector<unsigned char> result_;
   ePA_->sentAPDU(command, result_);
 
-  rapdu.m_dataSize = result_.size();
-  rapdu.m_pDataBuffer = rapdu.m_allocator(result_.size());
-  memcpy(rapdu.m_pDataBuffer, &result_[0], result_.size());
+  rapdu = result_;
 
   return ECARD_SUCCESS;
 }

@@ -92,6 +92,7 @@ PCSCReader::PCSCReader (
 
   /* does the reader support PACE? */
   m_ioctl_pace = 0;
+#if 0
   recvlen = sizeof(recvbuf);
   retValue = SCardControl(m_hCard, CM_IOCTL_GET_FEATURE_REQUEST, NULL, 0,
           recvbuf, sizeof(recvbuf), &recvlen);
@@ -134,6 +135,7 @@ PCSCReader::PCSCReader (
           m_ioctl_pace = 0;
       }
   }
+#endif
 }
 
 /*

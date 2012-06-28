@@ -27,17 +27,14 @@ USING_NAMESPACE(CryptoPP)
 // Start implementation
 // ---------------------------------------------------------------------------
 
-    /* TODO unify perform_TA_Step_A and perform_TA_Step_C.
-     * TODO unify perform_TA_Step_B perform_TA_Step_D */
-
 /*
  *
  */
-ECARD_STATUS __STDCALL__ perform_TA_Step_A( 
-  BYTE_INPUT_DATA &carCVCA, 
+ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR( 
+  std::vector<unsigned char> &carCVCA, 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac, 
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac, 
   ICard* card_ )
 {
   CardCommand MseSetDST;
@@ -47,11 +44,11 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_A(
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x83);
   // Set the size
-  dataPart_.push_back(carCVCA.dataSize);
+  dataPart_.push_back(carCVCA.size());
 
   // Append the CAR
-  for (size_t i = 0; i < carCVCA.dataSize ; i++)
-    dataPart_.push_back(carCVCA.pData[i]);
+  for (size_t i = 0; i < carCVCA.size() ; i++)
+    dataPart_.push_back(carCVCA[i]);
 
   // Build the SM related structures.
   std::vector<unsigned char> do87_ = buildDO87_AES(kEnc, dataPart_, ssc);
@@ -89,26 +86,26 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_A(
 /*
  *
  */
-ECARD_STATUS __STDCALL__ perform_TA_Step_B( 
+ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate( 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac, 
-  BYTE_INPUT_DATA dvcaCertificate,
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac, 
+  std::vector<unsigned char> dvcaCertificate,
   ICard* card_ )
 {
   int copyOffset = 0;
 
   // Check for certificate header and cut off is needed
-  if (dvcaCertificate.pData[0] == 0x7F && dvcaCertificate.pData[1] == 0x21)
+  if (dvcaCertificate[0] == 0x7F && dvcaCertificate[1] == 0x21)
   {
     // One length byte
-    if (dvcaCertificate.pData[2] == 0x81)
+    if (dvcaCertificate[2] == 0x81)
       copyOffset = 4;
 
     // Two length bytes
-    if (dvcaCertificate.pData[2] == 0x82)
+    if (dvcaCertificate[2] == 0x82)
       copyOffset = 5;
-  } else if (dvcaCertificate.pData[0] == 0x7F && dvcaCertificate.pData[1] == 0x4E)
+  } else if (dvcaCertificate[0] == 0x7F && dvcaCertificate[1] == 0x4E)
   {
     // Copy all
     copyOffset = 0;
@@ -120,8 +117,8 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_B(
 
   std::vector<unsigned char> dvcaCertificate_;
   // Copy the terminal certificate for further usage.
-  for (size_t i = copyOffset; i < dvcaCertificate.dataSize; i++)
-    dvcaCertificate_.push_back(dvcaCertificate.pData[i]);
+  for (size_t i = copyOffset; i < dvcaCertificate.size(); i++)
+    dvcaCertificate_.push_back(dvcaCertificate[i]);
 
   CardCommand VerifyCertificate;
   VerifyCertificate << 0x0C << 0x2A << 0x00 << 0xBE;
@@ -183,10 +180,10 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_B(
  *
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_C( 
-  BYTE_INPUT_DATA &carDVCA, 
+  std::vector<unsigned char> &carDVCA, 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac, 
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac, 
   ICard* card_ )
 {
   CardCommand MseSetDST;
@@ -196,11 +193,11 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_C(
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x83);
   // Set the size
-  dataPart_.push_back(carDVCA.dataSize);
+  dataPart_.push_back(carDVCA.size());
 
   // Append the CAR
-  for (size_t i = 0; i < carDVCA.dataSize ; i++)
-    dataPart_.push_back(carDVCA.pData[i]);
+  for (size_t i = 0; i < carDVCA.size() ; i++)
+    dataPart_.push_back(carDVCA[i]);
 
   // Build the SM related structures.
   std::vector<unsigned char> do87_ = buildDO87_AES(kEnc, dataPart_, ssc);
@@ -240,24 +237,24 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_C(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_D( 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac, 
-  BYTE_INPUT_DATA terminalCertificateData,
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac, 
+  std::vector<unsigned char> terminalCertificateData,
   ICard* card_ )
 {
   int copyOffset = 0;
 
   // Check for certificate header and cut off is needed
-  if (terminalCertificateData.pData[0] == 0x7F && terminalCertificateData.pData[1] == 0x21)
+  if (terminalCertificateData[0] == 0x7F && terminalCertificateData[1] == 0x21)
   {
     // One length byte
-    if (terminalCertificateData.pData[2] == 0x81)
+    if (terminalCertificateData[2] == 0x81)
       copyOffset = 4;
 
     // Two length bytes
-    if (terminalCertificateData.pData[2] == 0x82)
+    if (terminalCertificateData[2] == 0x82)
       copyOffset = 5;
-  } else if (terminalCertificateData.pData[0] == 0x7F && terminalCertificateData.pData[1] == 0x4E)
+  } else if (terminalCertificateData[0] == 0x7F && terminalCertificateData[1] == 0x4E)
   {
     // Copy all
     copyOffset = 0;
@@ -269,8 +266,8 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_D(
 
   std::vector<unsigned char> terminalCertificateData_;
   // Copy the terminal certificate for further usage.
-  for (size_t i = copyOffset; i < terminalCertificateData.dataSize; i++)
-    terminalCertificateData_.push_back(terminalCertificateData.pData[i]);
+  for (size_t i = copyOffset; i < terminalCertificateData.size(); i++)
+    terminalCertificateData_.push_back(terminalCertificateData[i]);
 
   CardCommand VerifyCertificate;
   VerifyCertificate << 0x0C << 0x2A << 0x00 << 0xBE;
@@ -333,11 +330,11 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_D(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_E( 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac,
-  BYTE_INPUT_DATA keyID,
-  BYTE_INPUT_DATA x_Puk_IFD_DH,
-  BYTE_INPUT_DATA authenticatedAuxiliaryData,
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac,
+  std::vector<unsigned char> keyID,
+  std::vector<unsigned char> x_Puk_IFD_DH,
+  std::vector<unsigned char> authenticatedAuxiliaryData,
   ICard* card_ )
 {
   CardCommand MseSetAT;
@@ -353,17 +350,17 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
   dataField.push_back(0x02); dataField.push_back(0x03);  
   
   dataField.push_back(0x83); // keyId
-  dataField.push_back(keyID.dataSize);
-  for (size_t i = 0; i < keyID.dataSize; i++)
-    dataField.push_back(keyID.pData[i]);
+  dataField.push_back(keyID.size());
+  for (size_t i = 0; i < keyID.size(); i++)
+    dataField.push_back(keyID[i]);
 
   dataField.push_back(0x91); // x(Puk.IFD.CA) -> see chip authentication
-  dataField.push_back(x_Puk_IFD_DH.dataSize);
-  for (size_t i = 0; i < x_Puk_IFD_DH.dataSize; i++)
-    dataField.push_back(x_Puk_IFD_DH.pData[i]);
+  dataField.push_back(x_Puk_IFD_DH.size());
+  for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
+    dataField.push_back(x_Puk_IFD_DH[i]);
 
-  for (size_t i = 0; i < authenticatedAuxiliaryData.dataSize; i++)
-    dataField.push_back(authenticatedAuxiliaryData.pData[i]);
+  for (size_t i = 0; i < authenticatedAuxiliaryData.size(); i++)
+    dataField.push_back(authenticatedAuxiliaryData[i]);
   
   // Build the SM related structures.
   std::vector<unsigned char> do87_ = buildDO87_AES(kEnc, dataField, ssc);
@@ -403,8 +400,8 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_F( 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac,
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac,
   std::vector<unsigned char>& RND_ICC,
   ICard* card_ )
 {
@@ -450,9 +447,9 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_F(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_G( 
   unsigned long long &ssc, 
-  BYTE_INPUT_DATA kEnc, 
-  BYTE_INPUT_DATA kMac,
-  BYTE_INPUT_DATA signature,
+  std::vector<unsigned char> kEnc, 
+  std::vector<unsigned char> kMac,
+  std::vector<unsigned char> signature,
   ICard* card_ )
 {
   CardCommand ExternalAuthenticate_;
@@ -460,8 +457,8 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
 
   // Copy the input.
   std::vector<unsigned char> signature_;
-  for (size_t i = 0; i < signature.dataSize; i++)
-    signature_.push_back(signature.pData[i]);
+  for (size_t i = 0; i < signature.size(); i++)
+    signature_.push_back(signature[i]);
 
   // Build the SM related structures.
   std::vector<unsigned char> do87_ = buildDO87_AES(kEnc, signature_, ssc);
@@ -516,17 +513,17 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA efCardAccess,
-  IN BYTE_INPUT_DATA carCVCA,
-  IN std::list<BYTE_INPUT_DATA> list_certificates,
-  IN BYTE_INPUT_DATA terminalCertificate,
-  IN BYTE_INPUT_DATA x_Puk_ICC_DH2,
-  IN BYTE_INPUT_DATA x_Puk_IFD_DH_CA,
-  IN BYTE_INPUT_DATA authenticatedAuxiliaryData,
-  IN OUT BYTE_OUTPUT_DATA& toBeSigned)
+  IN std::vector<unsigned char> efCardAccess,
+  IN std::vector<unsigned char> carCVCA,
+  IN std::list<std::vector<unsigned char> >& list_certificates,
+  IN std::vector<unsigned char> terminalCertificate,
+  IN std::vector<unsigned char> x_Puk_ICC_DH2,
+  IN std::vector<unsigned char> x_Puk_IFD_DH_CA,
+  IN std::vector<unsigned char> authenticatedAuxiliaryData,
+  IN OUT std::vector<unsigned char>& toBeSigned)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 
@@ -544,7 +541,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
-  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, efCardAccess.pData, efCardAccess.dataSize).code != RC_OK)
+  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, &efCardAccess[0], efCardAccess.size()).code != RC_OK)
   {
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
     return ECARD_EFCARDACCESS_PARSER_ERROR;
@@ -591,73 +588,54 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
     } // Find the PACEDomainParameter ...
   } // for (int i = 0; i < secInfos_->list.count; i++)
 
-  //assert(0x20 == x_Puk_IFD_DH_CA.dataSize);
+  //assert(0x20 == x_Puk_IFD_DH_CA.size());
 
-  int filler_ = 32 - x_Puk_IFD_DH_CA.dataSize;
+  int filler_ = 32 - x_Puk_IFD_DH_CA.size();
   // Copy the x part of the public key for chip authentication. This key was created on the server.
   std::vector<unsigned char> x_Puk_IFD_DH_;
   for (int i = 0; i < filler_; i++)
     x_Puk_IFD_DH_.push_back(0x00);
-  for (size_t i = 0; i < x_Puk_IFD_DH_CA.dataSize; i++)
-    x_Puk_IFD_DH_.push_back(x_Puk_IFD_DH_CA.pData[i]);
+  for (size_t i = 0; i < x_Puk_IFD_DH_CA.size(); i++)
+    x_Puk_IFD_DH_.push_back(x_Puk_IFD_DH_CA[i]);
 
   /* TODO verify the chain of certificates in the middle ware */
 
-  BYTE_INPUT_DATA _current_car = carCVCA;
+  std::vector<unsigned char> _current_car = carCVCA;
   while (!list_certificates.empty()) {
-      hexdump("CAR: ", _current_car.pData, _current_car.dataSize);
+      std::string current_car;
 
-      if (ECARD_SUCCESS != (status = perform_TA_Step_A(_current_car, ssc, kEnc, kMac, card_)))
+      hexdump("CAR", &_current_car[0], _current_car.size());
+
+      if (ECARD_SUCCESS != (status = perform_TA_Step_Set_CAR(_current_car, ssc, kEnc, kMac, card_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
           return status;
       }
 
-      BYTE_INPUT_DATA cert;
+      std::vector<unsigned char> cert;
       cert = list_certificates.front();
       list_certificates.pop_front();
+      hexdump("certificate", &cert[0], cert.size());
 
-      if (ECARD_SUCCESS != (status = perform_TA_Step_B(ssc, kEnc, kMac, cert, card_)))
+      if (ECARD_SUCCESS != (status = perform_TA_Step_Verify_Certificate(ssc, kEnc, kMac, cert, card_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
           return status;
       }
 
-      std::string current_car = getCAR(cert);
-      _current_car.dataSize = current_car.size();
-      _current_car.pData    = (PBYTE) &current_car[0];
-  }
-
-  if (ECARD_SUCCESS != (status = perform_TA_Step_C(_current_car, ssc, kEnc, kMac, card_)))
-  {
-      asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-      asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-      return status;
-  }
-
-  if (ECARD_SUCCESS != (status = perform_TA_Step_D(ssc, kEnc, kMac, terminalCertificate, card_)))
-  {
-    asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-    asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-    return status;
+      current_car = getCHR(cert);
+      _current_car = std::vector<unsigned char>( current_car.begin(), current_car.end() );
   }
   
   std::string chrTerm_ = getCHR(terminalCertificate);
   hexdump("TERM CHR: ", &chrTerm_[0], chrTerm_.size());
 
-  BYTE_INPUT_DATA keyID_;
-  keyID_.dataSize = chrTerm_.size();
-  keyID_.pData = (PBYTE) &chrTerm_[0];
+  std::vector<unsigned char> x_Puk_IFD_DH;
+  x_Puk_IFD_DH = x_Puk_IFD_DH_;
 
-  //assert(0x20 == x_Puk_IFD_DH_.size());
-
-  BYTE_INPUT_DATA x_Puk_IFD_DH;
-  x_Puk_IFD_DH.dataSize = x_Puk_IFD_DH_.size();
-  x_Puk_IFD_DH.pData = &x_Puk_IFD_DH_[0];
-
-  if (ECARD_SUCCESS != (status = perform_TA_Step_E(ssc, kEnc, kMac, keyID_, x_Puk_IFD_DH, authenticatedAuxiliaryData, card_)))
+  if (ECARD_SUCCESS != (status = perform_TA_Step_E(ssc, kEnc, kMac, _current_car, x_Puk_IFD_DH, authenticatedAuxiliaryData, card_)))
   {
     asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -673,7 +651,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
     return status;
   }
  
-  int fillerX1_ = 32 - x_Puk_ICC_DH2.dataSize;
+  int fillerX1_ = 32 - x_Puk_ICC_DH2.size();
   int fillerX2_ = 32 - x_Puk_IFD_DH_.size();
 
   // Build up x(PuK.ICC.DH2) || RND.ICC || x(PuK.IFD.DH)
@@ -681,8 +659,8 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   
   //for (size_t i = 0; i < fillerX1_; i++)
   //  toBeSigned_.push_back(0x00);
-  //for (size_t i = 0; i < x_Puk_ICC_DH2.dataSize; i++)
-  //  toBeSigned_.push_back(x_Puk_ICC_DH2.pData[i]);
+  //for (size_t i = 0; i < x_Puk_ICC_DH2.size(); i++)
+  //  toBeSigned_.push_back(x_Puk_ICC_DH2[i]);
 
   for (size_t i = 0; i < RND_ICC_.size(); i++)
     toBeSigned_.push_back(RND_ICC_[i]);
@@ -692,14 +670,12 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   //for (size_t i = 0; i < x_Puk_IFD_DH_.size(); i++)
   //  toBeSigned_.push_back(x_Puk_IFD_DH_[i]);
 
-  assert(0x20 == x_Puk_ICC_DH2.dataSize);
+  assert(0x20 == x_Puk_ICC_DH2.size());
   assert(0x20 == x_Puk_IFD_DH_.size());
   // assert(0x48 == toBeSigned_.size());
 
   // Copy the data to the output buffer.
-  toBeSigned.m_dataSize = toBeSigned_.size();
-  toBeSigned.m_pDataBuffer = toBeSigned.m_allocator(toBeSigned_.size());
-  memcpy(toBeSigned.m_pDataBuffer, &toBeSigned_[0], toBeSigned_.size());
+  toBeSigned = toBeSigned_;
 
   asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
   asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -712,10 +688,10 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA signature)
+  IN std::vector<unsigned char> signature)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 

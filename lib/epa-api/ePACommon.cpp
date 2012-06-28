@@ -28,8 +28,8 @@
  *
  */
 void hexdump(
-			 const char* caption, 
-			 void* pAddressIn, 
+			 const char* const caption,
+			 const void* const pAddressIn,
 			 long lSize)
 {
 	char szBuf[100];
@@ -45,6 +45,8 @@ void hexdump(
 #if defined(WIN32) && !defined(_WIN32_WCE)
 		OutputDebugStringA(caption);
 		OutputDebugStringA("\n");
+#else
+        puts(caption);
 #endif
 	}
 	
@@ -104,7 +106,7 @@ void hexdump(
  * Date : October 01, 2004
  */
 std::vector<unsigned char> buildDO87_AES(
-										 IN const BYTE_INPUT_DATA& kEnc,
+										 IN const std::vector<unsigned char>& kEnc,
 										 IN const std::vector<unsigned char>& data,
 										 IN unsigned long long ssc)
 {
@@ -112,7 +114,7 @@ std::vector<unsigned char> buildDO87_AES(
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
 	
 	data_.push_back(0x80);
-	while (data_.size() % kEnc.dataSize)
+	while (data_.size() % kEnc.size())
 		data_.push_back(0x00);
 	
 	unsigned char iv_[] = { 
@@ -134,29 +136,29 @@ std::vector<unsigned char> buildDO87_AES(
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
 	
-	Integer issc(&ssc_[0], kEnc.dataSize);
+	Integer issc(&ssc_[0], kEnc.size());
 	issc += 1;
 	
 	std::vector<unsigned char> vssc;
-	vssc.resize(kEnc.dataSize);
-	issc.Encode(&vssc[0], kEnc.dataSize);
+	vssc.resize(kEnc.size());
+	issc.Encode(&vssc[0], kEnc.size());
 	
 	std::vector<unsigned char> calculatedIV_;
 	
 	CBC_Mode<AES>::Encryption AESCBC_encryption;
-	if (false == AESCBC_encryption.IsValidKeyLength(kEnc.dataSize))
+	if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
 		return calculatedIV_; // Wen can return here because the resulting vector is empty. 
 	// This will be checked by the caller.
 	
-	calculatedIV_.resize(kEnc.dataSize);
-	AESCBC_encryption.SetKeyWithIV(&kEnc.pData[0], kEnc.dataSize, iv_);
+	calculatedIV_.resize(kEnc.size());
+	AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
 	AESCBC_encryption.ProcessData(&calculatedIV_[0], &vssc[0], vssc.size());
 	
 	CBC_Mode<AES>::Encryption AESCBC_encryption1;
 	
 	std::vector<unsigned char> encryptedData_;
 	encryptedData_.resize(data_.size());
-	AESCBC_encryption1.SetKeyWithIV(&kEnc.pData[0], kEnc.dataSize, &calculatedIV_[0]);
+	AESCBC_encryption1.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
 	AESCBC_encryption1.ProcessData(&encryptedData_[0], &data_[0], data_.size());
 	do87.push_back(0x87);
 	
@@ -192,7 +194,7 @@ std::vector<unsigned char> buildDO87_AES(
  * Date : October 01, 2004
  */
 std::vector<unsigned char> buildDO8E_AES(
-										 IN const BYTE_INPUT_DATA& kMac,
+										 IN const std::vector<unsigned char>& kMac,
 										 IN const std::vector<unsigned char>& data,
 										 IN const std::vector<unsigned char>& do87,
 										 IN OUT unsigned long long &ssc)
@@ -202,7 +204,7 @@ std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
 	
 	data_.push_back(0x80);
-	while (data_.size() % kMac.dataSize)
+	while (data_.size() % kMac.size())
 		data_.push_back(0x00);
 	
 	for (size_t u = 0; u < do87.size(); u++)
@@ -221,13 +223,13 @@ std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
 	
-	Integer issc(&ssc_[0], kMac.dataSize);
+	Integer issc(&ssc_[0], kMac.size());
 	issc += 1;
 	
 	std::vector<unsigned char> vssc;
 	vssc.resize(16);
-	issc.Encode(&vssc[0], kMac.dataSize);
-	issc.Encode(&ssc_[0], kMac.dataSize);
+	issc.Encode(&vssc[0], kMac.size());
+	issc.Encode(&ssc_[0], kMac.size());
 	
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
@@ -243,14 +245,14 @@ std::vector<unsigned char> buildDO8E_AES(
 		vssc.push_back(data_[t]);
 	
 	vssc.push_back(0x80);
-	while (vssc.size() % kMac.dataSize)
+	while (vssc.size() % kMac.size())
 		vssc.push_back(0x00);
 	
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
 	
 	CMAC<AES> cmac;
-	cmac.SetKey(&kMac.pData[0], kMac.dataSize); 
+	cmac.SetKey(&kMac[0], kMac.size()); 
 	cmac.Update(&vssc[0], vssc.size()); 
 	cmac.Final(&result_[0]);
 	
@@ -269,7 +271,7 @@ std::vector<unsigned char> buildDO8E_AES(
  * Build up the DO8E Part of an Secure Messaging APDU w/o data available
  */
 std::vector<unsigned char> buildDO8E_AES(
-										 IN const BYTE_INPUT_DATA& kMac,
+										 IN const std::vector<unsigned char>& kMac,
 										 IN const std::vector<unsigned char>& data,	// header
 										 IN OUT unsigned long long &ssc)
 {
@@ -278,7 +280,7 @@ std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
 	
 	data_.push_back(0x80);
-	while (data_.size() % kMac.dataSize)
+	while (data_.size() % kMac.size())
 		data_.push_back(0x00);
 	
 	std::vector<unsigned char> ssc_;
@@ -294,13 +296,13 @@ std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
 	
-	Integer issc(&ssc_[0], kMac.dataSize);
+	Integer issc(&ssc_[0], kMac.size());
 	issc += 1;
 	
 	std::vector<unsigned char> vssc;
 	vssc.resize(16);
-	issc.Encode(&vssc[0], kMac.dataSize);
-	issc.Encode(&ssc_[0], kMac.dataSize);
+	issc.Encode(&vssc[0], kMac.size());
+	issc.Encode(&ssc_[0], kMac.size());
 	
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
@@ -316,14 +318,14 @@ std::vector<unsigned char> buildDO8E_AES(
 		vssc.push_back(data_[t]);
 	
 //	vssc.push_back(0x80);
-//	while (vssc.size() % kMac.dataSize)
+//	while (vssc.size() % kMac.size())
 //		vssc.push_back(0x00);
 	
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
 	
 	CMAC<AES> cmac;
-	cmac.SetKey(&kMac.pData[0], kMac.dataSize); 
+	cmac.SetKey(&kMac[0], kMac.size()); 
 	cmac.Update(&vssc[0], vssc.size()); 
 	cmac.Final(&result_[0]);
 	
@@ -345,7 +347,7 @@ std::vector<unsigned char> buildDO8E_AES(
  * Date : October 01, 2004
  */
 std::vector<unsigned char> buildDO8E_AES(
-										 IN const BYTE_INPUT_DATA& kMac,
+										 IN const std::vector<unsigned char>& kMac,
 										 IN const std::vector<unsigned char>& data,
 										 IN const std::vector<unsigned char>& do87,
 										 IN const std::vector<unsigned char>& do97,
@@ -357,7 +359,7 @@ std::vector<unsigned char> buildDO8E_AES(
 	
 	// Do padding on data
 	data_.push_back(0x80);
-	while (data_.size() % kMac.dataSize)
+	while (data_.size() % kMac.size())
 		data_.push_back(0x00);
 	
 	// Append the DO87 data
@@ -381,13 +383,13 @@ std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
 	
-	Integer issc(&ssc_[0], kMac.dataSize);
+	Integer issc(&ssc_[0], kMac.size());
 	issc += 1;
 	
 	std::vector<unsigned char> vssc;
-	vssc.resize(kMac.dataSize);
-	issc.Encode(&vssc[0], kMac.dataSize);
-	issc.Encode(&ssc_[0], kMac.dataSize);
+	vssc.resize(kMac.size());
+	issc.Encode(&vssc[0], kMac.size());
+	issc.Encode(&ssc_[0], kMac.size());
 	
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
@@ -403,14 +405,14 @@ std::vector<unsigned char> buildDO8E_AES(
 		vssc.push_back(data_[t]);
 	
 	vssc.push_back(0x80);
-	while (vssc.size() % kMac.dataSize)
+	while (vssc.size() % kMac.size())
 		vssc.push_back(0x00);
 	
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
 	
 	CMAC<AES> cmac;
-	cmac.SetKey(&kMac.pData[0], kMac.dataSize); 
+	cmac.SetKey(&kMac[0], kMac.size()); 
 	cmac.Update(&vssc[0], vssc.size()); 
 	cmac.Final(&result_[0]);
 	
@@ -432,7 +434,7 @@ std::vector<unsigned char> buildDO8E_AES(
  * Date : October 01, 2004
  */
 bool verifyResponse_AES( 
-						IN const BYTE_INPUT_DATA& kMac, 
+						IN const std::vector<unsigned char>& kMac, 
 						IN const std::vector<unsigned char>& dataPart,
 						IN unsigned long long &ssc)
 {
@@ -442,7 +444,7 @@ bool verifyResponse_AES(
 	// Store the SSC as vector.
 	std::vector<unsigned char> ssc_;
 	
-	for (int i = 0; i < kMac.dataSize - 8; i++)
+	for (int i = 0; i < kMac.size() - 8; i++)
 		ssc_.push_back(0x00);
 	
 	ssc_.push_back((ssc << 56) & 0xFF);
@@ -455,17 +457,17 @@ bool verifyResponse_AES(
 	ssc_.push_back(ssc & 0xFF);
 	
 	// Increment the SSC
-	Integer issc(&ssc_[0], kMac.dataSize);
+	Integer issc(&ssc_[0], kMac.size());
 	issc += 1;
 	
 	// The data buffer for the computations. 
 	std::vector<unsigned char> vssc;
-	vssc.resize(kMac.dataSize);
-	issc.Encode(&vssc[0], kMac.dataSize);
+	vssc.resize(kMac.size());
+	issc.Encode(&vssc[0], kMac.size());
 	
 	// Set the SSC to the new value.
 	// {
-	issc.Encode(&ssc_[0], kMac.dataSize); // Encode the incremented value to ssc_
+	issc.Encode(&ssc_[0], kMac.size()); // Encode the incremented value to ssc_
 	ssc = 0;                  // Clear the old value.
 	// Shift the new value to ssc.
 	ssc += (unsigned long long) ssc_[8] << 56;
@@ -495,12 +497,12 @@ bool verifyResponse_AES(
 	
 	// Append padding
 	vssc.push_back(0x80);
-	while (vssc.size() % kMac.dataSize)
+	while (vssc.size() % kMac.size())
 		vssc.push_back(0x00);
 	
 	std::vector<unsigned char> kMac_;
-	for (int i = 0; i < kMac.dataSize; i++)
-		kMac_.push_back(kMac.pData[i]);
+	for (int i = 0; i < kMac.size(); i++)
+		kMac_.push_back(kMac[i]);
 	
 	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);
 	
@@ -524,7 +526,7 @@ bool verifyResponse_AES(
  * @brief Decrypt the response.
  */
 std::vector<unsigned char> decryptResponse_AES(
-											   IN BYTE_INPUT_DATA& kEnc,
+											   IN std::vector<unsigned char>& kEnc,
 											   IN const std::vector<unsigned char>& returnedData,
 											   IN unsigned long long ssc)
 {
@@ -568,7 +570,7 @@ std::vector<unsigned char> decryptResponse_AES(
 		std::vector<unsigned char> calculatedIV_;
 		
 		CBC_Mode<AES>::Encryption AESCBC_encryption;
-		if (false == AESCBC_encryption.IsValidKeyLength(kEnc.dataSize))
+		if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
 			return calculatedIV_; // Wen can return here because the resulting vector is empty. 
 		// This will be checked by the caller.
 		
@@ -576,15 +578,15 @@ std::vector<unsigned char> decryptResponse_AES(
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 		
-		calculatedIV_.resize(kEnc.dataSize);
-		AESCBC_encryption.SetKeyWithIV(&kEnc.pData[0], kEnc.dataSize, iv_);
+		calculatedIV_.resize(kEnc.size());
+		AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
 		AESCBC_encryption.ProcessData(&calculatedIV_[0], &ssc_[0], ssc_.size());
 		
 		CBC_Mode<AES>::Decryption AESCBC_decryption;
 		
 		std::vector<unsigned char> decrypted;
 		decrypted.resize(len - 1);
-		AESCBC_decryption.SetKeyWithIV(&kEnc.pData[0], kEnc.dataSize, &calculatedIV_[0]);
+		AESCBC_decryption.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
 		AESCBC_decryption.ProcessData(&decrypted[0], &returnedData[offset], len - 1);
 		
 		int padOffset = -1;
@@ -682,13 +684,13 @@ std::vector<unsigned char> calculateMAC(
  *
  */
 std::string getCAR(
-				   const BYTE_INPUT_DATA& certificate)
+				   const std::vector<unsigned char>& certificate)
 {
 	std::string car_;
 	
 	CVCertificate_t	*CVCertificate = 0x00;
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   &certificate.pData[0], certificate.dataSize).code != RC_OK)
+				   &certificate[0], certificate.size()).code != RC_OK)
 	{
 #if defined(WIN32)		
 		OutputDebugStringA("getCAR failed ...\n");
@@ -710,13 +712,13 @@ std::string getCAR(
  *
  */
 std::string getCHR(
-				   const BYTE_INPUT_DATA& certificate)
+				   const std::vector<unsigned char>& certificate)
 {
 	std::string chr_;
 	
 	CVCertificate_t	*CVCertificate = 0x00;
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   &certificate.pData[0], certificate.dataSize).code != RC_OK)
+				   &certificate[0], certificate.size()).code != RC_OK)
 	{
 #if defined(WIN32)		
 		OutputDebugStringA("getCHR failed ...\n");

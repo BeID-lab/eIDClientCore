@@ -200,28 +200,28 @@ NPACLIENT_ERROR eIdECardClient::initialize(
 	 m_strLastMsgUUID = strNewMessageID;
 
 
-   if( 0 == m_TerminalCertificate.data().size())
+   if( 0 == m_TerminalCertificate.size())
    {
      eCardCore_debug("No Terminal Certificate\n");
      return NPACLIENT_ERROR_NO_TERMINAL_CERTIFICATE;
    }
-   if( 0 == m_CertificateDescription.data().size())
+   if( 0 == m_CertificateDescription.size())
    {
      eCardCore_debug("No Terminal CertificateDescription\n");
      return NPACLIENT_ERROR_NO_CERTIFICATE_DESCRIPTION;
    }
 
-    hexdump("StartPAOS Cert:    ", &m_TerminalCertificate.data()[0], m_TerminalCertificate.data().size());
-    hexdump("StartPAOS CDesc:   ", &m_CertificateDescription.data()[0], m_CertificateDescription.data().size());
+    hexdump("StartPAOS Cert:    ", &m_TerminalCertificate[0], m_TerminalCertificate.size());
+    hexdump("StartPAOS CDesc:   ", &m_CertificateDescription[0], m_CertificateDescription.size());
     
-    if ( 0x00 != m_RequiredCHAT.data().size() )
-      hexdump("StartPAOS RCHAT:   ", &m_RequiredCHAT.data()[0], m_RequiredCHAT.data().size());
+    if ( 0x00 != m_RequiredCHAT.size() )
+      hexdump("StartPAOS RCHAT:   ", &m_RequiredCHAT[0], m_RequiredCHAT.size());
 
-    if (m_OptionalCHAT.data().size() != 0)
-      hexdump("StartPAOS OCHAT:   ", &m_OptionalCHAT.data()[0], m_OptionalCHAT.data().size());
+    if (m_OptionalCHAT.size() != 0)
+      hexdump("StartPAOS OCHAT:   ", &m_OptionalCHAT[0], m_OptionalCHAT.size());
     
-    if ( 0x00 != m_AuthenticatedAuxiliaryData.data().size() )
-	    hexdump("StartPAOS AuthAux: ", &m_AuthenticatedAuxiliaryData.data()[0], m_AuthenticatedAuxiliaryData.data().size());
+    if ( 0x00 != m_AuthenticatedAuxiliaryData.size() )
+	    hexdump("StartPAOS AuthAux: ", &m_AuthenticatedAuxiliaryData[0], m_AuthenticatedAuxiliaryData.size());
 
     if ( 0x00 != m_strLastMsgUUID.size() )
 	    hexdump("StartPAOS MsgUUID: ", &m_strLastMsgUUID[0], m_strLastMsgUUID.size());
@@ -237,7 +237,7 @@ bool eIdECardClient::getTerminalAuthenticationData(
   std::vector<unsigned char> chat,
   std::string cvCACHAR,
   std::vector<unsigned char> idPICC,
-  std::list<ByteData> list_certificates,
+  std::list<std::vector<unsigned char> >& list_certificates,
   std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
   std::vector<unsigned char>& y_Puk_IFD_DH_CA_
   )
@@ -246,8 +246,8 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	string myIDPICC = Byte2Hex(&idPICC[0], idPICC.size());
 	string myChat = Byte2Hex(&chat[0], chat.size());
 
-	ByteData reqChat = m_RequiredCHAT;
-	string myReqChat = Byte2Hex(&reqChat.data()[0],  reqChat.data().size());
+	std::vector<unsigned char> reqChat = m_RequiredCHAT;
+	string myReqChat = Byte2Hex(&reqChat[0],  reqChat.size());
 
 	hexdump("IDPICC", (void*) myIDPICC.c_str(), myIDPICC.size());
 	hexdump("used Chat", (void*) myChat.c_str(), myChat.size());
@@ -265,16 +265,16 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	{
 		cert1 = CertList.front();
 		CertList.pop_front();
-        ByteData myCert = Hex2Byte(cert1.c_str(), cert1.length());
+        std::vector<unsigned char> myCert = Hex2Byte(cert1.c_str(), cert1.length());
         list_certificates.push_back(myCert);
 	}
 
-	ByteData myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
+	std::vector<unsigned char> myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
 
-  assert(!myKey.data().empty());
-  if(myKey.data().empty()) return false;
+  assert(!myKey.empty());
+  if(myKey.empty()) return false;
 
-	hexdump("ephPubKey", &myKey.data()[0], ephPubKey.size() / 2);
+	hexdump("ephPubKey", &myKey[0], ephPubKey.size() / 2);
 
 	assert(cert1.length() % 2 == 0);
   if(! (cert1.length() % 2 == 0)) return false;
@@ -287,10 +287,10 @@ bool eIdECardClient::getTerminalAuthenticationData(
 
 	int half = ephPubKey.size() / 4;
 	for (int i = 0; i < half; i++)
-		x_Puk_IFD_DH_CA_.push_back(myKey.elementAt(i));
+		x_Puk_IFD_DH_CA_.push_back(myKey[i]);
 
 	for (int i = 0; i < half; i++)
-		y_Puk_IFD_DH_CA_.push_back(myKey.elementAt(i + half));
+		y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
 
 //	free(myCert);
 //	free(myKey);
@@ -313,13 +313,13 @@ bool eIdECardClient::createSignature(
   
 	m_strLastMsgUUID = strNewMessageID;
 
-  ByteData mySig = Hex2Byte(retSignature.c_str(), retSignature.length());
+  std::vector<unsigned char> mySig = Hex2Byte(retSignature.c_str(), retSignature.length());
 
 //  hexdump("signature", (void*) mySig, retSignature.size() / 2);
 
   assert(retSignature.length() % 2 == 0);
 
-  signature = mySig.data();
+  signature = mySig;
 
   return true;
 }
@@ -348,9 +348,9 @@ bool eIdECardClient::finalizeAuthentication(
   {	
     string strAPDU = *it;
 
-	ByteData myAPDU = Hex2Byte(strAPDU.c_str(), strAPDU.length());
+	std::vector<unsigned char> myAPDU = Hex2Byte(strAPDU.c_str(), strAPDU.length());
 
-	apdus.push_back(myAPDU.data());
+	apdus.push_back(myAPDU);
   }
 
   return true;

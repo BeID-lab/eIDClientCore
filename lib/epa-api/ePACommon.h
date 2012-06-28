@@ -30,28 +30,28 @@ USING_NAMESPACE(CryptoPP)
 /**
  */
 void hexdump(
-  IN const char* caption, 
-  IN void* pAddressIn, 
+  IN const char* const caption, 
+  IN const void* const pAddressIn, 
   IN long lSize);
 
 /**
  */
 std::vector<unsigned char> buildDO87_AES(
-  IN const BYTE_INPUT_DATA& kEnc,
+  IN const std::vector<unsigned char>& kEnc,
   IN const std::vector<unsigned char>& data,
   IN unsigned long long ssc);
 
 /**
  */
 std::vector<unsigned char> buildDO8E_AES(
-  IN const BYTE_INPUT_DATA& kMac,
+  IN const std::vector<unsigned char>& kMac,
   IN const std::vector<unsigned char>& data,	// header
   IN OUT unsigned long long &ssc);
 
 /**
  */
 std::vector<unsigned char> buildDO8E_AES(
-  IN const BYTE_INPUT_DATA& kMac,
+  IN const std::vector<unsigned char>& kMac,
   IN const std::vector<unsigned char>& data,
   IN const std::vector<unsigned char>& do87,
   IN OUT unsigned long long &ssc);
@@ -59,7 +59,7 @@ std::vector<unsigned char> buildDO8E_AES(
 /**
  */
 std::vector<unsigned char> buildDO8E_AES(
-  IN const BYTE_INPUT_DATA& kMac,
+  IN const std::vector<unsigned char>& kMac,
   IN const std::vector<unsigned char>& data,
   IN const std::vector<unsigned char>& do87,
   IN const std::vector<unsigned char>& do97,
@@ -69,14 +69,14 @@ std::vector<unsigned char> buildDO8E_AES(
  * Verifies the MAC of an secure messaging RAPDU.
  */
 bool verifyResponse_AES( 
-  IN const BYTE_INPUT_DATA& kMac, 
+  IN const std::vector<unsigned char>& kMac, 
   IN const std::vector<unsigned char>& dataPart,
   IN OUT unsigned long long &ssc);
 
 /**
  */
 std::vector<unsigned char> decryptResponse_AES(
-  IN BYTE_INPUT_DATA& kEnc,
+  IN std::vector<unsigned char>& kEnc,
   IN const std::vector<unsigned char>& returnedData,
   IN unsigned long long ssc);
 
@@ -101,12 +101,12 @@ std::vector<unsigned char> calculateMAC(
  *
  */
 std::string getCAR(
-  IN const BYTE_INPUT_DATA& certificate);
+  IN const std::vector<unsigned char>& certificate);
 
 /**
  *
  */
 std::string getCHR(
-  IN const BYTE_INPUT_DATA& certificate);
+  IN const std::vector<unsigned char>& certificate);
 
 #endif // #if !defined(__EPACOMMON_INCLUDED__)

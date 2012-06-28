@@ -46,37 +46,37 @@ public:
       /**
        *
        */
-      ByteData getTerminalCertificate(
+      std::vector<unsigned char> getTerminalCertificate(
         void) { return m_TerminalCertificate; }
 
       /**
        *
        */
-      ByteData getRequiredChat(
+      std::vector<unsigned char> getRequiredChat(
         void) { return m_RequiredCHAT; }
 
 	  /**
        *
        */
-      ByteData getOptionalChat(
+      std::vector<unsigned char> getOptionalChat(
 		  void) { return m_OptionalCHAT; }
  
       /**
        *
        */
-      ByteData getDVCACertificate(
+      std::vector<unsigned char> getDVCACertificate(
         void) { return m_DVCACertificate; }
 
       /**
        *
        */
-      ByteData getAuthenticatedAuxiliaryData(
+      std::vector<unsigned char> getAuthenticatedAuxiliaryData(
         void) { return m_AuthenticatedAuxiliaryData; }
 
       /**
        *
        */
-      ByteData getCertificateDescription(
+      std::vector<unsigned char> getCertificateDescription(
         void) { return m_CertificateDescription; }
 
       /**
@@ -87,7 +87,7 @@ public:
         std::vector<unsigned char> chat,
         std::string cvCACHAR,
         std::vector<unsigned char> idPICC,
-        std::list<ByteData> list_certificates,
+        std::list<std::vector<unsigned char> >& list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_);
 
@@ -121,19 +121,19 @@ public:
 		std::string	m_strPathSecurityParameter;
 
 	   // The terminal certificate of the relying party.
-       ByteData m_TerminalCertificate;
+       std::vector<unsigned char> m_TerminalCertificate;
        // The certificate description for the certificate of the relying party.
-       ByteData m_CertificateDescription;
+       std::vector<unsigned char> m_CertificateDescription;
        //
-       ByteData m_DVCACertificate;
+       std::vector<unsigned char> m_DVCACertificate;
        // The session ID for this run.
-       ByteData m_sessionID;
+       std::vector<unsigned char> m_sessionID;
        // The required CHAT.
-       ByteData m_RequiredCHAT;
+       std::vector<unsigned char> m_RequiredCHAT;
        // The optional requested CHAT.
-       ByteData m_OptionalCHAT;
+       std::vector<unsigned char> m_OptionalCHAT;
        // The authenticated auxilary data for RI and the likes.
-       ByteData m_AuthenticatedAuxiliaryData;
+       std::vector<unsigned char> m_AuthenticatedAuxiliaryData;
        // The last recieved messages uuid.
        string m_strLastMsgUUID;
 

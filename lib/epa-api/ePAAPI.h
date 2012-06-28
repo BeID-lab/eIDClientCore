@@ -10,6 +10,7 @@
 
 #include <eCardCore.h>
 #include <list>
+#include <vector>
 
 /**
  * @file ePAAPI.h
@@ -57,14 +58,14 @@ typedef enum KEY_REFERENCE_t
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
   IN ECARD_HANDLE hCard,
   IN KEY_REFERENCE keyReference,
-  IN BYTE_INPUT_DATA chat,
-  IN BYTE_INPUT_DATA certificate_description,
-  IN BYTE_INPUT_DATA password,
-  IN BYTE_INPUT_DATA efCardAccess,
-  IN OUT BYTE_OUTPUT_DATA& kMac,
-  IN OUT BYTE_OUTPUT_DATA& kEnc,
-  IN OUT BYTE_OUTPUT_DATA& car_cvca,
-  IN OUT BYTE_OUTPUT_DATA& x_Puk_ICC_DH2,
+  IN std::vector<unsigned char> chat,
+  IN std::vector<unsigned char> certificate_description,
+  IN std::vector<unsigned char> password,
+  IN std::vector<unsigned char> efCardAccess,
+  IN OUT std::vector<unsigned char>& kMac,
+  IN OUT std::vector<unsigned char>& kEnc,
+  IN OUT std::vector<unsigned char>& car_cvca,
+  IN OUT std::vector<unsigned char>& x_Puk_ICC_DH2,
   OUT unsigned char* PINCount);
 
 /**
@@ -90,17 +91,17 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA efCardAccess,
-  IN BYTE_INPUT_DATA car_cvca,
-  IN std::list<BYTE_INPUT_DATA> list_certificates,
-  IN BYTE_INPUT_DATA terminalCertificate,
-  IN BYTE_INPUT_DATA x_Puk_ICC_DH2,
-  IN BYTE_INPUT_DATA x_Puk_IFD_DH_CA,
-  IN BYTE_INPUT_DATA authenticatedAuxiliaryData,
-  IN OUT BYTE_OUTPUT_DATA& toBeSigned);
+  IN std::vector<unsigned char> efCardAccess,
+  IN std::vector<unsigned char> car_cvca,
+  IN std::list<std::vector<unsigned char> >& list_certificates,
+  IN std::vector<unsigned char> terminalCertificate,
+  IN std::vector<unsigned char> x_Puk_ICC_DH2,
+  IN std::vector<unsigned char> x_Puk_IFD_DH_CA,
+  IN std::vector<unsigned char> authenticatedAuxiliaryData,
+  IN OUT std::vector<unsigned char>& toBeSigned);
 
 /**
  * @brief Send the signature data to the chip. The signature will be created on 
@@ -118,10 +119,10 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA signature);
+  IN std::vector<unsigned char> signature);
 
 /**
  * @param hCard                       [IN] Handle to an valid ePA card.
@@ -139,20 +140,20 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA kEnc,
-  IN BYTE_INPUT_DATA kMac,
+  IN std::vector<unsigned char> kEnc,
+  IN std::vector<unsigned char> kMac,
   IN OUT unsigned long long &ssc,
-  IN BYTE_INPUT_DATA x_Puk_IFD_DH,
-  IN BYTE_INPUT_DATA y_Puk_IFD_DH,
-  IN OUT BYTE_OUTPUT_DATA& GeneralAuthenticationResult);
+  IN std::vector<unsigned char> x_Puk_IFD_DH,
+  IN std::vector<unsigned char> y_Puk_IFD_DH,
+  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
 
 /**
  *
  */
 ECARD_STATUS __STDCALL__ ePASendAPDU(
   IN ECARD_HANDLE hCard,
-  IN BYTE_INPUT_DATA capdu,
-  IN OUT BYTE_OUTPUT_DATA& rapdu);
+  IN std::vector<unsigned char> capdu,
+  IN OUT std::vector<unsigned char>& rapdu);
 
 #if defined(__cplusplus)
 }

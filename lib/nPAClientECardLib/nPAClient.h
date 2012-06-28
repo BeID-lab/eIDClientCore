@@ -56,8 +56,8 @@ namespace Bundesdruckerei
     {
     public:
       virtual NPACLIENT_ERROR sendAPDU(
-        BYTE_INPUT_DATA capdu,
-        BYTE_OUTPUT_DATA& rapdu) = 0;
+        std::vector<unsigned char> capdu,
+        std::vector<unsigned char>& rapdu) = 0;
     };
 
     /**
@@ -100,37 +100,37 @@ namespace Bundesdruckerei
       /**
        *
        */
-      virtual ByteData getTerminalCertificate(
+      virtual std::vector<unsigned char> getTerminalCertificate(
         void) = 0;
 
       /**
        *
        */
-      virtual ByteData getRequiredChat(
+      virtual std::vector<unsigned char> getRequiredChat(
         void) = 0;
 
 	  /**
        *
        */
-      virtual ByteData getOptionalChat(
+      virtual std::vector<unsigned char> getOptionalChat(
         void) = 0;
  
       /**
        *
        */
-      virtual ByteData getDVCACertificate(
+      virtual std::vector<unsigned char> getDVCACertificate(
         void) = 0;
 
       /**
        *
        */
-      virtual ByteData getAuthenticatedAuxiliaryData(
+      virtual std::vector<unsigned char> getAuthenticatedAuxiliaryData(
         void) = 0;
 
       /**
        *
        */
-      virtual ByteData getCertificateDescription(
+      virtual std::vector<unsigned char> getCertificateDescription(
         void) = 0;
 
       /**
@@ -141,7 +141,7 @@ namespace Bundesdruckerei
         std::vector<unsigned char> chat,
         std::string cvCACHAR,
         std::vector<unsigned char> idPICC,
-        std::list<ByteData> list_certificates,
+        std::list<std::vector<unsigned char> >& list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
 
@@ -323,8 +323,8 @@ namespace Bundesdruckerei
        *
        */
       NPACLIENT_ERROR sendAPDU(
-        BYTE_INPUT_DATA capdu,
-        BYTE_OUTPUT_DATA& rapdu);
+        std::vector<unsigned char> capdu,
+        std::vector<unsigned char>& rapdu);
     }; // class nPAClient
   }
 }

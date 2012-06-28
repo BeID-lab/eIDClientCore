@@ -564,10 +564,10 @@ int main(int argc, char** argv)
     time_t start;
     time(&start);
 
-    string strIdpAddress = "";
-    string strSessionIdentifier = "";
-    string strPathSecurityParameters = "";
-	string strRef = "";
+    string strIdpAddress("");
+    string strSessionIdentifier("");
+    string strPathSecurityParameters("");
+	string strRef("");
 
 	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 

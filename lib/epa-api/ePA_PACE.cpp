@@ -19,7 +19,7 @@ using namespace Bundesdruckerei::nPA;
  * Calculate the SK.PACE.xyz
  */
 std::vector<unsigned char> generateSKPACE_FromPassword(
-  IN BYTE_INPUT_DATA password,
+  IN std::vector<unsigned char> password,
   IN KEY_REFERENCE keyReference)
 {
   std::vector<unsigned char> result;
@@ -31,7 +31,7 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   SHA1 paceH;
 
   // Hash the full password
-  paceH.Update(password.pData, password.dataSize);
+  paceH.Update(&password[0], password.size());
 
   switch (keyReference)
   {
@@ -57,7 +57,7 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   paceH.Final(&result[0]);
   result.resize(16);  
 
-  hexdump("###-> INPUT PIN", password.pData, password.dataSize);
+  hexdump("###-> INPUT PIN", &password[0], password.size());
   hexdump("###-> SKPACE", &result[0], result.size());
 
   return result;
@@ -369,11 +369,11 @@ std::vector<unsigned char> generate_PuK_IFD_DH2(
 ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
   const OBJECT_IDENTIFIER_t& PACE_OID_, 
   KEY_REFERENCE keyReference, 
-  const BYTE_INPUT_DATA& chat, 
+  const std::vector<unsigned char>& chat, 
   ICard* card_)
 {
   hexdump("###-> PACE OID", PACE_OID_.buf, PACE_OID_.size);
-  hexdump("###-> CAHT", chat.pData, chat.dataSize);
+  hexdump("###-> CAHT", &chat[0], chat.size());
   hexdump("##-> KEY REF", &keyReference, 1);
 
 
@@ -393,8 +393,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
   if (PUK == keyReference) MSE_Set_AT_ << 0x04;
 
   // Append CHAT
-  for (size_t i = 0; i < chat.dataSize; i++)
-    MSE_Set_AT_.push_back(chat.pData[i]);
+  for (size_t i = 0; i < chat.size(); i++)
+    MSE_Set_AT_.push_back(chat[i]);
 
   // Set LC
   MSE_Set_AT_[4] = MSE_Set_AT_.size() - 5;
@@ -413,7 +413,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 
 ECARD_STATUS __STDCALL__ perform_PACE_Step_C( 
   const OBJECT_IDENTIFIER_t& PACE_OID_,
-  const BYTE_INPUT_DATA& password,
+  const std::vector<unsigned char>& password,
   KEY_REFERENCE keyReference,
   ICard* card_,
   std::vector<unsigned char>& rndICC)
@@ -682,14 +682,14 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
   IN ECARD_HANDLE hCard,
   IN KEY_REFERENCE keyReference,
-  IN BYTE_INPUT_DATA chat,
-  IN BYTE_INPUT_DATA certificate_description,
-  IN BYTE_INPUT_DATA password,
-  IN BYTE_INPUT_DATA efCardAccess,
-  IN OUT BYTE_OUTPUT_DATA& kMac,
-  IN OUT BYTE_OUTPUT_DATA& kEnc,
-  IN OUT BYTE_OUTPUT_DATA& car_cvca,
-  IN OUT BYTE_OUTPUT_DATA& x_Puk_ICC_DH2,
+  IN std::vector<unsigned char> chat,
+  IN std::vector<unsigned char> certificate_description,
+  IN std::vector<unsigned char> password,
+  IN std::vector<unsigned char> efCardAccess,
+  IN OUT std::vector<unsigned char>& kMac,
+  IN OUT std::vector<unsigned char>& kEnc,
+  IN OUT std::vector<unsigned char>& car_cvca,
+  IN OUT std::vector<unsigned char>& x_Puk_ICC_DH2,
   OUT unsigned char* PINCount)
 {
   // Check handle ...
@@ -724,31 +724,26 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       }
       vector<BYTE> v_password, v_chat, v_certificate_description;
 
-      v_password.reserve(password.dataSize);
-      v_password.resize(password.dataSize);
-      memcpy(&v_password[0], password.pData, password.dataSize);
+      v_password.reserve(password.size());
+      v_password.resize(password.size());
+      memcpy(&v_password[0], &password[0], password.size());
 
-      v_chat.reserve(chat.dataSize);
-      v_chat.resize(chat.dataSize);
-      memcpy(&v_chat[0], chat.pData, chat.dataSize);
+      v_chat.reserve(chat.size());
+      v_chat.resize(chat.size());
+      memcpy(&v_chat[0], &chat[0], chat.size());
 
-      //v_certificate_description.reserve(certificate_description.dataSize);
-      //v_certificate_description.resize(certificate_description.dataSize);
-      //memcpy(&v_certificate_description[0], certificate_description.pData, certificate_description.dataSize);
+      //v_certificate_description.reserve(certificate_description.size());
+      //v_certificate_description.resize(certificate_description.size());
+      //memcpy(&v_certificate_description[0], certificate_description, certificate_description.size());
 
       PaceOutput output = ePA_->subSystemEstablishPACEChannel(PaceInput(pin_id, v_password, v_chat, v_certificate_description));
 
-      car_cvca.m_dataSize = output.get_car_curr().size();
-      car_cvca.m_pDataBuffer = kMac.m_allocator(output.get_car_curr().size());
-      memcpy(car_cvca.m_pDataBuffer, &output.get_car_curr()[0], output.get_car_curr().size());
-
-      x_Puk_ICC_DH2.m_dataSize = output.get_id_icc().size();
-      x_Puk_ICC_DH2.m_pDataBuffer = x_Puk_ICC_DH2.m_allocator(output.get_id_icc().size());
-      memcpy(x_Puk_ICC_DH2.m_pDataBuffer, &output.get_id_icc()[0], output.get_id_icc().size());
+      car_cvca = output.get_car_curr();
+      x_Puk_ICC_DH2 = output.get_id_icc();
   } else {
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
-  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, efCardAccess.pData, efCardAccess.dataSize).code != RC_OK)
+  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, &efCardAccess[0], efCardAccess.size()).code != RC_OK)
   {
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
     return ECARD_EFCARDACCESS_PARSER_ERROR;
@@ -875,21 +870,13 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
     return status;
   }
 
-  kMac.m_dataSize = kMac_.size();
-  kMac.m_pDataBuffer = kMac.m_allocator(kMac_.size());
-  memcpy(kMac.m_pDataBuffer, &kMac_[0], kMac_.size());
+  kMac = kMac_;
+  kEnc = kEnc_;
 
-  kEnc.m_dataSize = kEnc_.size();
-  kEnc.m_pDataBuffer = kEnc.m_allocator(kEnc_.size());
-  memcpy(kEnc.m_pDataBuffer, &kEnc_[0], kEnc_.size());
+  std::vector<unsigned char> v( car_cvca_.begin(), car_cvca_.end() );
+  car_cvca = v;
 
-  car_cvca.m_dataSize = car_cvca_.length();
-  car_cvca.m_pDataBuffer = car_cvca.m_allocator(car_cvca_.length());
-  memcpy(car_cvca.m_pDataBuffer, &car_cvca_[0], car_cvca_.length());
-
-  x_Puk_ICC_DH2.m_dataSize = x_Puk_ICC_DH2_.size();
-  x_Puk_ICC_DH2.m_pDataBuffer = x_Puk_ICC_DH2.m_allocator(x_Puk_ICC_DH2_.size());
-  memcpy(x_Puk_ICC_DH2.m_pDataBuffer, &x_Puk_ICC_DH2_[0], x_Puk_ICC_DH2_.size());
+  x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
 
   asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
   asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
