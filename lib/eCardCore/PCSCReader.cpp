@@ -17,6 +17,8 @@
 # define DEBUG_CLIENTBLOCK
 #endif
 
+#include <stdlib.h>
+
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -83,14 +85,14 @@ PCSCReader::PCSCReader (
                      __FILE__, __LINE__ );
 
 #if defined(UNICODE) || defined(_UNICODE)
-  WCHAR* readerName = new WCHAR[m_readerName.size() + 1];  
-  mbstowcs(readerName, m_readerName.c_str(), m_readerName.size());
-  readerName[m_readerName.size()] = 0;
+  WCHAR* _readerName = new WCHAR[m_readerName.size() + 1];  
+  mbstowcs(_readerName, m_readerName.c_str(), m_readerName.size());
+  _readerName[m_readerName.size()] = 0;
   
-  retValue = SCardConnect ( m_hScardContext, readerName, SCARD_SHARE_DIRECT,
+  retValue = SCardConnect ( m_hScardContext, _readerName, SCARD_SHARE_DIRECT,
                                    m_dwProtocol, &m_hCard, &m_dwProtocol );
 
-  delete [] readerName;
+  delete [] _readerName;
 #else
   retValue = SCardConnect ( m_hScardContext, m_readerName.c_str(), SCARD_SHARE_DIRECT,
                                    m_dwProtocol, &m_hCard, &m_dwProtocol );
@@ -195,9 +197,6 @@ bool PCSCReader::open (
   for (DWORD i = 0; i < len; i++)
     eCardCore_debug ( "ATR: 0x%02X", atr[i]);
                      
-#if defined(UNICODE) || defined(_UNICODE)
-  delete [] readerName;
-#endif  
   return true;
 }
 
@@ -504,7 +503,12 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
         + sizeof length_PIN + length_PIN
         + sizeof lengthCertificateDescription + lengthCertificateDescription;
 
-    BYTE sendbuf[1+2+lengthInputData];
+    size_t sendlen = 1+2+lengthInputData;
+    BYTE *sendbuf = (BYTE *) malloc(sendlen);
+    if (!sendbuf) {
+        eCardCore_warn("%s:%d", __FILE__, __LINE__);
+        return output;
+    }
 
 
     switch (input.get_pin_id()) {
@@ -544,8 +548,10 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
             &input.get_certificate_description()[0], lengthCertificateDescription);
 
     recvlen = sizeof(recvbuf);
-    r = SCardControl(m_hCard, m_ioctl_pace, sendbuf, sizeof sendbuf,
+    r = SCardControl(m_hCard, m_ioctl_pace, sendbuf, sendlen,
             recvbuf, sizeof(recvbuf), &recvlen);
+
+    free(sendbuf);
 
     return parse_EstablishPACEChannel_OutputData(recvbuf, recvlen);
 }
