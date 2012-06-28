@@ -13,6 +13,10 @@
 #include <unistd.h>
 #endif
 
+#ifndef SHUT_RDWR
+#define SHUT_RDWR SD_BOTH
+#endif
+
 int my_connectsocket (const char *const hostname, const char *const port, const char *const path);
 int my_closesocket(int s);
 

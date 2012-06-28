@@ -145,7 +145,7 @@ ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size)
     if (sock->secure)
         return ssl_tls_driver.recv (sock->ssl_tls_driver_data, buffer, buffer_size);
 
-    return recv (sock->fd, buffer, buffer_size, MSG_WAITALL);
+    return recv (sock->fd, (char *) buffer, buffer_size, MSG_WAITALL);
 }
 
 ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size)
@@ -157,7 +157,7 @@ ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t 
         if (sock->secure) {
             ret = ssl_tls_driver.send(sock->ssl_tls_driver_data, buffer, buffer_size);
         } else {
-            ret = send (sock->fd, buffer, buffer_size, 0);
+            ret = send (sock->fd, (char *) buffer, buffer_size, 0);
         }
         if (ret < 0)
             return ret;
