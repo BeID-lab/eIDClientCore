@@ -29,6 +29,8 @@
 #define PCSC_TLV_ELEMENT_SIZE (1+1+4)
 #endif
 
+#define ENABLE_PACE 1
+
 #define FUNCTION_GetReadersPACECapabilities 0x01
 #define FUNCTION_EstabishPACEChannel        0x02
 
@@ -92,7 +94,7 @@ PCSCReader::PCSCReader (
 
   /* does the reader support PACE? */
   m_ioctl_pace = 0;
-#if 0
+#if ENABLE_PACE
   recvlen = sizeof(recvbuf);
   retValue = SCardControl(m_hCard, CM_IOCTL_GET_FEATURE_REQUEST, NULL, 0,
           recvbuf, sizeof(recvbuf), &recvlen);
