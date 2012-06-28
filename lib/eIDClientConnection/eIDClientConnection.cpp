@@ -19,9 +19,6 @@ typedef long ssize_t;
 #include "socket.c"
 
 
-using namespace std;
-
-
 typedef struct
 {
     char *hostname;
@@ -126,7 +123,6 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_
 
     ret = my_send (sock, data, strlen(data));
 
-    memset (bufResult, 0, sizeof bufResult);
     ret = my_recv (sock, bufResult, nBufResultLength);
 
     if (ret < 0)

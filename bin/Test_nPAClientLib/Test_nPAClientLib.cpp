@@ -575,7 +575,7 @@ int main(int argc, char** argv)
 
 	diffv.push_back(difftime(time(0x00), start));
 
-    sprintf(buffer, " - Read Count: %d - Server Errors: %d\n", diffv.size(), serverErrorCounter);
+    sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);
     
 	std::cout << "########## Error Code: " << HEX(retValue) << buffer << std::endl;
     
@@ -591,7 +591,7 @@ int main(int argc, char** argv)
   }
   std::cout << "Durchschnittliche Dauer bei " << diffv.size() << " Durchlaeufen: " << diffSum / diffv.size() << " Sekunden" << std::endl;
 
-  sprintf(buffer, "########## Error Code: %X - Read Count: %d - Server Errors: %d\n", retValue, diffv.size(), serverErrorCounter);
+  sprintf(buffer, "########## Error Code: %X - Read Count: %u - Server Errors: %d\n", retValue, (unsigned int) diffv.size(), serverErrorCounter);
   
   std::cout << buffer << std::endl;
 
