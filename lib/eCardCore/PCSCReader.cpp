@@ -327,10 +327,10 @@ static PaceOutput
 parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
 {
     size_t parsed = 0;
-    BYTE lengthCAR, lengthCARprev;
-    USHORT lengthOutputData, lengthEF_CardAccess, length_IDicc, mse_setat;
+    uint8_t lengthCAR, lengthCARprev;
+    uint16_t lengthOutputData, lengthEF_CardAccess, length_IDicc, mse_setat;
     vector<BYTE> CAR, CARprev, EF_CardAccess, IDicc;
-    DWORD result;
+    uint32_t result;
     PaceOutput paceoutput;
 
     /* Output Data */
@@ -379,7 +379,7 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
             eCardCore_warn("Kommunikationsabbruch mit Karte.");
             return paceoutput;
         default:
-            eCardCore_warn("Reader reported some error.");
+            eCardCore_warn("Reader reported some error: %0X.", result);
             return paceoutput;
     }
     paceoutput.set_result(result);
@@ -491,8 +491,8 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
     PaceOutput output;
 
     DWORD r, recvlen, result;
-    BYTE length_CHAT, length_PIN, PinID;
-    USHORT lengthInputData, lengthCertificateDescription;
+    uint8_t length_CHAT, length_PIN, PinID;
+    uint16_t lengthInputData, lengthCertificateDescription;
     BYTE recvbuf[1024];
 
     length_CHAT = input.get_chat().size();

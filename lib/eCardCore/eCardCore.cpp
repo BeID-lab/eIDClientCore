@@ -58,7 +58,7 @@ void eCardCore_info(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
+  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
@@ -83,7 +83,7 @@ void eCardCore_debug(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
+  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
@@ -108,7 +108,7 @@ void eCardCore_warn(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPSTR wMessage = new CHAR[strlen(newMessage) + 2];
+  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
