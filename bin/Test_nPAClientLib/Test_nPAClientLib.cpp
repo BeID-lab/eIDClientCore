@@ -438,12 +438,11 @@ int getAuthenticationParams(const char* const cServerName,
 							string &strPathSecurityParameters)
 {
   string	strResult = "";
-  EIDCLIENT_CONNECTION_HANDLE connection;
+  EIDCLIENT_CONNECTION_HANDLE connection = 0x00;
   EID_CLIENT_CONNECTION_ERROR connection_status;
   char sz[READ_BUFFER];
 
-  connection_status = eIDClientConnectionStart(&connection,
-          cServerName, pPort, cPath, 0, NULL);
+  connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, cPath, 0, NULL);
   if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
       /* Send a GET request */
@@ -464,8 +463,8 @@ int getAuthenticationParams(const char* const cServerName,
           strResult += sz;
           strResult = strResult.substr(strResult.find("<html"));
       }
+	  eIDClientConnectionEnd(connection);
   }
-  eIDClientConnectionEnd(connection);
 
   CeIdObject		eIdObject;
 
@@ -549,9 +548,72 @@ int getAuthenticationParams(const char* const cServerName,
   return 0;
 }
 
+int getAuthenticationParams2(string &strIdpAddress,
+							string &strSessionIdentifier,
+							string &strPathSecurityParameters)
+{ 
+    HINTERNET hInternet; 
+    HINTERNET hFile; 
+    char szBuf[1024]; 
+    bool bGO = true; 
+    DWORD ReadSize; 
+ //   FILE *fFile; 
+  string	strResult = "";
+  CeIdObject		eIdObject;
+
+    hInternet = InternetOpen("WININET Sample Program", 
+                             INTERNET_OPEN_TYPE_PRECONFIG, 
+                             NULL, 
+                             NULL, 
+                             0); 
+
+    hFile = InternetOpenUrl(hInternet, 
+                            "http://172.20.112.109:8080/mobileSSO", 
+                            NULL, 
+                            0, 
+                            INTERNET_FLAG_RELOAD, 
+                            0); 
+          DWORD dwNumberOfBytesRead;
+		  int result = 0;
+          char sz[READ_BUFFER];
+          do
+          {
+            result = InternetReadFile(hFile, sz, READ_BUFFER - 1, &dwNumberOfBytesRead);												
+            sz[dwNumberOfBytesRead] = '\0';
+            int x = strlen(sz);
+            strResult += sz;
+            memset(sz, 0, READ_BUFFER);	
+          }
+          while(result && dwNumberOfBytesRead != 0);
+
+    InternetCloseHandle(hFile); 
+    InternetCloseHandle(hInternet); 
+
+  string response2 = strResult;
+	
+  cout << response2.c_str() << endl;
+
+  response2 = str_replace("<PSK>", "", response2);
+  response2 = str_replace("</PSK>", "", response2);
+  response2 = str_replace("&uuml;", "ü", response2);
+  response2 = str_replace("&ouml;", "ö", response2);
+
+  cout << response2.c_str() << endl;
+
+  eIdObject.GetParams(response2);
+
+  strIdpAddress = eIdObject.m_strServerAddress;
+  strSessionIdentifier = eIdObject.m_strSessionID;
+  strPathSecurityParameters = eIdObject.m_strPSK;
+
+  strRefresh = eIdObject.m_strRefreshAddress;
+
+  return 0;
+}
+
 int main(int argc, char** argv)
 {
-  int loopCount = 10;
+  int loopCount = 1;
 
   int retValue = 0;
   int serverErrorCounter = 0;
@@ -569,9 +631,15 @@ int main(int argc, char** argv)
     string strPathSecurityParameters("");
 	string strRef("");
 
-	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+//	getAuthenticationParams("eidservices.bundesdruckerei.de", 443, "/ExampleSP/saml/Login", NULL, NULL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+//	getAuthenticationParams2(strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+	getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
-	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+//	getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+//	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+
+//	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+//	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), NULL, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 
 	diffv.push_back(difftime(time(0x00), start));
 
