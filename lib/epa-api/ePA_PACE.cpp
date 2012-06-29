@@ -722,24 +722,14 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           default:
               pin_id = PaceInput::undef;
       }
-      vector<BYTE> v_password, v_chat, v_certificate_description;
 
-      v_password.reserve(password.size());
-      v_password.resize(password.size());
-      memcpy(&v_password[0], &password[0], password.size());
-
-      v_chat.reserve(chat.size());
-      v_chat.resize(chat.size());
-      memcpy(&v_chat[0], &chat[0], chat.size());
-
-      //v_certificate_description.reserve(certificate_description.size());
-      //v_certificate_description.resize(certificate_description.size());
-      //memcpy(&v_certificate_description[0], certificate_description, certificate_description.size());
-
-      PaceOutput output = ePA_->subSystemEstablishPACEChannel(PaceInput(pin_id, v_password, v_chat, v_certificate_description));
+      PaceOutput output = ePA_->subSystemEstablishPACEChannel(PaceInput(pin_id,
+                  password, chat, certificate_description));
 
       car_cvca = output.get_car_curr();
       x_Puk_ICC_DH2 = output.get_id_icc();
+      kEnc = std::vector<unsigned char> ();
+      kMac = std::vector<unsigned char> ();
   } else {
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
@@ -751,13 +741,12 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
   OBJECT_IDENTIFIER_t PACE_OID_;
   AlgorithmIdentifier* PACEDomainParameterInfo_ = 0x00;
-  //AlgorithmIdentifier* CADomainParameterInfo_ = 0x00;
 
   for (int i = 0; i < secInfos_->list.count; i++)
   {
     OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
 
-    { // Find the algorithm for PACE ...
+    {
       // Find the algorithm for PACE ...
       OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC     = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
       OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
@@ -772,7 +761,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
       asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
       asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-    } // Find the algorithm for PACE ...
+    }
 
     { OBJECT_IDENTIFIER_t oidCheck = makeOID(id_PACE_ECDH);
       // Find the PACEDomainParameter
@@ -785,12 +774,12 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
           return ECARD_EFCARDACCESS_PARSER_ERROR;    
         }
-      } // if (OID(id_PACE_ECDH) == oid)
+      }
       
       asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &oidCheck, 1);
       
-    } // Find the PACEDomainParameter ...
-  } // for (int i = 0; i < secInfos_->list.count; i++)
+    }
+  }
   
   ECARD_STATUS status = ECARD_SUCCESS;  
   if (ECARD_SUCCESS != (status = perform_PACE_Step_B(PACE_OID_, keyReference, chat, card_)))
@@ -873,8 +862,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   kMac = kMac_;
   kEnc = kEnc_;
 
-  std::vector<unsigned char> v( car_cvca_.begin(), car_cvca_.end() );
-  car_cvca = v;
+  car_cvca = std::vector<unsigned char> ( car_cvca_.begin(), car_cvca_.end() );
 
   x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
 
