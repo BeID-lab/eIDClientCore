@@ -611,7 +611,7 @@ NPACLIENT_ERROR nPAClient::performPACE(
   std::vector<unsigned char> chatInput;
   chatInput = chat_;
 
-  for (int i = 0; i < chat_.size(); ++i)
+  for (size_t i = 0; i < chat_.size(); ++i)
   {
     m_chatUsed.push_back(chat_[i]);
   }
@@ -781,7 +781,7 @@ NPACLIENT_ERROR nPAClient::readAttributed(
   if (Authenticated != m_protocolState)
     return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
-  for (int i = 0; i < m_capdus.size(); ++i)
+  for (size_t i = 0; i < m_capdus.size(); ++i)
   {
       std::vector<unsigned char> capdu;
       capdu = m_capdus.at(i);

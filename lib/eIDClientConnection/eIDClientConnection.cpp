@@ -103,7 +103,6 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONN
 
 extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection)
 {
-    int ret;
     socket_st * sock = (socket_st *) hConnection;
 
 	if(!sock)

@@ -444,7 +444,7 @@ bool verifyResponse_AES(
 	// Store the SSC as vector.
 	std::vector<unsigned char> ssc_;
 	
-	for (int i = 0; i < kMac.size() - 8; i++)
+	for (size_t i = 0; i < kMac.size() - 8; i++)
 		ssc_.push_back(0x00);
 	
 	ssc_.push_back((ssc << 56) & 0xFF);
@@ -501,7 +501,7 @@ bool verifyResponse_AES(
 		vssc.push_back(0x00);
 	
 	std::vector<unsigned char> kMac_;
-	for (int i = 0; i < kMac.size(); i++)
+	for (size_t i = 0; i < kMac.size(); i++)
 		kMac_.push_back(kMac[i]);
 	
 	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);

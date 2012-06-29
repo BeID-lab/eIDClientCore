@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
+//#include <winsock2.h>
 #else
 #include <reader.h>
 #include <arpa/inet.h>
@@ -70,7 +70,7 @@ PCSCReader::PCSCReader (
 #endif
     m_hScardContext ( 0x0 )
 {
-  DWORD retValue = SCARD_S_SUCCESS, recvlen, result;
+  DWORD retValue = SCARD_S_SUCCESS, recvlen;
   BYTE recvbuf[1024];
   BYTE sendbuf[] = {
       FUNCTION_GetReadersPACECapabilities,
@@ -490,7 +490,7 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
 {
     PaceOutput output;
 
-    DWORD r, recvlen, result;
+    DWORD r, recvlen;
     uint8_t length_CHAT, length_PIN, PinID;
     uint16_t lengthInputData, lengthCertificateDescription;
     BYTE recvbuf[1024];

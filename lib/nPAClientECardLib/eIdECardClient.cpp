@@ -365,7 +365,7 @@ bool eIdECardClient::readAttributes(
     
 	inAPDUList.clear();
     
-	for (int i = 0; i < apdus.size(); ++i)
+	for (size_t i = 0; i < apdus.size(); ++i)
 	{
 		string strAPDU = Byte2Hex(&apdus.at(i)[0], apdus.at(i).size());
 		inAPDUList.push_back(strAPDU);

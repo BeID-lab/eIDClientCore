@@ -40,6 +40,15 @@ typedef unsigned long ULONG;
 
 typedef void * LPVOID;
 
+#ifdef _MSC_VER
+typedef	char		int8_t;
+typedef	short		int16_t;
+typedef	int		int32_t;
+typedef	unsigned char	uint8_t;
+typedef	unsigned short	uint16_t;
+typedef	unsigned int	uint32_t;
+#endif
+
 #define ECARD_INVALID_HANDLE_VALUE ((ECARD_HANDLE) 0xFFFFFFFF)
 
 /*!

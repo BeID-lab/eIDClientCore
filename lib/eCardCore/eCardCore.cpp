@@ -58,12 +58,7 @@ void eCardCore_info(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
-  mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
-  wMessage[strlen(newMessage)] = '\n';
-  wMessage[strlen(newMessage) + 1] = 0;
-  OutputDebugString(wMessage);
-  delete [] wMessage;
+  OutputDebugStringA(newMessage);
 #else
   std::cout << newMessage << std::endl;
 #endif
@@ -83,12 +78,7 @@ void eCardCore_debug(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
-  mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
-  wMessage[strlen(newMessage)] = '\n';
-  wMessage[strlen(newMessage) + 1] = 0;
-  OutputDebugStringA(wMessage);
-  delete [] wMessage;
+  OutputDebugStringA(newMessage);
 #else
   std::cout << newMessage << std::endl;
 #endif
@@ -108,12 +98,7 @@ void eCardCore_warn(
   vsprintf(newMessage, format, params);
 
 #if defined(WIN32)
-  LPWSTR wMessage = new WCHAR[strlen(newMessage) + 2];
-  mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
-  wMessage[strlen(newMessage)] = '\n';
-  wMessage[strlen(newMessage) + 1] = 0;
-  OutputDebugString(wMessage);
-  delete [] wMessage;
+  OutputDebugStringA(newMessage);
 #else
   std::cout << newMessage << std::endl;
 #endif

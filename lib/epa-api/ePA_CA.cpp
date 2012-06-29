@@ -82,13 +82,13 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
   dataPart_.push_back((x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_) + 1);
   dataPart_.push_back(0x04);
 
-  for (size_t i = 0; i < fillerX_; i++)
+  for (int i = 0; i < fillerX_; i++)
     dataPart_.push_back(0x00);
 
   for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
     dataPart_.push_back(x_Puk_IFD_DH[i]);
 
-  for (size_t i = 0; i < fillerY_; i++)
+  for (int i = 0; i < fillerY_; i++)
     dataPart_.push_back(0x00);
 
   for (size_t i = 0; i < y_Puk_IFD_DH.size(); i++)

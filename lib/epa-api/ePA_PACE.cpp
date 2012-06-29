@@ -204,9 +204,9 @@ std::vector<unsigned char> calculate_SMKeys(
 
   int filler = 32 - tmpx_.size();
 
-  for (int i = 0; i < filler; i++)
+  for (size_t i = 0; i < filler; i++)
     x_.push_back(0x00);
-  for (int i = 0; i < tmpx_.size(); i++)
+  for (size_t i = 0; i < tmpx_.size(); i++)
     x_.push_back(tmpx_[i]);
 
   unsigned char kenc[] = { 0x00, 0x00, 0x00, 0x01 };
