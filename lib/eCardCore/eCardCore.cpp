@@ -87,7 +87,7 @@ void eCardCore_debug(
   mbstowcs((WCHAR*) wMessage, newMessage, strlen(newMessage));
   wMessage[strlen(newMessage)] = '\n';
   wMessage[strlen(newMessage) + 1] = 0;
-  OutputDebugString(wMessage);
+  OutputDebugStringA(wMessage);
   delete [] wMessage;
 #else
   std::cout << newMessage << std::endl;
