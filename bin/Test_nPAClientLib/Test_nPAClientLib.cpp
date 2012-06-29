@@ -21,6 +21,7 @@
 #include <iomanip>
 #include <string.h>
 #include <sstream>
+#include <algorithm>
 
 #define XML_STATIC
 #include <expat.h>
@@ -213,6 +214,12 @@ public:
 		{
 			_scheme.assign(str, p1-str);
 			p1 += 3;
+
+			std::transform(_scheme.begin(), _scheme.end(), _scheme.begin(), tolower); 
+			if( 0x00 == _scheme.compare("https") )
+			{
+				default_port="443";
+			}
 		}
 		else
 		{
@@ -452,16 +459,24 @@ int getAuthenticationParams(const char* const cServerName,
 
       get += "Host: ";
       get += cServerName;
-      get += cPath;
       get += ":";
       get += pPort;
       get += "\r\n\r\n";
 
-      connection_status = eIDClientConnectionSendRequest(connection,
-              get.c_str(), sz, sizeof sz);
-      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+	  memset(sz, 0x00, READ_BUFFER);
+      connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), sz, sizeof sz);
+      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+	  {
           strResult += sz;
-          strResult = strResult.substr(strResult.find("<html"));
+
+		  std::string strTmp = strResult;
+		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), tolower); 
+
+		  size_t found = strTmp.find("<html");
+		  if(found != std::string::npos)
+		  {
+            strResult = strResult.substr(found);
+		  }
       }
 	  eIDClientConnectionEnd(connection);
   }
@@ -495,13 +510,15 @@ int getAuthenticationParams(const char* const cServerName,
   string strContentLength = "Content-Length: " + out.str();
 
   strResult = "";
-  connection_status = eIDClientConnectionStart(&connection,
-          urlIDP._hostname.c_str(), "443", urlIDP._path.c_str(),
-          0, NULL);
+  connection = 0x00;
+  connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
   if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
       string request;
-      if (strcmp(eIdObject.m_strMethod.c_str(), "post") == 0) {
+		  
+	  std::transform(eIdObject.m_strMethod.begin(), eIdObject.m_strMethod.end(), eIdObject.m_strMethod.begin(), tolower);
+	  if( 0x00 == eIdObject.m_strMethod.compare("post") ) 
+	  {
           /* Send a POST request */
           request += "POST ";
       } else {
@@ -510,21 +527,28 @@ int getAuthenticationParams(const char* const cServerName,
       }
       request += urlIDP._path + " HTTP/1.1\r\n";
 
-      request += "Host: " + urlIDP._hostname + ":" + "443" + "\r\n";
+      request += "Host: " + urlIDP._hostname + ":" + urlIDP._port + "\r\n";
       request += strContentType + "\r\n";
       request += strContentLength + "\r\n\r\n";
 
       request += strData;
 
-      connection_status = eIDClientConnectionSendRequest(connection,
-              request.c_str(), sz, sizeof sz);
-      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+	  memset(sz, 0x00, READ_BUFFER);
+      connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), sz, sizeof sz);
+      if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+	  {
           strResult += sz;
+		  std::string strTmp = strResult;
+		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), tolower); 
 
-          strResult = strResult.substr(strResult.find("<HTML"));
+		  size_t found = strTmp.find("<html");
+		  if(found != std::string::npos)
+		  {
+            strResult = strResult.substr(found);
+		  }
       }
+	  eIDClientConnectionEnd(connection);
   }
-  eIDClientConnectionEnd(connection);
 
   string response2 = strResult;
 
@@ -542,69 +566,6 @@ int getAuthenticationParams(const char* const cServerName,
   cout << "IdpAddress is\t" + strIdpAddress + "\n";
   cout << "SessionIdentifier is\t" + strSessionIdentifier + "\n";
   cout << "PathSecurityParameters is\t" + strPathSecurityParameters + "\n";
-
-  strRefresh = eIdObject.m_strRefreshAddress;
-
-  return 0;
-}
-
-int getAuthenticationParams2(string &strIdpAddress,
-							string &strSessionIdentifier,
-							string &strPathSecurityParameters)
-{ 
-    HINTERNET hInternet; 
-    HINTERNET hFile; 
-    char szBuf[1024]; 
-    bool bGO = true; 
-    DWORD ReadSize; 
- //   FILE *fFile; 
-  string	strResult = "";
-  CeIdObject		eIdObject;
-
-    hInternet = InternetOpen("WININET Sample Program", 
-                             INTERNET_OPEN_TYPE_PRECONFIG, 
-                             NULL, 
-                             NULL, 
-                             0); 
-
-    hFile = InternetOpenUrl(hInternet, 
-                            "http://172.20.112.109:8080/mobileSSO", 
-                            NULL, 
-                            0, 
-                            INTERNET_FLAG_RELOAD, 
-                            0); 
-          DWORD dwNumberOfBytesRead;
-		  int result = 0;
-          char sz[READ_BUFFER];
-          do
-          {
-            result = InternetReadFile(hFile, sz, READ_BUFFER - 1, &dwNumberOfBytesRead);												
-            sz[dwNumberOfBytesRead] = '\0';
-            int x = strlen(sz);
-            strResult += sz;
-            memset(sz, 0, READ_BUFFER);	
-          }
-          while(result && dwNumberOfBytesRead != 0);
-
-    InternetCloseHandle(hFile); 
-    InternetCloseHandle(hInternet); 
-
-  string response2 = strResult;
-	
-  cout << response2.c_str() << endl;
-
-  response2 = str_replace("<PSK>", "", response2);
-  response2 = str_replace("</PSK>", "", response2);
-  response2 = str_replace("&uuml;", "ü", response2);
-  response2 = str_replace("&ouml;", "ö", response2);
-
-  cout << response2.c_str() << endl;
-
-  eIdObject.GetParams(response2);
-
-  strIdpAddress = eIdObject.m_strServerAddress;
-  strSessionIdentifier = eIdObject.m_strSessionID;
-  strPathSecurityParameters = eIdObject.m_strPSK;
 
   strRefresh = eIdObject.m_strRefreshAddress;
 
@@ -631,12 +592,10 @@ int main(int argc, char** argv)
     string strPathSecurityParameters("");
 	string strRef("");
 
-//	getAuthenticationParams("eidservices.bundesdruckerei.de", 443, "/ExampleSP/saml/Login", NULL, NULL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-//	getAuthenticationParams2(strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-	getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+//	getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
 //	getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-//	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
 //	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 //	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), NULL, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
