@@ -26,6 +26,7 @@
 #include <arpa/inet.h>
 #endif
 #include <string.h>
+#include <stdint.h>
 
 #ifndef PCSC_TLV_ELEMENT_SIZE
 #define PCSC_TLV_ELEMENT_SIZE (1+1+4)
