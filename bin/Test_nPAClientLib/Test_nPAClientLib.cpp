@@ -283,7 +283,7 @@ WINAPI getSamlResponseThread( LPVOID lpParam )
 
     connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(),
             urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
-    if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+    if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
     {
         /* Send a GET request */
         string get("GET ");
@@ -298,10 +298,14 @@ WINAPI getSamlResponseThread( LPVOID lpParam )
 
         connection_status = eIDClientConnectionSendRequest(connection,
                 get.c_str(), sz, sizeof sz);
-        if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+        if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
             strResult += sz;
             strResult = strResult.substr(strResult.find("<html"));
+        } else {
+            std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
         }
+    } else {
+        std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
     }
     connection_status = eIDClientConnectionEnd(connection);
 
@@ -476,9 +480,15 @@ int getAuthenticationParams(const char* const cServerName,
 		  if(found != std::string::npos)
 		  {
             strResult = strResult.substr(found);
-		  }
+          } else {
+              std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+          }
+      } else {
+          std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
       }
 	  eIDClientConnectionEnd(connection);
+  } else {
+      std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
   }
 
   CeIdObject		eIdObject;
@@ -512,7 +522,7 @@ int getAuthenticationParams(const char* const cServerName,
   strResult = "";
   connection = 0x00;
   connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
-  if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+  if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
       string request;
 		  
@@ -545,9 +555,15 @@ int getAuthenticationParams(const char* const cServerName,
 		  if(found != std::string::npos)
 		  {
             strResult = strResult.substr(found);
-		  }
+          } else {
+              std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+          }
+      } else {
+          std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
       }
-	  eIDClientConnectionEnd(connection);
+      eIDClientConnectionEnd(connection);
+  } else {
+      std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
   }
 
   string response2 = strResult;
@@ -563,9 +579,9 @@ int getAuthenticationParams(const char* const cServerName,
   strSessionIdentifier = eIdObject.m_strSessionID;
   strPathSecurityParameters = eIdObject.m_strPSK;
 
-  cout << "IdpAddress is\t" + strIdpAddress + "\n";
-  cout << "SessionIdentifier is\t" + strSessionIdentifier + "\n";
-  cout << "PathSecurityParameters is\t" + strPathSecurityParameters + "\n";
+  cout << "IdpAddress is\t" + strIdpAddress << std::endl;
+  cout << "SessionIdentifier is\t" + strSessionIdentifier << std::endl;
+  cout << "PathSecurityParameters is\t" + strPathSecurityParameters << std::endl;
 
   strRefresh = eIdObject.m_strRefreshAddress;
 
@@ -597,7 +613,7 @@ int main(int argc, char** argv)
 //	getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
-//	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+    retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 //	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), NULL, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 
 	diffv.push_back(difftime(time(0x00), start));
@@ -622,7 +638,6 @@ int main(int argc, char** argv)
   
   std::cout << buffer << std::endl;
 
-  getchar();
 
   return retValue;
 }
