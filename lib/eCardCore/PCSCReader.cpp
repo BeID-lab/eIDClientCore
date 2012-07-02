@@ -114,12 +114,10 @@ PCSCReader::PCSCReader (
   if (retValue != SCARD_S_SUCCESS) {
       eCardCore_warn ( "SCardControl for the reader's features failed. 0x%08X (%s:%d)",
               retValue,  __FILE__, __LINE__ );
-  }
-
-  for (i = 0; i <= recvlen-PCSC_TLV_ELEMENT_SIZE; i += PCSC_TLV_ELEMENT_SIZE) {
-      if (recvbuf[i] == FEATURE_EXECUTE_PACE) {
-          memcpy(&m_ioctl_pace, recvbuf+i+2, 4);
-      }
+  } else {
+      for (i = 0; i+PCSC_TLV_ELEMENT_SIZE <= recvlen; i += PCSC_TLV_ELEMENT_SIZE)
+          if (recvbuf[i] == FEATURE_EXECUTE_PACE)
+              memcpy(&m_ioctl_pace, recvbuf+i+2, 4);
   }
 
   if (0 == m_ioctl_pace)
@@ -194,10 +192,7 @@ bool PCSCReader::open (
     
   SCardStatus(m_hCard, szReader, &cch, &dwState, &dwProtocol, (unsigned char*)&atr, &len);
 #endif
-    
-  for (DWORD i = 0; i < len; i++)
-    eCardCore_debug ( "ATR: 0x%02X", atr[i]);
-                     
+
   return true;
 }
 
