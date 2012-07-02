@@ -215,7 +215,7 @@ public:
 			_scheme.assign(str, p1-str);
 			p1 += 3;
 
-			std::transform(_scheme.begin(), _scheme.end(), _scheme.begin(), tolower); 
+			std::transform(_scheme.begin(), _scheme.end(), _scheme.begin(), static_cast<int (*)(int)>(tolower)); 
 			if( 0x00 == _scheme.compare("https") )
 			{
 				default_port="443";
@@ -470,7 +470,7 @@ int getAuthenticationParams(const char* const cServerName,
           strResult += sz;
 
 		  std::string strTmp = strResult;
-		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), tolower); 
+		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int (*)(int)>(tolower)); 
 
 		  size_t found = strTmp.find("<html");
 		  if(found != std::string::npos)
@@ -516,7 +516,7 @@ int getAuthenticationParams(const char* const cServerName,
   {
       string request;
 		  
-	  std::transform(eIdObject.m_strMethod.begin(), eIdObject.m_strMethod.end(), eIdObject.m_strMethod.begin(), tolower);
+	  std::transform(eIdObject.m_strMethod.begin(), eIdObject.m_strMethod.end(), eIdObject.m_strMethod.begin(), static_cast<int (*)(int)>(tolower));
 	  if( 0x00 == eIdObject.m_strMethod.compare("post") ) 
 	  {
           /* Send a POST request */
@@ -539,7 +539,7 @@ int getAuthenticationParams(const char* const cServerName,
 	  {
           strResult += sz;
 		  std::string strTmp = strResult;
-		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), tolower); 
+		  std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int (*)(int)>(tolower)); 
 
 		  size_t found = strTmp.find("<html");
 		  if(found != std::string::npos)
