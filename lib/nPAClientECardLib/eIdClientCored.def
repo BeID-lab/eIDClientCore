@@ -1,4 +1,4 @@
-LIBRARY	"eIdClientCoreLib"
+LIBRARY	"eIdClientCored"
 
 EXPORTS
   nPAeIdPerformAuthenticationProtocolPcSc
