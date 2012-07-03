@@ -611,10 +611,10 @@ int main(int argc, char** argv)
 //	getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
 //	getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+//	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+	getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
     retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
-//	retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), NULL, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 
 	diffv.push_back(difftime(time(0x00), start));
 
