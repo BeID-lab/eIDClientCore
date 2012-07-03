@@ -163,7 +163,7 @@ ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size)
 
 ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size)
 {
-    ssize_t sent;
+    size_t sent;
     ssize_t ret;
 
     for (sent = 0; sent < buffer_size; sent += ret) {
