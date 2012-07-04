@@ -4,6 +4,7 @@ typedef long ssize_t;
 
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -129,7 +130,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTI
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, int nBufResultLength)
+extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, const int nBufResultLength)
 {
     ssize_t ret;
     socket_st *sock;
@@ -138,12 +139,30 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_
     if (!sock)
         return EID_CLIENT_CONNECTION_INVALID_HANDLE;
 
+#ifdef _WIN32
+////////////////////////////
+// this hack is nesassary in case of unsecured connections to apache httpd due to error WSAECONNABORTED (10053) occured
+// 
+// TCP/IP scenario: A connection will timeout if the local system doesn't receive an (ACK)nowledgement for data sent.
+// It would also timeout if a (FIN)ish TCP packet is not ACK'd (and even if the FIN is ACK'd, it will eventually timeout if a FIN is not returned).
+	if(0x00 == sock->secure)
+	{
+	    my_closesocket(sock->fd);
+		sock->fd = my_connectsocket (sock->hostname, sock->port, sock->path);
+	}
+////////////////////////////
+#endif
+
+	memset(bufResult, 0x00, nBufResultLength);
+
     ret = my_send (sock, data, strlen(data));
 
     ret = my_recv (sock, bufResult, nBufResultLength);
 
     if (ret < 0)
+	{
         return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+	}
 
     /* TODO return the number of bytes received (ret) to caller */
 
