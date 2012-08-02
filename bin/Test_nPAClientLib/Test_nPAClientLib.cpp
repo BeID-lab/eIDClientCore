@@ -367,22 +367,22 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			{
 			  std::cout << "nPA client perform CA failed with code : " << HEX(error) << std::endl;
 			}
-//#ifdef _WIN32
-//			HANDLE  hThread;
-//			DWORD   dwThreadId;
-//			hThread = CreateThread( 
-//            NULL,                   // default security attributes
-//            0,                      // use default stack size  
-//            getSamlResponseThread,       // thread function name
-//            NULL,          // argument to thread function 
-//            0,                      // use default creation flags 
-//            &dwThreadId);   // returns the thread identifier 
-//#else
-//            /* TODO thread cleanup */
-//            pthread_t hThread;
-//            if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
-//                std::cout << "Could not create getSamlResponseThread" << std::endl;
-//#endif
+#ifdef _WIN32
+			HANDLE  hThread;
+			DWORD   dwThreadId;
+			hThread = CreateThread( 
+            NULL,                   // default security attributes
+            0,                      // use default stack size  
+            getSamlResponseThread,       // thread function name
+            NULL,          // argument to thread function 
+            0,                      // use default creation flags 
+            &dwThreadId);   // returns the thread identifier 
+#else
+            /* TODO thread cleanup */
+            pthread_t hThread;
+            if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
+                std::cout << "Could not create getSamlResponseThread" << std::endl;
+#endif
 
 		  break;
 		case NPACLIENT_STATE_READ_ATTRIBUTES:
@@ -590,7 +590,7 @@ int getAuthenticationParams(const char* const cServerName,
 
 int main(int argc, char** argv)
 {
-  int loopCount = 100;
+  int loopCount = 1;
 
   int retValue = 0;
   int serverErrorCounter = 0;
@@ -608,12 +608,12 @@ int main(int argc, char** argv)
     string strPathSecurityParameters("");
 	string strRef("");
 
-//	getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-	getAuthenticationParams("eid.innovation.bdr", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+    //getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+	//getAuthenticationParams("eid.innovation.bdr", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
 //	getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 //	getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-//	getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+    getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 
     retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 
@@ -638,8 +638,6 @@ int main(int argc, char** argv)
   sprintf(buffer, "########## Error Code: %X - Read Count: %u - Server Errors: %d\n", retValue, (unsigned int) diffv.size(), serverErrorCounter);
   
   std::cout << buffer << std::endl;
-
-  getchar();
 
   return retValue;
 }

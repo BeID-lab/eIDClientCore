@@ -39,16 +39,8 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
     paraMap["PathSecurity-Protocol"]   = (char**) &authParams->m_pathSecurityProtocol;
     paraMap["PathSecurity-Parameters"] = (char**) &authParams->m_pathSecurityParameters;
     paraMap["RefreshAddress"]          = (char**) &authParams->m_refreshAddress;
-// dietrfra: für Fernseher ...
-//    if(authParams->m_cardReaderName)
-//      paraMap["CardReaderName"]          = (char**) &authParams->m_cardReaderName;
 
-//    GlobalTesterParams* temp           = (GlobalTesterParams*) authParams->m_extension;
-//    paraMap["GlobalTesterIp"]          = (char**) &temp->m_globalTesterIp;
-//    paraMap["GlobalTesterPort"]        = (char**) &temp->m_globalTesterPort;
-    
-    // Create the connection to the IdP
-      // TODO use the correct parameters
+    // TODO use the correct parameters
     IIdP* pIdP = eIdECardClient::createInstance(&paraMap);
 
     assert(0x00 != pIdP);
@@ -315,8 +307,13 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
   // I know it's very unsafe :(
   nPAClient* pnPAClient = (nPAClient*) hClient;
 
-  if ((error = pnPAClient->performPACE(password, 
-    chatSelectedByUser, certificateDescription, retryCounter)) != NPACLIENT_ERROR_SUCCESS)
+  try {
+	  error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription, retryCounter);
+  } catch (...) {
+	  return NPACLIENT_ERROR_PACE_FAILED;
+  }
+
+  if (error != NPACLIENT_ERROR_SUCCESS)
   {
     // @TODO: Log event ...
     return error;

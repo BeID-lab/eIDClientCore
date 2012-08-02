@@ -89,9 +89,6 @@ typedef unsigned long NPACLIENT_STATE;
 
 typedef long long chat_t;
 
-/**
- *
- */
 typedef struct nPADataBuffer
 {
   unsigned char* pDataBuffer;
@@ -166,14 +163,6 @@ typedef NPACLIENT_ERROR (*nPAeIdUserInteractionCallback_t)(
   char* const bufPIN,
   const int nBufLength);
 
-/*!
- * @brief 
- *
- * @param 
- * @param 
- *
- * @return NPACLIENT_ERROR_
- */
 NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolPcSc(
   IN const char* const IdpAddress,
   IN const char* const SessionIdentifier,
@@ -181,220 +170,12 @@ NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolPcSc(
   IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
   IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
 
-///*!
-// * @brief 
-// *
-// * @param 
-// * @param 
-// *
-// * @return NPACLIENT_ERROR_
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWithParamMap(
-//  IN AuthenticationParams_t paraMap,
-//  IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-//  IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
-//
-///*!
-// * @brief This function is used to initialize the communication protocol to read
-// *        out the upcoming German ID card.
-// *
-// * @param paraMap holds the strings from the plugin (ServerAddress, SessionIdentifier, PSK, RefreshAddress).
-// * @param hClient Pointer to the resulting handle. This handle will be used in all further API calls.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The protocol is initialized properly. All other values indicating
-// *         an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
-//  IN AuthenticationParams_t* paraMap,
-//  OUT PNPACLIENT_HANDLE hClient);
-//
-///*!
-// * @brief This function returns all the data needed for the PACE dialog.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// * @param chatFromCertificate Pointer to the CHAT, read out from the terminal certificate.
-// * @param certificateValidFrom Pointer to the start date of the terminal certificate. 
-// * @param certificateValidTo Pointer to the end date of the terminal certificate.
-// * @param certificateDescription Pointer to an nPADataBuffer_t structure that holds the certificate
-// *                               description.
-// * @param serviceName Pointer to an nPADataBuffer_t structure that holds the name of the service.
-// * @param serviceURL Pointer to an nPADataBuffer_t structure that holds the URL of the service.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The function performs successfully.  All other values indicating
-// *         an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos(
-//  IN NPACLIENT_HANDLE hClient,
-//  OUT chat_t* chatFromCertificate,
-//  OUT time_t* certificateValidFrom,
-//  OUT time_t* certificateValidTo,
-//  OUT nPADataBuffer_t* certificateDescription,
-//  OUT nPADataBuffer_t* serviceName,
-//  OUT nPADataBuffer_t* serviceURL);
-//
-///*!
-// * @brief This function returns all the data needed for the PACE dialog.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// * @param chatFromCertificate Pointer to the CHAT, read out from the terminal certificate.
-// * @param chatRequired
-// * @param chatOptional
-// * @param certificateValidFrom Pointer to the start date of the terminal certificate. 
-// * @param certificateValidTo Pointer to the end date of the terminal certificate.
-// * @param certificateDescription Pointer to an nPADataBuffer_t structure that holds the certificate
-// *                               description.
-// * @param serviceName Pointer to an nPADataBuffer_t structure that holds the name of the service.
-// * @param serviceURL Pointer to an nPADataBuffer_t structure that holds the URL of the service.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The function performs successfully.  All other values indicating
-// *         an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos2(
-//  IN NPACLIENT_HANDLE hClient,
-//  OUT nPADataBuffer_t* chatFromCertificate,
-//  OUT nPADataBuffer_t* chatRequired,
-//  OUT nPADataBuffer_t* chatOptional,
-//  OUT time_t* certificateValidFrom,
-//  OUT time_t* certificateValidTo,
-//  OUT nPADataBuffer_t* certificateDescription,
-//  OUT nPADataBuffer_t* serviceName,
-//  OUT nPADataBuffer_t* serviceURL);
-//
-///*!
-// * @brief This function performs the PACE protocol to establish the first
-// *        secure messaging channel between the client and the nPA.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// * @param password Pointer to an 0-Terminated string which holds the password provided by the user.
-// * @param chatSelectedByUser The CHAT value selected by the user.
-// * @param retryCounter Pointer to the retry counter of the card. This feature isn't implemented yet.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The PACE protocol was performed successfully. All other values 
-// *         indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
-//  IN NPACLIENT_HANDLE hClient,
-//  IN const char* password,
-//  IN chat_t chatSelectedByUser,
-//  IN unsigned char* retryCounter /*unused*/);
-//
-///*!
-// * @brief This function is used to perform the terminal authentication protocol.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The terminal authentication protocol was performed successfully.
-// *          All other values indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAPerformTerminalAuthentication(
-//  IN NPACLIENT_HANDLE hClient);
-//
-///*!
-// * @brief This function is used to perform the chip authentication protocol.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The chip authentication protocol was performed successfully.
-// *         All other values indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAPerformChipAuthentication(
-//  IN NPACLIENT_HANDLE hClient);
-//
-///*!
-// * @brief This function reads out all requested attributes from the nPA. After the reading process
-// *        the resulting SAML 2.0 token will be issued by the IdP and returned to the caller.
-//
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// * @param samlEncodedAttributes Pointer to an nPADataBuffer_t structure that holds the 
-// *        SAML 2.0 response.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS All requested attributes are read successfully.
-// *         All other values indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAReadAttributes(
-//  IN NPACLIENT_HANDLE hClient,
-//  OUT nPADataBuffer_t* samlEncodedAttributes);
-//
-///*!
-// * @brief This function is used to free an allocated nPADataBuffer_t structure.
-// *
-// * @param dataBuffer A pointer to an nPADataBuffer_t structure to free.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The buffer was freed successfully. All other values 
-// *         indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAFreeDataBuffer(
-//  IN nPADataBuffer_t* dataBuffer);
-//
-///*!
-// * @brief This function finalizes the communication protocol and frees all allocated 
-// *        resources. The hClient handle becomes invalid after a call to this function.
-// *
-// * @param hClient Handle to an valid nPA client, created by @see nPAInitializeProtocol.
-// *
-// * @return NPACLIENT_ERROR_SUCCESS The protocol is finalized properly. All other values 
-// *         indicating an error.
-// */
-//NPACLIENT_ERROR NPACLIENT_API nPAFinalizeProtocol(
-//  IN NPACLIENT_HANDLE hClient);
-
 typedef NPACLIENT_ERROR (*nPAeIdPerformAuthenticationProtocolPcSc_t)(
   const char* const IdpAddress,
   const char* const SessionIdentifier,
   const char* const PathSecurityParameters,
   const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
   const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
-
-//typedef NPACLIENT_ERROR (*nPAeIdPerformAuthenticationProtocolWithParamMap_t)(
-//  AuthenticationParams_t paraMap,
-//  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-//  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
-//
-//typedef NPACLIENT_ERROR (*nPAInitializeProtocol_t)(
-//  AuthenticationParams_t* paraMap,
-//  PNPACLIENT_HANDLE hClient);
-//
-//typedef NPACLIENT_ERROR (*nPAQueryPACEInfos_t)(
-//  NPACLIENT_HANDLE hClient,
-//  chat_t* chatFromCertificate,
-//  time_t* certificateValidFrom,
-//  time_t* certificateValidTo,
-//  nPADataBuffer_t* certificateDescription,
-//  nPADataBuffer_t* serviceName,
-//  nPADataBuffer_t* serviceURL);
-//
-//typedef NPACLIENT_ERROR (*nPAQueryPACEInfos2_t)(
-//  NPACLIENT_HANDLE hClient,
-//  nPADataBuffer_t* chatFromCertificate,
-//  nPADataBuffer_t* chatRequired,
-//  nPADataBuffer_t* chatOptional,
-//  time_t* certificateValidFrom,
-//  time_t* certificateValidTo,
-//  nPADataBuffer_t* certificateDescription,
-//  nPADataBuffer_t* serviceName,
-//  nPADataBuffer_t* serviceURL);
-//
-//typedef NPACLIENT_ERROR (*nPAPerformPACE_t)(
-//  NPACLIENT_HANDLE hClient,
-//  const char* password,
-//  chat_t chatSelectedByUser,
-//  unsigned char* retryCounter /*unused*/);
-//
-//typedef NPACLIENT_ERROR (*nPAPerformTerminalAuthentication_t)(
-//  NPACLIENT_HANDLE hClient);
-//
-//typedef NPACLIENT_ERROR (*nPAPerformChipAuthentication_t)(
-//  NPACLIENT_HANDLE hClient);
-//
-//typedef NPACLIENT_ERROR (*nPAReadAttributes_t)(
-//  NPACLIENT_HANDLE hClient,
-//  nPADataBuffer_t* samlEncodedAttributes);
-//
-//typedef NPACLIENT_ERROR (*nPAFreeDataBuffer_t)(
-//  nPADataBuffer_t* dataBuffer);
-//
-//typedef NPACLIENT_ERROR (*nPAFinalizeProtocol_t)(
-//  NPACLIENT_HANDLE hClient);
 
 #if defined(__cplusplus)
 }

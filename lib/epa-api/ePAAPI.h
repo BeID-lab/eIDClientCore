@@ -8,17 +8,13 @@
 #if !defined(__EPAAPI_INCLUDED__)
 #define __EPAAPI_INCLUDED__
 
-#include <eCardCore.h>
-#include <list>
 #include <vector>
+#include "eCardCore.h"
 
 /**
  * @file ePAAPI.h
  * @brief This file describes the ePA-API. The ePA-API is used to communicate with 
  *        the ePA card and to perform all needed protocols to access the ePA.
- *
- * @todo: I think it will be better to bundle the runtime data (kEnc, kMac, ssc, ...) to an object wicht will be used. The user of the API should not be
- *        nerved by this data.
  */
 
 #if defined(__cplusplus)
@@ -46,8 +42,6 @@ typedef enum KEY_REFERENCE_t
  * @param chat          [IN] The CHAT (may be restricted by the user) to be used.
  * @param password      [IN] The password provided by the user.
  * @param efCardAccess  [IN] The content of the EF.CardAccess file.
- * @param kMac          [OUT] The resulting key used for the MAC algorithm while secure messaging within the next protocol steps.
- * @param kEnc          [OUT] The resulting key used for the encryption algorithm while secure messaging within the next protocol steps.
  * @param car_cvca      [OUT] The CAR of the CVCA stored into the chip.
  * @param x_Puk_ICC_DH2 [OUT] The x part of PuK.ICC.DH2. This part will be needed while the terminal authentication.
  *
@@ -58,12 +52,10 @@ typedef enum KEY_REFERENCE_t
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
   IN ECARD_HANDLE hCard,
   IN KEY_REFERENCE keyReference,
-  IN std::vector<unsigned char> chat,
-  IN std::vector<unsigned char> certificate_description,
-  IN std::vector<unsigned char> password,
-  IN std::vector<unsigned char> efCardAccess,
-  IN OUT std::vector<unsigned char>& kMac,
-  IN OUT std::vector<unsigned char>& kEnc,
+  IN const std::vector<unsigned char>& chat,
+  IN const std::vector<unsigned char>& certificate_description,
+  IN const std::vector<unsigned char>& password,
+  IN const std::vector<unsigned char>& efCardAccess,
   IN OUT std::vector<unsigned char>& car_cvca,
   IN OUT std::vector<unsigned char>& x_Puk_ICC_DH2,
   OUT unsigned char* PINCount);
@@ -73,14 +65,10 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  *        EAC 2.01.
  *
  * @param hCard               [IN] Handle to an valid ePA card.
- * @param kEnc                [IN] The key used for the encryption algorithm while secure messaging.
- * @param kMac                [IN] The key used for the MAC algorithm while secure messaging.
- * @param ssc                 [IN][OUT] The send sequence counter for secure messaging. The initial value MUST be 0.
  * @param efCardAccess        [IN] The content of the EF.CardAccess file.
  * @param car_cvca            [IN] The CAR of the CVCA stored into the chip.
  * @param list_certificates   [IN] The raw list of link certificates and DVCA certificate.
  * @param terminalCertificate [IN] The raw certificate of the terminal.
- * @param x_Puk_ICC_DH2       [IN] The x part of PuK.ICC.DH2. This data will be provided by the PACE operation. @see ePAPerformPACE
  * @param x_Puk_ICC_DH_CA     [IN] The x part of PuK.IFD_DH_CA. This data is part of the public key used for the chip 
  *                                 authentication and will be created on the eID server. @see eIDServer.cpp function createChipAuthenticationKey
  * @param toBeSigned          [IN][OUT] The data which will be signed by the eID server.
@@ -91,16 +79,12 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
   IN ECARD_HANDLE hCard,
-  IN std::vector<unsigned char> kEnc,
-  IN std::vector<unsigned char> kMac,
-  IN OUT unsigned long long &ssc,
-  IN std::vector<unsigned char> efCardAccess,
-  IN std::vector<unsigned char> car_cvca,
-  IN std::list<std::vector<unsigned char> >& list_certificates,
-  IN std::vector<unsigned char> terminalCertificate,
-  IN std::vector<unsigned char> x_Puk_ICC_DH2,
-  IN std::vector<unsigned char> x_Puk_IFD_DH_CA,
-  IN std::vector<unsigned char> authenticatedAuxiliaryData,
+  IN const std::vector<unsigned char>& efCardAccess,
+  IN const std::vector<unsigned char>& car_cvca,
+  IN const std::vector<std::vector<unsigned char> >& list_certificates,
+  IN const std::vector<unsigned char>& terminalCertificate,
+  IN const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
+  IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
   IN OUT std::vector<unsigned char>& toBeSigned);
 
 /**
@@ -108,9 +92,6 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  *        the eID server @see eIDServer.cpp function createServerSignature.
  *
  * @param hCard     [IN] Handle to an valid ePA card.
- * @param kEnc      [IN] The key used for the encryption algorithm while secure messaging.
- * @param kMac      [IN] The key used for the MAC algorithm while secure messaging.
- * @param ssc       [IN][OUT] The send sequence counter for secure messaging.
  * @param signature [IN] The raw signature data which will be send to the chip.
  *
  * @return ECARD_SUCCESS if successfully. All other values indication an error.
@@ -119,16 +100,10 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
   IN ECARD_HANDLE hCard,
-  IN std::vector<unsigned char> kEnc,
-  IN std::vector<unsigned char> kMac,
-  IN OUT unsigned long long &ssc,
-  IN std::vector<unsigned char> signature);
+  IN const std::vector<unsigned char>& signature);
 
 /**
  * @param hCard                       [IN] Handle to an valid ePA card.
- * @param kEnc                        [IN] The key used for the encryption algorithm while secure messaging.
- * @param kMac                        [IN] The key used for the MAC algorithm while secure messaging.
- * @param ssc                         [IN][OUT] The send sequence counter for secure messaging.
  * @param x_Puk_IFD_DH                [IN] The x part of the public key used for chip authentication. @see eIDServer.cpp function createChipAuthenticationKey
  * @param y_Puk_IFD_DH                [IN] The y part of the public key used for chip authentication. @see eIDServer.cpp function createChipAuthenticationKey
  * @param GeneralAuthenticationResult [OUT] The last result from the client side chip communication. This data must be send to the eID Server to create the new
@@ -140,11 +115,8 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
   IN ECARD_HANDLE hCard,
-  IN std::vector<unsigned char> kEnc,
-  IN std::vector<unsigned char> kMac,
-  IN OUT unsigned long long &ssc,
-  IN std::vector<unsigned char> x_Puk_IFD_DH,
-  IN std::vector<unsigned char> y_Puk_IFD_DH,
+  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
+  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
   IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
 
 /**
@@ -152,7 +124,7 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
  */
 ECARD_STATUS __STDCALL__ ePASendAPDU(
   IN ECARD_HANDLE hCard,
-  IN std::vector<unsigned char> capdu,
+  IN const std::vector<unsigned char>& capdu,
   IN OUT std::vector<unsigned char>& rapdu);
 
 #if defined(__cplusplus)

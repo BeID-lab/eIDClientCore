@@ -22,10 +22,7 @@ using namespace Bundesdruckerei::eIdUtils;
 #include <ePACommon.h>
 
 #include <cassert>
-
-void eCardCore_debug(
-                     const char* format,
-                     ...);
+#include <debug.h>
 
 nPAClient* nPAClient::m_instance = 0x00;
 
@@ -135,7 +132,7 @@ NPACLIENT_ERROR nPAClient::initialize(
 
   int readerCount_ = eCardGetReaderCount(m_hSystem);
   
-  eCardCore_debug("eCardGetReaderCount(%08X) returnd %d", m_hSystem, readerCount_);
+  eCardCore_debug(DEBUG_LEVEL_CLIENT, "eCardGetReaderCount(%08X) returnd %d", m_hSystem, readerCount_);
   
   if (0 == readerCount_)
     return NPACLIENT_ERROR_NO_USABLE_READER_PRESENT;
@@ -183,7 +180,7 @@ NPACLIENT_ERROR nPAClient::initialize(
   //    m_hCard = hTempCard_;
   //  }
   //}
-  eCardCore_debug("ePACounter_ == %d", readerCount_);
+  eCardCore_debug(DEBUG_LEVEL_CLIENT, "ePACounter_ == %d", readerCount_);
 
   // We can only handle one nPA.
   if (1 < ePACounter_)
@@ -200,7 +197,7 @@ NPACLIENT_ERROR nPAClient::initialize(
   if (0x00 == m_clientProtocol)
     return NPACLIENT_ERROR_PROTCOL_INITIALIZATION_FAILD;
 
-  eCardCore_debug("nPAClient::initialize ok");
+  eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::initialize ok");
 
   return NPACLIENT_ERROR_SUCCESS;
 }
@@ -215,10 +212,7 @@ bool nPAClient::getCHAT(
   if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
     &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getCHAT - Could not parse terminal certificate.");
-    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
-
-    // @TODO: Do logging ...
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT - Could not parse terminal certificate.");
     
     asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
     return false;
@@ -257,8 +251,7 @@ bool nPAClient::getCHAT2(
   if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
     &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getCHAT2 - Could not parse terminal certificate.");
-    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT2 - Could not parse terminal certificate.");
 
     // @TODO: Do logging ...
 
@@ -324,8 +317,7 @@ bool nPAClient::getValidFromDate(
   if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
     &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getValidFromDate - Could not parse terminal certificate.");
-    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - Could not parse terminal certificate.");
 
     asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
     
@@ -343,37 +335,6 @@ bool nPAClient::getValidFromDate(
   return true;
 }
 
-/*
- *
- */
-//bool nPAClient::getValidFromDateString(
-//  std::string &certificateValidFrom)
-//{
-//  CVCertificate_t	*CVCertificate = 0x00;
-//  if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-//    &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
-//  {
-//    eCardCore_debug("nPAClient::getValidFromDateString - Could not parse terminal certificate.");
-//    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
-//
-//    asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-//    
-//    // @TODO: Do logging ...
-//    return false;
-//  }
-//
-//  std::vector<unsigned char> validFromBuffer(CVCertificate->certBody.certEffectiveDate.buf, 
-//    CVCertificate->certBody.certEffectiveDate.size);
-//  certificateValidFrom = BDRDate::fromBCD(validFromBuffer);
-//
-//  asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-//  
-//  return true;
-//}
-
-/*
- *
- */
 bool nPAClient::getValidToDate(
   time_t &certificateValidTo)
 {
@@ -381,12 +342,10 @@ bool nPAClient::getValidToDate(
   if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate, 
     &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getValidToDate - Could not parse terminal certificate.");
-    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getValidToDate - Could not parse terminal certificate.");
 
     asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
     
-    // @TODO: Do logging ...
     return false;
   }
 
@@ -400,37 +359,6 @@ bool nPAClient::getValidToDate(
   return true;
 }
 
-/*
- *
- */
-//bool nPAClient::getValidToDateString(
-//  std::string &certificateValidTo)
-//{
-//  CVCertificate_t	*CVCertificate = 0x00;
-//  if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate, 
-//    &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
-//  {
-//    eCardCore_debug("nPAClient::getValidToDateString - Could not parse terminal certificate.");
-//    hexdump("CERT: ", &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size());
-//
-//    asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-//    
-//    // @TODO: Do logging ...
-//    return false;
-//  }
-//
-//  std::vector<unsigned char> validFromBuffer(CVCertificate->certBody.certExpirationDate.buf, 
-//    CVCertificate->certBody.certExpirationDate.size);
-//  certificateValidTo = BDRDate::fromBCD(validFromBuffer);
-//
-//  asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-//  
-//  return true;
-//}
-
-/*
- *
- */
 bool nPAClient::getCertificateDescription(
   nPADataBuffer_t &certificateDescription)
 {
@@ -438,12 +366,10 @@ bool nPAClient::getCertificateDescription(
   if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_, 
     &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getCertificateDescription - Could not parse certificate description.");
-    hexdump("CERT DESC: ", &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCertificateDescription - Could not parse certificate description.");
 
     asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
     
-    // @TODO: Do logging ...
     return false;
   }
 
@@ -451,12 +377,10 @@ bool nPAClient::getCertificateDescription(
   if (ber_decode(0, &asn_DEF_PlainTermsOfUsage, (void **)&usage, 
     &certificateDescription_->termsOfUsage.buf[0], certificateDescription_->termsOfUsage.size).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getCertificateDescription - Could not parse certificate description.");
-    hexdump("CERT DESC TERMS: ", &certificateDescription_->termsOfUsage.buf[0], certificateDescription_->termsOfUsage.size);
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCertificateDescription - Could not parse certificate description.");
 
     asn_DEF_PlainTermsOfUsage.free_struct(&asn_DEF_PlainTermsOfUsage, usage, 0);
     
-    // @TODO: Do logging ...
     return false;
   }
 
@@ -474,25 +398,6 @@ bool nPAClient::getCertificateDescription(
   return true;
 }
 
-/*
- *
- */
-//bool nPAClient::getCertificateDescriptionRaw(
-//  nPADataBuffer_t &certificateDescription)
-//{
-//  certificateDescription.pDataBuffer = new unsigned char[m_Idp->getCertificateDescription().size()];
-//  assert(0x00 != certificateDescription.pDataBuffer);
-//
-//  certificateDescription.bufferSize = m_Idp->getCertificateDescription().size();
-//
-//  memcpy(certificateDescription.pDataBuffer, &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size());
-//  
-//  return true;
-//}
-
-/*
- *
- */
 bool nPAClient::getServiceName(
   nPADataBuffer_t &serviceName)
 {
@@ -500,12 +405,10 @@ bool nPAClient::getServiceName(
   if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_, 
     &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getServiceName - Could not parse certificate description.");
-    hexdump("CERT DESC: ", &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getServiceName - Could not parse certificate description.");
 
     asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
     
-    // @TODO: Do logging ...
     return false;
   }
 
@@ -522,9 +425,6 @@ bool nPAClient::getServiceName(
   return true;
 }
 
-/*
- *
- */
 bool nPAClient::getServiceURL(
   nPADataBuffer_t &serviceURL)
 {
@@ -532,12 +432,10 @@ bool nPAClient::getServiceURL(
   if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_, 
     &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK)
   {
-    eCardCore_debug("nPAClient::getServiceURL - Could not parse certificate description.");
-    hexdump("CERT DESC: ", &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size());
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getServiceURL - Could not parse certificate description.");
 
     asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
     
-    // @TODO: Do logging ...
     return false;
   }
   
@@ -560,9 +458,6 @@ bool nPAClient::getServiceURL(
   return true;
 }
 
-/*
- *
- */
 NPACLIENT_ERROR nPAClient::performPACE(
   const char* password,
   chat_t chatSelectedByUser,
@@ -577,7 +472,6 @@ NPACLIENT_ERROR nPAClient::performPACE(
   // Actually we running the PACE protocol
   m_protocolState = PACE_Running;
 
-  const char *c = password;
   std::vector<unsigned char> passwordInput(password, password + strlen(password));
 
   std::vector<unsigned char>
@@ -645,7 +539,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 {
   std::vector<unsigned char> efCardAccess;
   std::vector<unsigned char> idPICC;
-  std::list<std::vector<unsigned char> > list_certificates;
+  std::vector<std::vector<unsigned char> > list_certificates;
 
   // Check the state of the protocol. We can only run TA if the
   // PACE protocol is done.
@@ -783,18 +677,14 @@ NPACLIENT_ERROR nPAClient::readAttributed(
 
   for (size_t i = 0; i < m_capdus.size(); ++i)
   {
-      std::vector<unsigned char> capdu;
-      capdu = m_capdus.at(i);
+      CAPDU capdu = m_capdus.at(i);
+	  std::vector<unsigned char> rapdu;
+      std::vector<unsigned char> capdu_buf = capdu.asBuffer();
 
-      std::vector<unsigned char> rapdu;
+	  if (ECARD_SUCCESS != ePASendAPDU(m_hCard, capdu_buf, rapdu))
+		  return NPACLIENT_ERROR_TRANSMISSION_ERROR;
 
-      ePASendAPDU(m_hCard, capdu, rapdu);
-
-      std::vector<unsigned char> tempAPDU;
-
-      tempAPDU = rapdu;
-
-      m_rapdus.push_back(tempAPDU);
+      m_rapdus.push_back(rapdu);
   }
 
   std::string attributes;
@@ -804,18 +694,6 @@ NPACLIENT_ERROR nPAClient::readAttributed(
   m_Idp->close();
 
   m_protocolState = Finished;
-
-  return NPACLIENT_ERROR_SUCCESS;
-}
-
-/*
- *
- */
-NPACLIENT_ERROR nPAClient::sendAPDU(
-  std::vector<unsigned char> capdu,
-  std::vector<unsigned char>& rapdu)
-{
-  ePASendAPDU(m_hCard, capdu, rapdu);
 
   return NPACLIENT_ERROR_SUCCESS;
 }

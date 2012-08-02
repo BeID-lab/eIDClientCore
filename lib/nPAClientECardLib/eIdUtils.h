@@ -13,11 +13,6 @@
 #include <iostream>
 
 
-void debugOut(const char* format, ...);
-void errorOut(const char* format, ...);
-
-//using namespace std;
-
 namespace Bundesdruckerei
 {
   namespace eIdUtils

@@ -1,23 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: PCSCReader.cpp 1373 2011-11-24 15:10:52Z x_schrom $
-// ---------------------------------------------------------------------------
-
-#include "PCSCReader.h"
 #include "ICard.h"
-#include "eCardCore_intern.h"
-
-#if defined(_DEBUG) && !defined(WINCE)
-# include <crtdbg.h>
-# define DEBUG_CLIENTBLOCK   new( _CLIENT_BLOCK, __FILE__, __LINE__)
-# define new DEBUG_CLIENTBLOCK
-#else
-# define DEBUG_CLIENTBLOCK
-#endif
-
-#include <stdlib.h>
+#include "PCSCReader.h"
+#include <debug.h>
 
 #ifdef _WIN32
 //#include <winsock2.h>
@@ -25,8 +8,9 @@
 #include <reader.h>
 #include <arpa/inet.h>
 #endif
-#include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef PCSC_TLV_ELEMENT_SIZE
 #define PCSC_TLV_ELEMENT_SIZE (1+1+4)
@@ -42,7 +26,7 @@
 #define SCARD_PROTOCOL_ANY (SCARD_PROTOCOL_T0|SCARD_PROTOCOL_T1)
 #endif
 
-#define ENABLE_PACE 0
+#define ENABLE_PACE 1
 
 #define FUNCTION_GetReadersPACECapabilities 0x01
 #define FUNCTION_EstabishPACEChannel        0x02
@@ -71,18 +55,16 @@ PCSCReader::PCSCReader (
 #endif
     m_hScardContext ( 0x0 )
 {
-  DWORD retValue = SCARD_S_SUCCESS, recvlen;
-  BYTE recvbuf[1024];
+  DWORD retValue = SCARD_S_SUCCESS;
   BYTE sendbuf[] = {
       FUNCTION_GetReadersPACECapabilities,
       0x00,              /* lengthInputData */
       0x00,              /* lengthInputData */
   };
-  size_t i;
   
   if ( ( retValue = SCardEstablishContext ( /*SCARD_SCOPE_USER*/ SCARD_SCOPE_SYSTEM,
                     0x0, 0x0, &m_hScardContext ) ) != SCARD_S_SUCCESS )
-    eCardCore_warn ( "SCardEstablishContext failed. 0x%08X (%s:%d)", retValue,
+    eCardCore_warn (DEBUG_LEVEL_CARD,  "SCardEstablishContext failed. 0x%08X (%s:%d)", retValue,
                      __FILE__, __LINE__ );
 
 #if defined(UNICODE) || defined(_UNICODE)
@@ -101,50 +83,56 @@ PCSCReader::PCSCReader (
 
   if ( retValue != SCARD_S_SUCCESS )
   {
-    eCardCore_warn ( "SCardConnect for %s failed. 0x%08X (%s:%d)",
+    eCardCore_warn (DEBUG_LEVEL_CARD,  "SCardConnect for %s failed. 0x%08X (%s:%d)",
                      m_readerName.c_str(), retValue,  __FILE__, __LINE__ );
   }
 
   /* does the reader support PACE? */
   m_ioctl_pace = 0;
 #if ENABLE_PACE
-  recvlen = sizeof(recvbuf);
+  BYTE recvbuf[1024];
+  DWORD recvlen = sizeof(recvbuf);
   retValue = SCardControl(m_hCard, CM_IOCTL_GET_FEATURE_REQUEST, NULL, 0,
           recvbuf, sizeof(recvbuf), &recvlen);
   if (retValue != SCARD_S_SUCCESS) {
-      eCardCore_warn ( "SCardControl for the reader's features failed. 0x%08X (%s:%d)",
+      eCardCore_warn (DEBUG_LEVEL_CARD,  "SCardControl for the reader's features failed. 0x%08X (%s:%d)",
               retValue,  __FILE__, __LINE__ );
   } else {
-      for (i = 0; i+PCSC_TLV_ELEMENT_SIZE <= recvlen; i += PCSC_TLV_ELEMENT_SIZE)
+      for (size_t i = 0; i+PCSC_TLV_ELEMENT_SIZE <= recvlen; i += PCSC_TLV_ELEMENT_SIZE)
           if (recvbuf[i] == FEATURE_EXECUTE_PACE)
               memcpy(&m_ioctl_pace, recvbuf+i+2, 4);
   }
 
-  if (0 == m_ioctl_pace)
-      eCardCore_info ("Reader does not support PACE");
-  else {
+  if (0 == m_ioctl_pace) {
+      eCardCore_info (DEBUG_LEVEL_CARD, "Reader does not support PACE");
+  } else {
       /* convert to host byte order to use for SCardControl */
       m_ioctl_pace = ntohl(m_ioctl_pace);
+
+      hexdump(DEBUG_LEVEL_CARD, "Execute PACE Input Data (FUNCTION=GetReadersPACECapabilities)", sendbuf, sizeof sendbuf);
 
       recvlen = sizeof(recvbuf);
       retValue = SCardControl(m_hCard, m_ioctl_pace, sendbuf, sizeof sendbuf,
               recvbuf, sizeof(recvbuf), &recvlen);
+
+      hexdump(DEBUG_LEVEL_CARD, "Execute PACE Output Data (FUNCTION=GetReadersPACECapabilities)", recvbuf, recvlen);
+
       if (retValue == SCARD_S_SUCCESS
               && recvlen == 7
               && recvbuf[0] == 0 && recvbuf[1] == 0
               && recvbuf[2] == 0 && recvbuf[3] == 0) {
           if (recvbuf[6] & BITMAP_Qualified_Signature)
-              eCardCore_info ("Reader supports qualified signature");
+              eCardCore_info (DEBUG_LEVEL_CARD, "Reader supports qualified signature");
           if (recvbuf[6] & BITMAP_German_eID)
-              eCardCore_info ("Reader supports German eID");
-          if (recvbuf[6] & BITMAP_PACE)
-              eCardCore_info ("Reader supports PACE");
-          else
+              eCardCore_info (DEBUG_LEVEL_CARD, "Reader supports German eID");
+          if (recvbuf[6] & BITMAP_PACE) {
+              eCardCore_info (DEBUG_LEVEL_CARD, "Reader supports PACE");
+          } else
               m_ioctl_pace = 0;
           if (recvbuf[6] & BITMAP_DestroyPACEChannel)
-              eCardCore_info ("Reader supports DestroyPACEChannel");
+              eCardCore_info (DEBUG_LEVEL_CARD, "Reader supports DestroyPACEChannel");
       } else {
-          eCardCore_warn ("Error executing GetReadersPACECapabilities");
+          eCardCore_warn (DEBUG_LEVEL_CARD, "Error executing GetReadersPACECapabilities");
           m_ioctl_pace = 0;
       }
   }
@@ -229,55 +217,25 @@ void PCSCReader::close (
 /*!
  *
  */
-bool PCSCReader::sendAPDU (
-  UINT64 cardID,
-  const CardCommand& cmd,
-  CardResult& res,
-  const string& logMsg)
+vector <unsigned char> PCSCReader::sendAPDU (
+        UINT64 cardID,
+        const vector<unsigned char>& cmd)
 {
-  // No valid card so we should leave ...
+    BYTE res[RAPDU::RAPDU_EXTENDED_MAX];
+    DWORD reslen = sizeof res;
+    DWORD r = SCARD_S_SUCCESS;
+    vector <unsigned char> result;
 
-  if ( 0x00 == m_hCard )
-    return false;
-#if !defined(__APPLE__)
-  DWORD returned = ( DWORD ) res.size();
-#else
-  uint32_t returned = (uint32_t) res.size();
-#endif
+    if ( 0x00 == m_hCard )
+        throw WrongHandle();
 
-  long retValue = SCARD_S_SUCCESS;
+    r = SCardTransmit ( m_hCard, SCARD_PCI_T1, &cmd[0],
+            ( DWORD ) cmd.size(), NULL, res, &reslen );
 
-  CardCommand& c = const_cast<CardCommand&> ( cmd );
-
-  if (logMsg.length() > 0)
-    eCardCore_debug ( "###-> %s",  logMsg.c_str());
-
-#if defined(_WIN32)
-  eCardCore_debug ( "Send APDU to card 0x%I64X: %s", cardID, c.asString().c_str() );
-#else
-  eCardCore_debug ( "Send APDU to card 0x%llX: %s", cardID, c.asString().c_str() );
-#endif    
-
-  if((retValue = SCardTransmit ( m_hCard, SCARD_PCI_T1, &cmd[0],
-    ( DWORD ) cmd.size(), NULL, &res[0], &returned )) != SCARD_S_SUCCESS)
-  {
-    eCardCore_warn ( "SCardTransmit failed. 0x%08X (%s:%lu)", retValue,
-                     __FILE__, __LINE__ );
-    return false;
-  }
+    if(r != SCARD_S_SUCCESS)
+        throw TransactionFailed();
   
-  if ( 0 == returned )
-  {
-    eCardCore_debug ( "SCardTransmit failed. No SW is returned." );
-    return false;
-  }
-    
-  res.resize ( returned );
-
-  eCardCore_debug ( "Returned data: %s", res.asString().c_str() );
-  eCardCore_debug ( "SW: 0x%04X", res.getSW() );
-
-  return res.isOK();
+    return vector<unsigned char>(res, res+reslen);
 }
 
 vector<BYTE> PCSCReader::getATRForPresentCard()
@@ -331,72 +289,72 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
 
     /* Output Data */
     if (parsed+sizeof result > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&result, output+parsed, sizeof result);
     switch (result) {
         case 0x00000000:
             break;
         case 0xD0000001:
-            eCardCore_warn("Längen im Input sind inkonsistent");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Längen im Input sind inkonsistent");
+            throw PACEException();
         case 0xD0000002:
-            eCardCore_warn("Unerwartete Daten im Input");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Unerwartete Daten im Input");
+            throw PACEException();
         case 0xD0000003:
-            eCardCore_warn("Unerwartete Kombination von Daten im Input");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Unerwartete Kombination von Daten im Input");
+            throw PACEException();
         case 0xE0000001:
-            eCardCore_warn("Syntaxfehler im Aufbau der TLV-Antwortdaten");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Syntaxfehler im Aufbau der TLV-Antwortdaten");
+            throw PACEException();
         case 0xE0000002:
-            eCardCore_warn("Unerwartete/fehlende Objekte in den TLV-Antwortdaten");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Unerwartete/fehlende Objekte in den TLV-Antwortdaten");
+            throw PACEException();
         case 0xE0000003:
-            eCardCore_warn("Der Kartenleser kennt die PIN-ID nicht.");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Der Kartenleser kennt die PIN-ID nicht.");
+            throw PACEException();
         case 0xE0000006:
-            eCardCore_warn("Fehlerhaftes PACE-Token");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Fehlerhaftes PACE-Token");
+            throw PACEException();
         case 0xE0000007:
-            eCardCore_warn("Zertifikatskette für Terminalauthentisierung kann nicht gebildet werden");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Zertifikatskette für Terminalauthentisierung kann nicht gebildet werden");
+            throw PACEException();
         case 0xE0000008:
-            eCardCore_warn("Unerwartete Datenstruktur in Rückgabe der Chipauthentisierung");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Unerwartete Datenstruktur in Rückgabe der Chipauthentisierung");
+            throw PACEException();
         case 0xE0000009:
-            eCardCore_warn("Passive Authentisierung fehlgeschlagen");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Passive Authentisierung fehlgeschlagen");
+            throw PACEException();
         case 0xE000000A:
-            eCardCore_warn("Fehlerhaftes Chipauthentisierung-Token");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Fehlerhaftes Chipauthentisierung-Token");
+            throw PACEException();
         case 0xF0100001:
-            eCardCore_warn("Kommunikationsabbruch mit Karte.");
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Kommunikationsabbruch mit Karte.");
+            throw PACEException();
         default:
-            eCardCore_warn("Reader reported some error: %0X.", result);
-            return paceoutput;
+            eCardCore_warn(DEBUG_LEVEL_CARD, "Reader reported some error: %0X.", result);
+            throw PACEException();
     }
     paceoutput.set_result(result);
     parsed += sizeof result;
 
     /* Output Data */
     if (parsed+sizeof lengthOutputData > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&lengthOutputData, output+parsed, sizeof lengthOutputData);
     parsed += sizeof lengthOutputData;
     if (lengthOutputData != output_length-parsed) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
 
     /* MSE:Set AT */
     if (parsed+sizeof mse_setat > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&mse_setat, output+parsed, sizeof mse_setat);
     paceoutput.set_status_mse_set_at(mse_setat);
@@ -404,85 +362,81 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
 
     /* lengthEF_CardAccess */
     if (parsed+2 > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&lengthEF_CardAccess, output+parsed, sizeof lengthEF_CardAccess);
     parsed += sizeof lengthEF_CardAccess;
 
     /* EF.CardAccess */
     if (parsed+lengthEF_CardAccess > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
-    EF_CardAccess.reserve(lengthEF_CardAccess);
-    EF_CardAccess.resize(lengthEF_CardAccess);
-    memcpy(&EF_CardAccess[0], output+parsed, lengthEF_CardAccess);
+    EF_CardAccess.assign(output+parsed, output+parsed+lengthEF_CardAccess);
+    paceoutput.set_ef_cardaccess(EF_CardAccess);
     parsed += lengthEF_CardAccess;
 
     /* lengthCAR */
     if (parsed+sizeof lengthCAR > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&lengthCAR, output+parsed, sizeof lengthCAR);
     parsed += sizeof lengthCAR;
 
     /* CAR */
     if (parsed+lengthCAR > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
-    CAR.reserve(lengthCAR);
-    CAR.resize(lengthCAR);
-    memcpy(&CAR[0], output+parsed, lengthCAR);
+    CAR.assign(output+parsed, output+parsed+lengthCAR);
+    paceoutput.set_car_curr(CAR);
     parsed += lengthCAR;
 
     /* lengthCARprev */
     if (parsed+sizeof lengthCARprev > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&lengthCARprev, output+parsed, sizeof lengthCARprev);
     parsed += sizeof lengthCARprev;
 
     /* CARprev */
     if (parsed+lengthCARprev > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
-    CARprev.reserve(lengthCARprev);
-    CARprev.resize(lengthCARprev);
-    memcpy(&CARprev[0], output+parsed, lengthCARprev);
+    CARprev.assign(output+parsed, output+parsed+lengthCARprev);
+    paceoutput.set_car_prev(CARprev);
     parsed += lengthCARprev;
 
     /* lengthIDicc */
     if (parsed+sizeof length_IDicc > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
     memcpy(&length_IDicc , output+parsed, sizeof length_IDicc);
     parsed += sizeof length_IDicc;
 
     /* IDicc */
     if (parsed+length_IDicc > output_length) {
-        eCardCore_warn("Malformed Establish PACE Channel output data.");
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+        throw PACEException();
     }
-    IDicc.reserve(length_IDicc);
-    IDicc.resize(length_IDicc);
-    memcpy(&IDicc[0], output+parsed, length_IDicc);
+    IDicc.assign(output+parsed, output+parsed+length_IDicc);
+    paceoutput.set_id_icc(IDicc);
     parsed += length_IDicc;
 
     if (parsed != output_length) {
-        eCardCore_warn("Overrun by %d bytes", output_length - parsed);
-        return paceoutput;
+        eCardCore_warn(DEBUG_LEVEL_CARD, "Overrun by %d bytes", output_length - parsed);
+        throw PACEException();
     }
 
     return paceoutput;
 }
 
-PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
+PaceOutput PCSCReader::establishPACEChannel(const PaceInput& input)
 {
     PaceOutput output;
 
@@ -493,7 +447,9 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
 
     length_CHAT = input.get_chat().size();
     length_PIN = input.get_pin().size();
-    lengthCertificateDescription = input.get_certificate_description().size();
+    //FIXME input.get_certificate_description().size();
+    // The certificate description we get is in wrong format
+    lengthCertificateDescription = 0;
     lengthInputData = sizeof PinID
         + sizeof length_CHAT + length_CHAT
         + sizeof length_PIN + length_PIN
@@ -501,11 +457,8 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
 
     size_t sendlen = 1+2+lengthInputData;
     BYTE *sendbuf = (BYTE *) malloc(sendlen);
-    if (!sendbuf) {
-        eCardCore_warn("%s:%d", __FILE__, __LINE__);
-        return output;
-    }
-
+    if (!sendbuf)
+        throw TransactionFailed();
 
     switch (input.get_pin_id()) {
         case PaceInput::mrz:
@@ -533,19 +486,23 @@ PaceOutput PCSCReader::establishPACEChannel(PaceInput input)
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID,
             &length_CHAT, sizeof length_CHAT);
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID+sizeof length_CHAT,
-            &input.get_chat()[0], length_CHAT);
+		    input.get_chat().data(), length_CHAT);
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID+sizeof length_CHAT+length_CHAT,
             &length_PIN, sizeof length_PIN);
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID+sizeof length_CHAT+length_CHAT+sizeof length_PIN,
-            &input.get_pin()[0], length_PIN);
+            input.get_pin().data(), length_PIN);
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID+sizeof length_CHAT+length_CHAT+sizeof length_PIN+length_PIN,
             &lengthCertificateDescription, sizeof lengthCertificateDescription);
     memcpy(sendbuf+1+sizeof lengthInputData+sizeof PinID+sizeof length_CHAT+length_CHAT+sizeof length_PIN+length_PIN+sizeof lengthCertificateDescription,
-            &input.get_certificate_description()[0], lengthCertificateDescription);
+		    input.get_certificate_description().data(), lengthCertificateDescription);
+
+    hexdump(DEBUG_LEVEL_CARD, "Execute PACE Input Data (FUNCTION=EstabishPACEChannel)", sendbuf, sendlen);
 
     recvlen = sizeof(recvbuf);
     r = SCardControl(m_hCard, m_ioctl_pace, sendbuf, sendlen,
             recvbuf, sizeof(recvbuf), &recvlen);
+
+    hexdump(DEBUG_LEVEL_CARD, "Execute PACE Output Data (FUNCTION=EstabishPACEChannel)", recvbuf, recvlen);
 
     free(sendbuf);
 

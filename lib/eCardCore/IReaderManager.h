@@ -1,23 +1,9 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: IReaderManager.h 627 2010-01-28 09:19:47Z rfiedler $
-// ---------------------------------------------------------------------------
-
-/*!
- * @file IReaderManager.h
- */
-
 #if !defined(__IREADERMANAGER_INCLUDED__)
 #define __IREADERMANAGER_INCLUDED__
 
-#include <eCardTypes.h>
-
 #include "IReader.h"
-#include "ICardDetector.h"
-#include "CardCommand.h"
 
+#include <string>
 #include <vector>
 using namespace std;
 

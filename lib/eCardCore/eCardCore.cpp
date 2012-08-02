@@ -6,13 +6,6 @@
 // ---------------------------------------------------------------------------
 
 #if defined(WIN32)
-#  pragma warning(push)
-#  pragma warning(disable : 4244)
-#  pragma warning(disable : 4996)
-#endif
-
-#if defined(WIN32)
-#  pragma warning(pop)
 #include <windows.h>
 #include <tchar.h>
 #endif
@@ -20,6 +13,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 
 #include "eCardCore.h"
 
@@ -29,79 +23,13 @@
 
 #include "ICard.h"
 
-#if defined(_DEBUG) && !defined(_WIN32_WCE)
-# include <crtdbg.h>
-# define DEBUG_CLIENTBLOCK   new( _CLIENT_BLOCK, __FILE__, __LINE__)
-# define new DEBUG_CLIENTBLOCK
-#else
-# define DEBUG_CLIENTBLOCK
-#endif
+#include <debug.h>
 
 /*
 *
 */
 void initCore(void)
 {
-}
-
-/*
-*
-*/
-void eCardCore_info(
-                    const char* format,
-                    ...)
-{
-  va_list params;
-  va_start (params, format);
-
-  char newMessage[4096];
-  vsprintf(newMessage, format, params);
-
-#if defined(WIN32)
-  OutputDebugStringA(newMessage);
-#else
-  std::cout << newMessage << std::endl;
-#endif
-}
-
-/*
-*
-*/
-void eCardCore_debug(
-                     const char* format,
-                     ...)
-{
-  va_list params;
-  va_start (params, format);
-
-  char newMessage[4096];
-  vsprintf(newMessage, format, params);
-
-#if defined(WIN32)
-  OutputDebugStringA(newMessage);
-#else
-  std::cout << newMessage << std::endl;
-#endif
-}
-
-/*
-*
-*/
-void eCardCore_warn(
-                    const char* format,
-                    ...)
-{
-  va_list params;
-  va_start (params, format);
-
-  char newMessage[4096];
-  vsprintf(newMessage, format, params);
-
-#if defined(WIN32)
-  OutputDebugStringA(newMessage);
-#else
-  std::cout << newMessage << std::endl;
-#endif
 }
 
 /*
@@ -117,7 +45,7 @@ ECARD_STATUS __STDCALL__ eCardOpen(
       {
         PCSCManager* pcscReaderManager = new PCSCManager();
         *hCardSystem = pcscReaderManager;
-        eCardCore_info("Start new session via PC/SC interface (0x%08X).", hCardSystem);
+        eCardCore_info(DEBUG_LEVEL_CARD, "Start new session via PC/SC interface (0x%08X).", hCardSystem);
 
       }
       break;
@@ -152,7 +80,7 @@ ECARD_STATUS __STDCALL__ eCardClose(
   if (0x00 == hCardSystem  || ECARD_INVALID_HANDLE_VALUE == hCardSystem)
     return ECARD_INVALID_PARAMETER_1;
 
-  eCardCore_info("Shutdown session (0x%08X).", hCardSystem);
+  eCardCore_info(DEBUG_LEVEL_CARD, "Shutdown session (0x%08X).", hCardSystem);
   IReaderManager* manager = (IReaderManager*) hCardSystem;
   delete manager;
 
@@ -165,7 +93,7 @@ ECARD_STATUS __STDCALL__ eCardClose(
 int __STDCALL__ eCardGetReaderCount(
                                     IN ECARD_HANDLE hCardSystem)
 {
-  eCardCore_debug("call eCardGetReaderCount(0x%08X)", hCardSystem);
+  eCardCore_debug(DEBUG_LEVEL_CARD, "call eCardGetReaderCount(0x%08X)", hCardSystem);
 
   if (0x00 == hCardSystem  || ECARD_INVALID_HANDLE_VALUE == hCardSystem)
     return -1;
@@ -173,7 +101,7 @@ int __STDCALL__ eCardGetReaderCount(
   IReaderManager* manager = (IReaderManager*) hCardSystem;
 
   size_t readerCount = manager->getReaderCount();
-  eCardCore_info("Found %d readers.", readerCount);
+  eCardCore_info(DEBUG_LEVEL_CARD, "Found %d readers.", readerCount);
 
   return (int) readerCount;
 }
@@ -187,7 +115,7 @@ ECARD_STATUS __STDCALL__ eCardGetReaderName(
   char* szReaderName,
   PDWORD dwSize)
 {
-  eCardCore_debug("call eCardGetReaderName(0x%08X, %d, 0x%08X, 0x%08X)",
+  eCardCore_debug(DEBUG_LEVEL_CARD, "call eCardGetReaderName(0x%08X, %d, 0x%08X, 0x%08X)",
     hCardSystem, idx, szReaderName, dwSize);
 
   if (0x00 == hCardSystem  || ECARD_INVALID_HANDLE_VALUE == hCardSystem)
@@ -198,7 +126,7 @@ ECARD_STATUS __STDCALL__ eCardGetReaderName(
 
   if (0x00 == reader)
   {
-    eCardCore_debug("Could not get reader at index: %d. (%s:%d)", idx,
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not get reader at index: %d. (%s:%d)", idx,
       __FILE__, __LINE__);
     return ECARD_NO_SUCH_READER;
   }
@@ -215,7 +143,7 @@ ECARD_STATUS __STDCALL__ eCardGetReaderName(
 
   if (*dwSize < readerName.length())
   {
-    eCardCore_debug("The buffer is to small (%d < %d). (%s:%d) ", *dwSize,
+    eCardCore_debug(DEBUG_LEVEL_CARD, "The buffer is to small (%d < %d). (%s:%d) ", *dwSize,
       readerName.length(), __FILE__, __LINE__);
     return ECARD_BUFFER_TO_SMALL;
   }
@@ -225,7 +153,7 @@ ECARD_STATUS __STDCALL__ eCardGetReaderName(
   strncpy(szReaderName, readerName.c_str(), readerName.length());
 #endif
 
-  eCardCore_info("Found reader \"%s\" at index %d", readerName.c_str(), idx);
+  eCardCore_info(DEBUG_LEVEL_CARD, "Found reader \"%s\" at index %d", readerName.c_str(), idx);
 
   return ECARD_SUCCESS;
 }
@@ -238,7 +166,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReader(
   IN int idx,
   OUT PECARD_HANDLE hCard)
 {
-  eCardCore_debug("call eCardOpenReader(0x%08X, %d, 0x%08X)",
+  eCardCore_debug(DEBUG_LEVEL_CARD, "call eCardOpenReader(0x%08X, %d, 0x%08X)",
     hCardSystem, idx, hCard);
 
   if (0x00 == hCardSystem  || ECARD_INVALID_HANDLE_VALUE == hCardSystem)
@@ -252,7 +180,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReader(
 
   if (0x00 == reader)
   {
-    eCardCore_debug("Could not get reader at index: %d. (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not get reader at index: %d. (%s:%d)",
       idx, __FILE__, __LINE__);
 
     *hCard = ECARD_INVALID_HANDLE_VALUE;
@@ -261,7 +189,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReader(
 
   if (!reader->open())
   {
-    eCardCore_debug("Could not open reader at index: %d (%s). (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not open reader at index: %d (%s). (%s:%d)",
       idx, reader->getReaderName().c_str(), __FILE__, __LINE__);
 
     *hCard = ECARD_INVALID_HANDLE_VALUE;
@@ -271,12 +199,12 @@ ECARD_STATUS __STDCALL__ eCardOpenReader(
   *hCard = reader->getCard();
 
   if (0x00 == *hCard) {
-    eCardCore_debug("Could not get card from reader at index: %d (%s). (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not get card from reader at index: %d (%s). (%s:%d)",
       idx, reader->getReaderName().c_str(), __FILE__, __LINE__);
     return ECARD_UNKNOWN_CARD;
   }
 
-  eCardCore_info("Open reader \"%s\" at index %d succesfull (0x%08X).",
+  eCardCore_info(DEBUG_LEVEL_CARD, "Open reader \"%s\" at index %d succesfull (0x%08X).",
     reader->getReaderName().c_str(), idx, *hCard);
 
   return ECARD_SUCCESS;
@@ -290,7 +218,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReaderByName(
   IN const char* readerName,
   OUT PECARD_HANDLE hCard)
 {
-  eCardCore_debug("call eCardOpenReaderByName(0x%08X, %s, 0x%08X)",
+  eCardCore_debug(DEBUG_LEVEL_CARD, "call eCardOpenReaderByName(0x%08X, %s, 0x%08X)",
     hCardSystem, readerName, hCard);
 
   if (0x00 == hCardSystem  || ECARD_INVALID_HANDLE_VALUE == hCardSystem)
@@ -304,7 +232,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReaderByName(
 
   if (0x00 == reader)
   {
-    eCardCore_debug("Could not get reader by name: %s. (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not get reader by name: %s. (%s:%d)",
       readerName, __FILE__, __LINE__);
 
     *hCard = ECARD_INVALID_HANDLE_VALUE;
@@ -313,7 +241,7 @@ ECARD_STATUS __STDCALL__ eCardOpenReaderByName(
 
   if (!reader->open())
   {
-    eCardCore_debug("Could not open readerby name: (%s). (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not open readerby name: (%s). (%s:%d)",
       readerName, __FILE__, __LINE__);
 
     *hCard = ECARD_INVALID_HANDLE_VALUE;
@@ -324,12 +252,12 @@ ECARD_STATUS __STDCALL__ eCardOpenReaderByName(
 
   if (0x00 == *hCard)
   {
-    eCardCore_debug("Could not get card from reader by name: %s. (%s:%d)",
+    eCardCore_debug(DEBUG_LEVEL_CARD, "Could not get card from reader by name: %s. (%s:%d)",
       readerName, __FILE__, __LINE__);
     return ECARD_UNKNOWN_CARD;
   }
 
-  eCardCore_info("Open reader \"%s\" succesfull (0x%08X).",
+  eCardCore_info(DEBUG_LEVEL_CARD, "Open reader \"%s\" succesfull (0x%08X).",
     reader->getReaderName().c_str(), *hCard);
 
   return ECARD_SUCCESS;
@@ -341,12 +269,12 @@ ECARD_STATUS __STDCALL__ eCardOpenReaderByName(
 ECARD_STATUS __STDCALL__ eCardCloseReader(
   IN ECARD_HANDLE hCard)
 {
-  eCardCore_debug("call eCardCloseReader (0x%08X)", hCard);
+  eCardCore_debug(DEBUG_LEVEL_CARD, "call eCardCloseReader (0x%08X)", hCard);
 
   if (0x00 == hCard  || ECARD_INVALID_HANDLE_VALUE == hCard)
     return ECARD_INVALID_PARAMETER_1;
 
-  eCardCore_info("Close reader (0x%08X)", hCard);
+  eCardCore_info(DEBUG_LEVEL_CARD, "Close reader (0x%08X)", hCard);
   ICard* card = (ICard*) hCard;
   delete card;
 

@@ -12,11 +12,9 @@
 #if !defined(__PCSCMANAGER_INCLUDED__)
 #define __PCSCMANAGER_INCLUDED__
 
-#if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED) || __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_3_0
-
 #include "IReaderManager.h"
 
-#if defined(WIN32) || defined(WINCE)
+#if defined(_WIN32)
 #  include <winscard.h>
 #else
 #  include <PCSC/winscard.h>
@@ -62,5 +60,4 @@ class PCSCManager : public IReaderManager
     };
 };
 
-#endif // __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0
 #endif

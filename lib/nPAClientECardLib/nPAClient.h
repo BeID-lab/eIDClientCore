@@ -16,6 +16,7 @@
 using namespace Bundesdruckerei::eIdUtils;
 
 #include "eIdClientCoreLib.h"
+#include "CardCommand.h"
 
 #include <eCardTypes.h>
 #include "ePAClientProtocol.h"
@@ -54,10 +55,6 @@ namespace Bundesdruckerei
      */
     class IClient
     {
-    public:
-      virtual NPACLIENT_ERROR sendAPDU(
-        std::vector<unsigned char> capdu,
-        std::vector<unsigned char>& rapdu) = 0;
     };
 
     /**
@@ -137,11 +134,11 @@ namespace Bundesdruckerei
        *
        */
       virtual bool getTerminalAuthenticationData(
-        std::vector<unsigned char> efCardAccess,
-        std::vector<unsigned char> chat,
-        std::string cvCACHAR,
-        std::vector<unsigned char> idPICC,
-        std::list<std::vector<unsigned char> >& list_certificates,
+        const std::vector<unsigned char>& efCardAccess,
+        const std::vector<unsigned char>& chat,
+        const std::string& cvCACHAR,
+        const std::vector<unsigned char>& idPICC,
+        std::vector<std::vector<unsigned char> >& list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
 
@@ -158,13 +155,13 @@ namespace Bundesdruckerei
       virtual bool finalizeAuthentication(
         std::vector<unsigned char> efCardSecurity,
         std::vector<unsigned char> GAResult,
-        std::vector<std::vector<unsigned char> >& apdus) = 0;
+        std::vector<CAPDU>& apdus) = 0;
 
       /**
        *
        */
       virtual bool readAttributes(
-        std::vector<std::vector<unsigned char> > apdus) = 0;
+        std::vector<RAPDU>& apdus) = 0;
      }; // class IIdP
 
 	 /**
@@ -188,8 +185,8 @@ namespace Bundesdruckerei
       std::vector<unsigned char>  m_y_Puk_IFD_DH_CA_;
       chat_t                      m_userSelectedChat;
       std::vector<unsigned char>  m_chatUsed;
-      std::vector<std::vector<unsigned char> >  m_capdus;
-      std::vector<std::vector<unsigned char> >  m_rapdus;
+      std::vector<CAPDU>  m_capdus;
+      std::vector<RAPDU>  m_rapdus;
 
       nPAClient(
         void);
@@ -256,29 +253,11 @@ namespace Bundesdruckerei
       bool getValidToDate(
         time_t &certificateValidTo);
 
-	  /*
-       *
-       */
-//      bool getValidFromDateString(
-//		  std::string &certificateValidFrom);
-
-      /*
-       *
-       */
- //     bool getValidToDateString(
- //       std::string &certificateValidTo);
-
       /*
        *
        */
       bool getCertificateDescription(
         nPADataBuffer_t &certificateDescription);
-
-	  /*
-       *
-       */
-//      bool getCertificateDescriptionRaw(
-//        nPADataBuffer_t &certificateDescription);
 
       /*
        *
@@ -318,13 +297,6 @@ namespace Bundesdruckerei
        */
       NPACLIENT_ERROR readAttributed(
         nPADataBuffer_t &samlEncodedAttributes);
-
-      /*
-       *
-       */
-      NPACLIENT_ERROR sendAPDU(
-        std::vector<unsigned char> capdu,
-        std::vector<unsigned char>& rapdu);
     }; // class nPAClient
   }
 }

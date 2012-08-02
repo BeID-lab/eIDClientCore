@@ -1,18 +1,6 @@
-// ----------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: eCardTypes.h 1237 2011-07-27 09:36:51Z x_schrom $
-// ----------------------------------------------------------------------------
-
-/*!
- * @file eCardTypes.h
- */
-
 #if !defined(__ECARDTYPES_INCLUDED__)
 #define __ECARDTYPES_INCLUDED__
 
-#include <cassert>
 #include <stddef.h>
 
 #define IN
@@ -67,14 +55,5 @@ enum ECARD_PIN_STATE
   PIN_STATE_UNKNOWN,     // The card is not known by the API
   PIN_STATE_NOPIN        // The card has no PIN protection
 };
-
-/*!
- *
- */
-typedef struct ECARD_KEYBLOB_
-{
-  BYTE* keyData;
-  DWORD keySize;
-} ECARD_KEYBLOB, *PECARD_KEYBLOB;
 
 #endif

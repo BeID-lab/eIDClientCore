@@ -29,32 +29,10 @@ USING_NAMESPACE(CryptoPP)
 
 /**
  */
-void hexdump(
-  IN const char* const caption, 
-  IN const void* const pAddressIn, 
-  IN long lSize);
-
-/**
- */
 std::vector<unsigned char> buildDO87_AES(
   IN const std::vector<unsigned char>& kEnc,
   IN const std::vector<unsigned char>& data,
   IN unsigned long long ssc);
-
-/**
- */
-std::vector<unsigned char> buildDO8E_AES(
-  IN const std::vector<unsigned char>& kMac,
-  IN const std::vector<unsigned char>& data,	// header
-  IN OUT unsigned long long &ssc);
-
-/**
- */
-std::vector<unsigned char> buildDO8E_AES(
-  IN const std::vector<unsigned char>& kMac,
-  IN const std::vector<unsigned char>& data,
-  IN const std::vector<unsigned char>& do87,
-  IN OUT unsigned long long &ssc);
 
 /**
  */

@@ -1,14 +1,3 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: eCardCore.h 627 2010-01-28 09:19:47Z rfiedler $
-// ---------------------------------------------------------------------------
-
-/*!
- * @file eCardCore.h
- */
-
 #include <eCardTypes.h>
 #include <eCardStatus.h>
 

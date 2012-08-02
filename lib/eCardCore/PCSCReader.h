@@ -1,13 +1,3 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: PCSCReader.h 737 2010-03-23 14:24:31Z x_schrom $
-// ---------------------------------------------------------------------------
-
-#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0
-#else
-
 #if !defined(__PCSCREDARE_INCLUDED__)
 #define __PCSCREDARE_INCLUDED__
 
@@ -84,11 +74,9 @@ class PCSCReader : public IReader
     /*!
      * @brief This command uses SCardTransmit to send a command to the card.
      */
-    bool sendAPDU (
+    vector<unsigned char> sendAPDU (
       UINT64 cardID,
-      const CardCommand& cmd,
-      CardResult& res,
-      const string& logMsg);
+      const vector<unsigned char>& cmd);
 
     /*!
      *
@@ -99,8 +87,7 @@ class PCSCReader : public IReader
     bool supportsPACE(void);
 
 	PaceOutput establishPACEChannel(
-			PaceInput);
+			const PaceInput&);
 };
 
 #endif
-#endif // __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0

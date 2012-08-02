@@ -19,85 +19,13 @@
 #include <CVCertificate.h>
 #include <CertificateDescription.h>
 
+#include <debug.h>
+
 #include <vector>
 #if defined(WIN32) && !defined(_WIN32_WCE)
 #include <windows.h>
 #endif
 
-/*!
- *
- */
-void hexdump(
-			 const char* const caption,
-			 const void* const pAddressIn,
-			 long lSize)
-{
-	char szBuf[100];
-	long lIndent = 1;
-	long lOutLen, lIndex, lIndex2, lOutLen2;
-	long lRelPos;
-	struct { char *pData; unsigned long lSize; } buf;
-	unsigned char *pTmp,ucTmp;
-	unsigned char *pAddress = (unsigned char *)pAddressIn;
-	
-	if (caption)
-	{
-#if defined(WIN32) && !defined(_WIN32_WCE)
-		OutputDebugStringA(caption);
-		OutputDebugStringA("\n");
-#else
-        puts(caption);
-#endif
-	}
-	
-	buf.pData   = (char *)pAddress;
-	buf.lSize   = lSize;
-	
-	while (buf.lSize > 0)
-	{
-		pTmp     = (unsigned char *)buf.pData;
-		lOutLen  = (int)buf.lSize;
-		if (lOutLen > 16)
-			lOutLen = 16;
-		
-		// create a 64-character formatted output line:
-		sprintf(szBuf, " >                            "
-				"                      "
-				"    %08lX", pTmp-pAddress);
-		lOutLen2 = lOutLen;
-		
-		for(lIndex = 1+lIndent, lIndex2 = 53-15+lIndent, lRelPos = 0;
-			lOutLen2;
-			lOutLen2--, lIndex += 2, lIndex2++
-			)
-		{
-			ucTmp = *pTmp++;
-			
-			sprintf(szBuf + lIndex, "%02X ", (unsigned short)ucTmp);
-			if(!isprint(ucTmp))  ucTmp = '.'; // non printable char
-			szBuf[lIndex2] = ucTmp;
-			
-			if (!(++lRelPos & 3))     // extra blank after 4 bytes
-			{  lIndex++; szBuf[lIndex+2] = ' '; }
-		}
-		
-		if (!(lRelPos & 3)) lIndex--;
-		
-		szBuf[lIndex  ]   = '<';
-		szBuf[lIndex+1]   = ' ';
-		
-		char* message = new char[2048];
-		sprintf(message,  "%s\n", szBuf);
-#if defined(WIN32) && !defined(_WIN32_WCE)
-		OutputDebugStringA(message);
-#endif
-		delete [] message;
-		printf("%s\n", szBuf);
-		
-		buf.pData   += lOutLen;
-		buf.lSize   -= lOutLen;
-	}
-}
 
 /*
  * Build up the DO87 Part of an Secure Messaging APDU according to 
@@ -185,159 +113,6 @@ std::vector<unsigned char> buildDO87_AES(
 		do87.push_back(encryptedData_[z]);
 	
 	return do87;
-}
-
-/*
- * Build up the DO8E Part of an Secure Messaging APDU according to 
- * PKI for Machine Readable Travel Documents offering ICC read-only access
- * Release : 1.1
- * Date : October 01, 2004
- */
-std::vector<unsigned char> buildDO8E_AES(
-										 IN const std::vector<unsigned char>& kMac,
-										 IN const std::vector<unsigned char>& data,
-										 IN const std::vector<unsigned char>& do87,
-										 IN OUT unsigned long long &ssc)
-{
-	std::vector<unsigned char> mac;
-	mac.resize(8);
-	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
-	
-	data_.push_back(0x80);
-	while (data_.size() % kMac.size())
-		data_.push_back(0x00);
-	
-	for (size_t u = 0; u < do87.size(); u++)
-		data_.push_back(do87[u]);
-	
-	std::vector<unsigned char> ssc_;
-	for (int i = 0; i < 8; i++)
-		ssc_.push_back(0x00);
-	
-	ssc_.push_back((ssc << 56) & 0xFF);
-	ssc_.push_back((ssc << 48) & 0xFF);
-	ssc_.push_back((ssc << 40) & 0xFF);
-	ssc_.push_back((ssc << 32) & 0xFF);
-	ssc_.push_back((ssc << 24) & 0xFF);
-	ssc_.push_back((ssc << 16) & 0xFF);
-	ssc_.push_back((ssc << 8) & 0xFF);
-	ssc_.push_back(ssc & 0xFF);
-	
-	Integer issc(&ssc_[0], kMac.size());
-	issc += 1;
-	
-	std::vector<unsigned char> vssc;
-	vssc.resize(16);
-	issc.Encode(&vssc[0], kMac.size());
-	issc.Encode(&ssc_[0], kMac.size());
-	
-	ssc = 0;
-	ssc += (unsigned long long) ssc_[8] << 56;
-	ssc += (unsigned long long) ssc_[9] << 48;
-	ssc += (unsigned long long) ssc_[10] << 40;
-	ssc += (unsigned long long) ssc_[11] << 32;
-	ssc += (unsigned long long) ssc_[12] << 24;
-	ssc += (unsigned long long) ssc_[13] << 16;
-	ssc += (unsigned long long) ssc_[14] << 8;
-	ssc += (unsigned long long) ssc_[15];
-	
-	for (size_t t = 0; t < data_.size(); t++)
-		vssc.push_back(data_[t]);
-	
-	vssc.push_back(0x80);
-	while (vssc.size() % kMac.size())
-		vssc.push_back(0x00);
-	
-	std::vector<unsigned char> result_;
-	result_.resize(vssc.size());
-	
-	CMAC<AES> cmac;
-	cmac.SetKey(&kMac[0], kMac.size()); 
-	cmac.Update(&vssc[0], vssc.size()); 
-	cmac.Final(&result_[0]);
-	
-	result_.resize(8);
-	
-	std::vector<unsigned char> do8E;
-	do8E.push_back(0x8E); do8E.push_back(0x08);
-	
-	for (size_t o = 0; o < result_.size(); o++)
-		do8E.push_back(result_[o]);
-	
-	return do8E;
-}
-
-/*
- * Build up the DO8E Part of an Secure Messaging APDU w/o data available
- */
-std::vector<unsigned char> buildDO8E_AES(
-										 IN const std::vector<unsigned char>& kMac,
-										 IN const std::vector<unsigned char>& data,	// header
-										 IN OUT unsigned long long &ssc)
-{
-	std::vector<unsigned char> mac;
-	mac.resize(8);
-	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
-	
-	data_.push_back(0x80);
-	while (data_.size() % kMac.size())
-		data_.push_back(0x00);
-	
-	std::vector<unsigned char> ssc_;
-	for (int i = 0; i < 8; i++)
-		ssc_.push_back(0x00);
-	
-	ssc_.push_back((ssc << 56) & 0xFF);
-	ssc_.push_back((ssc << 48) & 0xFF);
-	ssc_.push_back((ssc << 40) & 0xFF);
-	ssc_.push_back((ssc << 32) & 0xFF);
-	ssc_.push_back((ssc << 24) & 0xFF);
-	ssc_.push_back((ssc << 16) & 0xFF);
-	ssc_.push_back((ssc << 8) & 0xFF);
-	ssc_.push_back(ssc & 0xFF);
-	
-	Integer issc(&ssc_[0], kMac.size());
-	issc += 1;
-	
-	std::vector<unsigned char> vssc;
-	vssc.resize(16);
-	issc.Encode(&vssc[0], kMac.size());
-	issc.Encode(&ssc_[0], kMac.size());
-	
-	ssc = 0;
-	ssc += (unsigned long long) ssc_[8] << 56;
-	ssc += (unsigned long long) ssc_[9] << 48;
-	ssc += (unsigned long long) ssc_[10] << 40;
-	ssc += (unsigned long long) ssc_[11] << 32;
-	ssc += (unsigned long long) ssc_[12] << 24;
-	ssc += (unsigned long long) ssc_[13] << 16;
-	ssc += (unsigned long long) ssc_[14] << 8;
-	ssc += (unsigned long long) ssc_[15];
-	
-	for (size_t t = 0; t < data_.size(); t++)
-		vssc.push_back(data_[t]);
-	
-//	vssc.push_back(0x80);
-//	while (vssc.size() % kMac.size())
-//		vssc.push_back(0x00);
-	
-	std::vector<unsigned char> result_;
-	result_.resize(vssc.size());
-	
-	CMAC<AES> cmac;
-	cmac.SetKey(&kMac[0], kMac.size()); 
-	cmac.Update(&vssc[0], vssc.size()); 
-	cmac.Final(&result_[0]);
-	
-	result_.resize(8);
-	
-	std::vector<unsigned char> do8E;
-	do8E.push_back(0x8E); do8E.push_back(0x08);
-	
-	for (size_t o = 0; o < result_.size(); o++)
-		do8E.push_back(result_[o]);
-	
-	return do8E;
 }
 
 /*
@@ -508,13 +283,7 @@ bool verifyResponse_AES(
 	
 	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
 	if (memcmp(&dataPart[dataPart.size() - 8], &calculatedMAC_[0], 8))
-	{
-#if defined(WIN32) && !defined(_WIN32_WCE)
-		hexdump("Original MAC:   ", (void*) &dataPart[dataPart.size() - 8], 8);
-		hexdump("Calculated MAC: ", (void*) &calculatedMAC_[0], 8);
-		OutputDebugStringA("Verify MAC failed! Cryptographic error\n");
-#endif
-		
+	{		
 		return false; // Hmmm ... That should not happen 
 	}
 	
@@ -625,7 +394,7 @@ ECP::Point calculate_PuK_IFD_DHx(
 								 IN const std::vector<unsigned char>& PrK_IFD_DHx,
 								 IN const AlgorithmIdentifier* PACEDomainParameterInfo)
 {
-		hexdump("###-> PrK.IFD.DHx in calculate_PuK_IFD_DHx", (void*) &PrK_IFD_DHx[0], PrK_IFD_DHx.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DHx in calculate_PuK_IFD_DHx", (void*) &PrK_IFD_DHx[0], PrK_IFD_DHx.size());
 		
 		Integer k(&PrK_IFD_DHx[0], PrK_IFD_DHx.size());
 		
@@ -655,8 +424,8 @@ ECP::Point calculate_PuK_IFD_DHx(
 		if (y_.size() != 0x20)
 			y_.insert(y_.begin(), 0x00);
 		
-		hexdump("###-> PuK.IFD.DHx.x", (void*) &x_[0], x_.size());
-		hexdump("###-> PuK.IFD.DHx.y", (void*) &y_[0], y_.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DHx.x", (void*) &x_[0], x_.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DHx.y", (void*) &y_[0], y_.size());
 		
 		return result;
 }

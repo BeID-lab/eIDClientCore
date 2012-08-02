@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 #include "ePACard.h"
+#include "ePACommon.h"
 using namespace Bundesdruckerei::nPA;
 
 /*
@@ -14,6 +15,9 @@ using namespace Bundesdruckerei::nPA;
 ePACard::ePACard(
   ECARD_HANDLE hSubSystem) : ICard(hSubSystem)
 {
+    if (!selectMF()
+            || !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
+        throw WrongHandle();
 }
 
 /*
@@ -34,47 +38,41 @@ ECARD_PIN_STATE ePACard::getPinState (
   return PIN_STATE_ACTIVATED;
 }
 
+bool ePACard::selectMF(
+        void)
+{
+  SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
+
+  RAPDU response = sendAPDU (select);
+
+  return response.isOK();
+}
+
 /*
  *
  */
 bool ePACard::selectEF(
   unsigned short FID)
 {
-  CardCommand cardCmd;
-  CardResult cardRes;
+  SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_NO_RESPONSE, FID);
 
-  IReader* reader = ( IReader* ) m_subSystem;
+  RAPDU response = sendAPDU (select);
 
-  cardCmd << 0x00 << 0xA4 << 0x02 << 0x0C << 0x02 << ((FID & 0xFF00) >> 8) << (FID & 0xFF);
-
-  bool retValue = reader->sendAPDU ( m_chipID, cardCmd, cardRes, "" );
-  m_lastSW = cardRes.getSW();
-
-  return retValue;
+  return response.isOK();
 }
 
 bool ePACard::selectEF(
   unsigned short FID,
-  vector<BYTE>& fcp)
+  vector<unsigned char>& fcp)
 {
-  CardCommand cardCmd;
-  CardResult cardRes;
+  SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
+  select.setNe(CAPDU::DATA_SHORT_MAX);
 
-  IReader* reader = ( IReader* ) m_subSystem;
+  RAPDU response = sendAPDU (select);
 
-  cardCmd << 0x00 << 0xA4 << 0x02 << 0x04 << 0x02 << ((FID & 0xFF00) >> 8) << (FID & 0xFF) << 0x00;
+  fcp = response.getData();
 
-  bool retValue = reader->sendAPDU ( m_chipID, cardCmd, cardRes, "" );
-  m_lastSW = cardRes.getSW();
-
-  if (cardRes.isOK())
-  {
-    vector<BYTE> data = cardRes.getData();
-    for (size_t i = 0; i < data.size(); i++)
-      fcp.push_back(data[i]);
-  }
-
-  return retValue;
+  return response.isOK();
 }
 
 /*
@@ -83,36 +81,72 @@ bool ePACard::selectEF(
 bool ePACard::selectDF(
   unsigned short FID)
 {
-  CardCommand cardCmd;
-  CardResult cardRes;
+  SelectFile select(SelectFile::P1_SELECT_DF, SelectFile::P2_NO_RESPONSE, FID);
 
-  IReader* reader = ( IReader* ) m_subSystem;
+  RAPDU response = sendAPDU (select);
 
-  cardCmd << 0x00 << 0xA4 << 0x01 << 0x0C << 0x02 << ((FID & 0xFF00) >> 8) << (FID & 0xFF);
-
-  bool retValue = reader->sendAPDU ( m_chipID, cardCmd, cardRes, "" );
-  m_lastSW = cardRes.getSW();
-
-  return retValue;
+  return response.isOK();
 }
 
 /*
-*
-*/
-bool ePACard::selectMF(
-  void)
+ *
+ */
+bool ePACard::readFile(
+  size_t size,
+  vector<unsigned char>& result)
 {
-  CardCommand cardCmd;
-  CardResult cardRes;
+    ReadBinary read;
+    if (size < 0xC8)
+        read.setNe(size);
+    else
+        read.setNe(0xC8);
 
-  IReader* reader = ( IReader* ) m_subSystem;
+    unsigned short offset = 0;
+    bool retValue = false;
 
-  cardCmd << 0x00 << 0xA4 << 0x00 << 0x0C << 0x02 << 0x3F << 0x00;
+    while (offset < size)
+    {
+        read.setP1(offset >> 8);
+        read.setP2(offset & 0xFF);
 
-  bool retValue = reader->sendAPDU ( m_chipID, cardCmd, cardRes, "" );
-  m_lastSW = cardRes.getSW();
+        if (size - offset > 0xC8)
+            read.setNe(0xC8);
+        else
+            read.setNe(size - offset);
 
-  return retValue;
+        RAPDU rapdu = sendAPDU (read);
+
+        if (rapdu.isOK())
+        {
+            for (size_t i = 0; i < rapdu.getData().size(); i++)
+                result.push_back(rapdu.getData()[i]);
+
+            offset += (unsigned short) rapdu.getData().size();
+
+        } else {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+ *
+ */
+bool ePACard::readFile(
+  unsigned char sfid,
+  size_t size,
+  vector<unsigned char>& result)
+{
+    ReadBinary read = ReadBinary(0, sfid);
+    read.setNe(size);
+
+    RAPDU response = sendAPDU (read);
+
+    result = response.getData();
+
+    return response.isOK();
 }
 
 /*!
@@ -139,98 +173,100 @@ unsigned short ePACard::getFileSize(
   return 0;
 }
 
-/*
- *
- */
-bool ePACard::readFile(
-  unsigned short size,
-  vector<BYTE>& result)
+CAPDU ePACard::applySM(const CAPDU& capdu)
 {
-  IReader* reader = ( IReader* ) m_subSystem;
+    std::vector<unsigned char> do87_, do8E_, do97_, Le, sm_data;
+    CAPDU sm_apdu = CAPDU(capdu.getCLA()|CAPDU::CLA_SM,
+            capdu.getINS(), capdu.getP1(), capdu.getP2());
 
-  CardCommand cardCmd;
-  if (size < 0xC8)
-    cardCmd << 0x00 << 0xB0 << 0x00 << 0x00 << (BYTE) size;
-  else
-    cardCmd << 0x00 << 0xB0 << 0x00 << 0x00 << 0xC8;
-
-  unsigned short offset = 0;
-  bool retValue = false;
-
-  while (offset < size)
-  {
-    CardResult cardRes;
-    cardCmd[2] = offset >> 8;
-    cardCmd[3] = offset & 0xFF;
-
-    if (size - offset > 0xC8)
-      cardCmd[4] = 0xC8;
-    else
-      cardCmd[4] = size - offset;
-
-    retValue = reader->sendAPDU ( m_chipID, cardCmd, cardRes );
-
-    m_lastSW = cardRes.getSW();
-
-    if ( cardRes.isOK() )
-    {
-      for (size_t i = 0; i < cardRes.getData().size(); i++)
-        result.push_back(cardRes.getData()[i]);
-
-      offset += (unsigned short) cardRes.getData().size();
-
-    } else {
-      return retValue;
+    if (!capdu.getData().empty()) {
+        do87_ = buildDO87_AES(m_kEnc, capdu.getData(), m_ssc);
     }
-  }
 
-  return retValue;
+    Le = capdu.encodedLe();
+    if (!Le.empty()) {
+        do97_.push_back(0x97);
+        do97_.push_back(Le.size());
+        do97_.insert(do97_.end(), Le.begin(), Le.end());
+    }
+
+    /* here, sm_apdu is still a case 1 APDU with header only. */
+    do8E_ = buildDO8E_AES(m_kMac, sm_apdu.asBuffer(), do87_, do97_, m_ssc);
+
+    sm_data = do87_;
+    sm_data.insert(sm_data.end(), do97_.begin(), do97_.end());
+    sm_data.insert(sm_data.end(), do8E_.begin(), do8E_.end());
+
+    sm_apdu.setData(sm_data);
+    if (sm_apdu.isExtended() || capdu.isExtended())
+        sm_apdu.setNe(CAPDU::DATA_EXTENDED_MAX);
+    else
+        sm_apdu.setNe(CAPDU::DATA_SHORT_MAX);
+
+    return sm_apdu;
 }
 
-bool ePACard::sentAPDU(
-  const CardCommand& cmd,
-  vector<BYTE>& result)
+RAPDU ePACard::removeSM(const RAPDU& sm_rapdu)
 {
-  CardResult cardRes;
-  IReader* reader = ( IReader* ) m_subSystem;
-  bool retValue = false;
+    std::vector<unsigned char> response;
+    std::vector<unsigned char> sm_rdata;
 
-  retValue = reader->sendAPDU ( m_chipID, cmd, cardRes );
-  m_lastSW = cardRes.getSW();
+    // Get returned data.
+    sm_rdata = sm_rapdu.getData();
 
-  for (size_t i = 0; i < cardRes.size(); i++)
-    result.push_back(cardRes[i]);
+    if (!verifyResponse_AES(m_kMac, sm_rdata, m_ssc))
+        throw WrongSM();
 
-  return retValue;
+    response = decryptResponse_AES(m_kEnc, sm_rdata, m_ssc);
+
+    /* TODO compare DO99 with SW */
+    return RAPDU(response, sm_rapdu.getSW());
+}
+
+RAPDU ePACard::sendAPDU(const CAPDU& cmd)
+{
+    if (!m_kEnc.empty() && !m_kMac.empty()
+            && !cmd.isSecure()) {
+        CAPDU sm_apdu = applySM(cmd);
+
+        RAPDU sm_rapdu = ICard::sendAPDU(sm_apdu);
+
+        return removeSM(sm_rapdu);
+    }
+
+    return ICard::sendAPDU(cmd);
+}
+
+void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)
+{
+    m_kEnc = kEnc;
+    m_kMac = kMac;
+    m_ssc = 0;
+}
+
+bool ePACard::subSystemSupportsPACE(void)
+{
+    IReader* reader = ( IReader* ) m_subSystem;
+    if (!reader)
+        return false;
+    return reader->supportsPACE();
+};
+
+PaceOutput ePACard::subSystemEstablishPACEChannel(const PaceInput& input)
+{
+    IReader* reader = ( IReader* ) m_subSystem;
+    if (!reader)
+        return PaceOutput();
+    return reader->establishPACEChannel(input);
 }
 
 ICard* ePACardDetector::getCard(IReader* reader)
-{    
-  // @ATTENTION: Quick fix for BDr card reader. Remove for release!!
-  return new ePACard(reader);
-
-  vector<BYTE> atr = reader->getATRForPresentCard();
-  if (atr.size() == 0)
-    return 0x00;
-
-  vector<BYTE> ePA_ATR;
-  ePA_ATR.push_back(0x3B); ePA_ATR.push_back(0x84); 
-  ePA_ATR.push_back(0x80); ePA_ATR.push_back(0x01); 
-  ePA_ATR.push_back(0x00); ePA_ATR.push_back(0x00); 
-  ePA_ATR.push_back(0x90); ePA_ATR.push_back(0x00); 
-  ePA_ATR.push_back(0x95); 
-
-  vector<BYTE> ePA_ATR2;
-  ePA_ATR.push_back(0x3B); ePA_ATR.push_back(0xB4); 
-  ePA_ATR.push_back(0x11); ePA_ATR.push_back(0x00); 
-  ePA_ATR.push_back(0x81); ePA_ATR.push_back(0x31); 
-  ePA_ATR.push_back(0x46); ePA_ATR.push_back(0x15); 
-  ePA_ATR.push_back(0x00); ePA_ATR.push_back(0x00); 
-  ePA_ATR.push_back(0x90); ePA_ATR.push_back(0x00);
-  ePA_ATR.push_back(0xD6); 
-
-  if (ePA_ATR == atr || ePA_ATR2 == atr)
-    return new ePACard(reader);
+{
+  try {
+      return new ePACard(reader);
+  } catch (...) {
+  }
 
   return 0x00;
 }
+

@@ -9,26 +9,15 @@
  * @file PCSCManager.h
  */
 
-#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0
-#else
-
 #include "PCSCManager.h"
 #include "PCSCReader.h"
-#include "eCardCore_intern.h"
+#include <debug.h>
 
 #if defined(WIN32)
 #  include <tchar.h>
 #endif
 #if !(defined(UNICODE) || defined(_UNICODE))
 #include <string.h>
-#endif
-
-#if defined(_DEBUG) && !defined(WINCE)
-# include <crtdbg.h>
-# define DEBUG_CLIENTBLOCK   new( _CLIENT_BLOCK, __FILE__, __LINE__)
-# define new DEBUG_CLIENTBLOCK
-#else
-# define DEBUG_CLIENTBLOCK
 #endif
 
 /*
@@ -70,18 +59,17 @@ void PCSCManager::findReaders (
   if ( ( retValue = SCardEstablishContext ( SCARD_SCOPE_SYSTEM, 0x0,
     0x0, &hScardContext ) ) != SCARD_S_SUCCESS )
   {
-    eCardCore_warn("SCardEstablishContext failed. 0x%08X (%s:%d)",
+    eCardCore_warn(DEBUG_LEVEL_CARD, "SCardEstablishContext failed. 0x%08X (%s:%d)",
       retValue, __FILE__, __LINE__);
     return;
   }
 
   DWORD dwSize = 0;
   
-  // Do it this way because no SCARD_AUTOALOCATE on Linux
   if ( ( retValue = SCardListReaders ( hScardContext, NULL,
     NULL, &dwSize ) ) != SCARD_S_SUCCESS )
   {
-    eCardCore_warn("SCardListReaders failed. 0x%08X (%s:%d)",
+    eCardCore_warn(DEBUG_LEVEL_CARD, "SCardListReaders failed. 0x%08X (%s:%d)",
       retValue, __FILE__, __LINE__);
     return;
   }
@@ -95,14 +83,14 @@ void PCSCManager::findReaders (
   if ( ( retValue = SCardListReaders ( hScardContext, NULL,
     readers, &dwSize ) ) != SCARD_S_SUCCESS )
   {
-    eCardCore_warn("SCardListReaders failed. 0x%08X (%s:%d)",
+    eCardCore_warn(DEBUG_LEVEL_CARD, "SCardListReaders failed. 0x%08X (%s:%d)",
       retValue, __FILE__, __LINE__);
     return;
   }
 
   if (0x00 == readers)
   {
-    eCardCore_warn("No readers available. (%s:%d)",
+    eCardCore_warn(DEBUG_LEVEL_CARD, "No readers available. (%s:%d)",
       __FILE__, __LINE__);
     return;
   }
@@ -135,5 +123,3 @@ void PCSCManager::findReaders (
 
   SCardReleaseContext ( hScardContext );
 }
-
-#endif // __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_3_0

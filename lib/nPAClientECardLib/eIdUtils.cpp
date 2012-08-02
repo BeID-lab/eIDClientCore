@@ -43,53 +43,6 @@ char* _itoa (int value, char * str, int base)
 
 #endif
 
-//Loggingfunctions
-void debugOut(
-	const char* format,
-	...)
-{
-#if defined(_DEBUG) || defined(DEBUG)
-	va_list params;
-	va_start (params, format);
-
-	char message[4096];
-	memset(&message[0], 0x00, 4096);
-	int ret = vsprintf(message, format, params);
-
-	// hack
-	printf ("%s\n", message);
-
-#if defined(WIN32)
-	if(ret > 0)
-		OutputDebugStringA(message);
-	else
-		OutputDebugStringA("Logging went totally wrong");
-#else
-	std::cout << message << std::endl;
-#endif
-#endif
-}
-
-void errorOut(
-	const char* format,
-	...)
-{
-	va_list params;
-	va_start (params, format);
-
-	char message[4096];
-	int ret = vsprintf(message, format, params);
-
-#if defined(WIN32)
-	if(ret > 0)
-		OutputDebugStringA(message);
-	else
-		OutputDebugStringA("Logging went totally wrong");
-#else
-	std::cout << message << std::endl;
-#endif
-}
-
 std::string BDRDate::fromBCD(
   const std::vector<unsigned char>& data)
 {

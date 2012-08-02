@@ -5,11 +5,8 @@
 #include "eIdECardClient.h"
 #include <ePACommon.h>
 #include "eIdUtils.h"
+#include <debug.h>
 
-
-void eCardCore_debug(
-                     const char* format,
-                     ...);
 
 eIdECardClient* eIdECardClient::m_instance = 0x00;
 
@@ -200,31 +197,31 @@ NPACLIENT_ERROR eIdECardClient::initialize(
 	 m_strLastMsgUUID = strNewMessageID;
 
 
-   if( 0 == m_TerminalCertificate.size())
+   if(m_TerminalCertificate.empty())
    {
-     eCardCore_debug("No Terminal Certificate\n");
+     eCardCore_debug(DEBUG_LEVEL_PAOS, "No Terminal Certificate\n");
      return NPACLIENT_ERROR_NO_TERMINAL_CERTIFICATE;
    }
-   if( 0 == m_CertificateDescription.size())
+   if(m_CertificateDescription.empty())
    {
-     eCardCore_debug("No Terminal CertificateDescription\n");
+     eCardCore_debug(DEBUG_LEVEL_PAOS, "No Terminal CertificateDescription\n");
      return NPACLIENT_ERROR_NO_CERTIFICATE_DESCRIPTION;
    }
 
-    hexdump("StartPAOS Cert:    ", &m_TerminalCertificate[0], m_TerminalCertificate.size());
-    hexdump("StartPAOS CDesc:   ", &m_CertificateDescription[0], m_CertificateDescription.size());
+    hexdump(DEBUG_LEVEL_PAOS, "StartPAOS Cert:    ", &m_TerminalCertificate[0], m_TerminalCertificate.size());
+    hexdump(DEBUG_LEVEL_PAOS, "StartPAOS CDesc:   ", &m_CertificateDescription[0], m_CertificateDescription.size());
     
-    if ( 0x00 != m_RequiredCHAT.size() )
-      hexdump("StartPAOS RCHAT:   ", &m_RequiredCHAT[0], m_RequiredCHAT.size());
+    if (!m_RequiredCHAT.empty())
+      hexdump(DEBUG_LEVEL_PAOS, "StartPAOS RCHAT:   ", &m_RequiredCHAT[0], m_RequiredCHAT.size());
 
-    if (m_OptionalCHAT.size() != 0)
-      hexdump("StartPAOS OCHAT:   ", &m_OptionalCHAT[0], m_OptionalCHAT.size());
+    if (!m_OptionalCHAT.empty())
+      hexdump(DEBUG_LEVEL_PAOS, "StartPAOS OCHAT:   ", &m_OptionalCHAT[0], m_OptionalCHAT.size());
     
-    if ( 0x00 != m_AuthenticatedAuxiliaryData.size() )
-	    hexdump("StartPAOS AuthAux: ", &m_AuthenticatedAuxiliaryData[0], m_AuthenticatedAuxiliaryData.size());
+    if (!m_AuthenticatedAuxiliaryData.empty())
+	    hexdump(DEBUG_LEVEL_PAOS, "StartPAOS AuthAux: ", &m_AuthenticatedAuxiliaryData[0], m_AuthenticatedAuxiliaryData.size());
 
-    if ( 0x00 != m_strLastMsgUUID.size() )
-	    hexdump("StartPAOS MsgUUID: ", &m_strLastMsgUUID[0], m_strLastMsgUUID.size());
+    if (!m_strLastMsgUUID.empty())
+	    hexdump(DEBUG_LEVEL_PAOS, "StartPAOS MsgUUID: ", &m_strLastMsgUUID[0], m_strLastMsgUUID.size());
 
   return NPACLIENT_ERROR_SUCCESS;
 }
@@ -233,69 +230,60 @@ NPACLIENT_ERROR eIdECardClient::initialize(
  *
  */
 bool eIdECardClient::getTerminalAuthenticationData(
-  std::vector<unsigned char> efCardAccess,
-  std::vector<unsigned char> chat,
-  std::string cvCACHAR,
-  std::vector<unsigned char> idPICC,
-  std::list<std::vector<unsigned char> >& list_certificates,
+  const std::vector<unsigned char>& efCardAccess,
+  const std::vector<unsigned char>& chat,
+  const std::string& cvCACHAR,
+  const std::vector<unsigned char>& idPICC,
+  std::vector<std::vector<unsigned char> >& list_certificates,
   std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
   std::vector<unsigned char>& y_Puk_IFD_DH_CA_
   )
 {
-	string myEFCardAccess = Byte2Hex(&efCardAccess[0], efCardAccess.size());
-	string myIDPICC = Byte2Hex(&idPICC[0], idPICC.size());
-	string myChat = Byte2Hex(&chat[0], chat.size());
+    string myEFCardAccess = Byte2Hex(&efCardAccess[0], efCardAccess.size());
+    string myIDPICC = Byte2Hex(&idPICC[0], idPICC.size());
+    string myChat = Byte2Hex(&chat[0], chat.size());
 
-	std::vector<unsigned char> reqChat = m_RequiredCHAT;
-	string myReqChat = Byte2Hex(&reqChat[0],  reqChat.size());
+    std::vector<unsigned char> reqChat = m_RequiredCHAT;
+    string myReqChat = Byte2Hex(&reqChat[0],  reqChat.size());
 
-	hexdump("IDPICC", (void*) myIDPICC.c_str(), myIDPICC.size());
-	hexdump("used Chat", (void*) myChat.c_str(), myChat.size());
- 
-	string ephPubKey = "";	
-	certificateList_t CertList;
-	string strNewMessageID = "";
-	
-	PACEResponse(m_strLastMsgUUID, myChat, cvCACHAR, myEFCardAccess, myIDPICC, ephPubKey, CertList, strNewMessageID);
+    hexdump(DEBUG_LEVEL_PAOS, "IDPICC", (void*) myIDPICC.c_str(), myIDPICC.size());
+    hexdump(DEBUG_LEVEL_PAOS, "used Chat", (void*) myChat.c_str(), myChat.size());
 
-	m_strLastMsgUUID = strNewMessageID;
+    string ephPubKey = "";	
+    certificateList_t CertList;
+    string strNewMessageID = "";
 
-	string cert1;
+    PACEResponse(m_strLastMsgUUID, myChat, cvCACHAR, myEFCardAccess, myIDPICC, ephPubKey, CertList, strNewMessageID);
+
+    m_strLastMsgUUID = strNewMessageID;
+
+    string cert1;
     while (!CertList.empty())
-	{
-		cert1 = CertList.front();
-		CertList.pop_front();
+    {
+        cert1 = CertList.front();
+        CertList.pop_front();
         std::vector<unsigned char> myCert = Hex2Byte(cert1.c_str(), cert1.length());
         list_certificates.push_back(myCert);
-	}
+    }
 
-	std::vector<unsigned char> myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
+    std::vector<unsigned char> myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
 
-  assert(!myKey.empty());
-  if(myKey.empty()) return false;
+    if(myKey.empty()) return false;
 
-	hexdump("ephPubKey", &myKey[0], ephPubKey.size() / 2);
+    hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", &myKey[0], ephPubKey.size() / 2);
 
-	assert(cert1.length() % 2 == 0);
-  if(! (cert1.length() % 2 == 0)) return false;
+    if(! (cert1.length() % 2 == 0)) return false;
 
-//	for (int i = 0; i < cert1.length() / 2; i++)
-//		dvcaCertificate.push_back(myCert[i]);
+    if(!(ephPubKey.size() % 4 == 0)) return false;
 
-	assert(ephPubKey.size() % 4 == 0);
-  if(!(ephPubKey.size() % 4 == 0)) return false;
+    int half = ephPubKey.size() / 4;
+    for (int i = 0; i < half; i++)
+        x_Puk_IFD_DH_CA_.push_back(myKey[i]);
 
-	int half = ephPubKey.size() / 4;
-	for (int i = 0; i < half; i++)
-		x_Puk_IFD_DH_CA_.push_back(myKey[i]);
+    for (int i = 0; i < half; i++)
+        y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
 
-	for (int i = 0; i < half; i++)
-		y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
-
-//	free(myCert);
-//	free(myKey);
-
-	return true;
+    return true;
 }
 
 /**
@@ -315,8 +303,6 @@ bool eIdECardClient::createSignature(
 
   std::vector<unsigned char> mySig = Hex2Byte(retSignature.c_str(), retSignature.length());
 
-//  hexdump("signature", (void*) mySig, retSignature.size() / 2);
-
   assert(retSignature.length() % 2 == 0);
 
   signature = mySig;
@@ -330,7 +316,7 @@ bool eIdECardClient::createSignature(
 bool eIdECardClient::finalizeAuthentication(
   std::vector<unsigned char> efCardSecurity,
   std::vector<unsigned char> GAResult,
-  std::vector<std::vector<unsigned char> >& apdus)
+  std::vector<CAPDU>& apdus)
 {
   string myEFCardSecurity = Byte2Hex(&efCardSecurity[0], efCardSecurity.size());
   string myAuthToken = Byte2Hex(&GAResult[4 + 8 + 2], 8);
@@ -357,17 +343,21 @@ bool eIdECardClient::finalizeAuthentication(
 }
 
 bool eIdECardClient::readAttributes(
-  std::vector<std::vector<unsigned char> > apdus)
+  std::vector<RAPDU>& rapdus)
 {
 	APDUList_t	outAPDUList;
 
 	APDUList_t	inAPDUList;
     
 	inAPDUList.clear();
+
+	vector<unsigned char> rapdu;
     
-	for (size_t i = 0; i < apdus.size(); ++i)
+	for (size_t i = 0; i < rapdus.size(); ++i)
 	{
-		string strAPDU = Byte2Hex(&apdus.at(i)[0], apdus.at(i).size());
+		rapdu = rapdus.at(i).asBuffer();
+
+		string strAPDU = Byte2Hex(&rapdu[0], rapdu.size());
 		inAPDUList.push_back(strAPDU);
 	}
 
@@ -397,7 +387,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), strPSKKeyTmp.c_str());
 			if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 			{
-				errorOut("eIDClientConnectionStart failed (0x%08X)", rVal);
+				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
 				return false;
 			}
 		}
@@ -406,7 +396,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str());
 			if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 			{
-				errorOut("eIDClientConnectionStart failed (0x%08X)", rVal);
+				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
 				return false;
 			}
 		}
@@ -416,7 +406,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), NULL);
 		if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 		{
-			errorOut("eIDClientConnectionStart failed (0x%08X)", rVal);
+			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
 			return false;
 		}
 	}
@@ -424,7 +414,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 	assert(m_hConnection != 0x00);
 	if(m_hConnection == 0x00)
 	{
-		errorOut("m_hConnection == 0x00 (%s:%d)", __FILE__, __LINE__);
+		eCardCore_warn(DEBUG_LEVEL_PAOS, "m_hConnection == 0x00 (%s:%d)", __FILE__, __LINE__);
 		return false;
 	}
 	return true;
@@ -462,7 +452,6 @@ string eIdECardClient::request_post(const string& in)
 	}
 	const string&	strToSend = buffer.str();
 
-//	eIDClientConnectionSendRequest(m_hConnection, "POST", strParam.c_str(), in.c_str(), &buf[0], 10000);
 	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), &buf[0], 10000);
 
 	string strResult;
@@ -563,7 +552,6 @@ void eIdECardClient::CharacterDataHandler(void *pUserData, const XML_Char *pszDa
 void eIdECardClient::OnStartElement (const XML_Char *pszName, const XML_Char **papszAttrs)
 {
 	m_strCurrentTag = string(pszName);
-//	printf ("We got a start element %s\n", m_strCurrentTag.c_str());
 	return;
 }
 
@@ -578,50 +566,44 @@ void eIdECardClient::OnCharacterData (const XML_Char *pszData, int nLength)
 	if( m_strCurrentTag.find("CertificateDescription") != string::npos )
 	{
 		m_strCertificateDescription = string(pszData, nLength);
-		debugOut("CertificateDescription : %s", m_strCertificateDescription.c_str());
-	}
+    eCardCore_debug(DEBUG_LEVEL_PAOS, "CertificateDescription : %s", m_strCertificateDescription.c_str());
+}
 	else if( m_strCurrentTag.find("RequiredCHAT") != string::npos )
 	{
 		m_strRequiredChat = string(pszData, nLength);
-		debugOut("RequiredCHAT : %s", m_strRequiredChat.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "RequiredCHAT : %s", m_strRequiredChat.c_str());
 	}
 	else if( m_strCurrentTag.find("AuthenticatedAuxiliaryData") != string::npos )
 	{
 		m_strAuxiliaryData = string(pszData, nLength);
-		debugOut("AuthenticatedAuxiliaryData : %s", m_strAuxiliaryData.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "AuthenticatedAuxiliaryData : %s", m_strAuxiliaryData.c_str());
 	}
 	else if( m_strCurrentTag.find("EphemeralPublicKey") != string::npos )
 	{
 		m_strEphemeralPublicKey = string(pszData, nLength);
-		debugOut("EphemeralPublicKey : %s", m_strEphemeralPublicKey.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "EphemeralPublicKey : %s", m_strEphemeralPublicKey.c_str());
 	}
 	else if( m_strCurrentTag.find("Certificate") != string::npos )
 	{
 		string	strCert = string(pszData, nLength);	
 		m_certificateList.push_back(strCert);
-		debugOut("Certificate : %s", strCert.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "Certificate : %s", strCert.c_str());
 	}
 	else if( m_strCurrentTag.find("Signature") != string::npos )
 	{
 		m_strSignature = string(pszData, nLength);
-		debugOut("Signature : %s", m_strSignature.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "Signature : %s", m_strSignature.c_str());
 	}
 	else if( m_strCurrentTag.find("InputAPDU") != string::npos )
 	{
 		string	strAPDU = string(pszData, nLength);	
 		m_APDUList.push_back(strAPDU);
-		debugOut("InputAPDU : %s", strAPDU.c_str());
-//		printf ("We got InputAPDU element:\n");
-//		for (int i=0; i < nLength; i++)
-//		{
-//			fprintf(stdout, "%c", pszData[i]);
-//		}
-//		printf ("\n");
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "InputAPDU : %s", strAPDU.c_str());
 	}
 	else if( m_strCurrentTag.find("MessageID") != string::npos )
 	{
 		m_strMessageID = string(pszData, nLength);
-		debugOut("MessageID : %s", m_strMessageID.c_str());
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "MessageID : %s", m_strMessageID.c_str());
 	}
 
 	return;

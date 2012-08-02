@@ -7,7 +7,6 @@
 
 #include <vector>
 #include <string>
-#include <list>
 
 /**
  */
@@ -30,8 +29,6 @@ private:
   std::string m_carCVCA;
   /** Authenticated auxiliary data */
   std::vector<unsigned char> authenticatedAuxiliaryData;
-  /** Send sequence counter for secure messaging */
-  unsigned long long m_SendSequenceCounter;
 
   // No copy
   ePAClientProtocol(
@@ -74,7 +71,7 @@ public:
    * @param toBeSigned The data which will be signed by the eID server.
    */
   ECARD_STATUS TerminalAuthentication(
-    IN std::list<std::vector<unsigned char> >& list_certificates,
+    IN std::vector<std::vector<unsigned char> >& list_certificates,
     IN const std::vector<unsigned char>& terminalCertificate,
     IN const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
     IN const std::vector<unsigned char>& authenticatedAuxiliaryData,

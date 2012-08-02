@@ -83,11 +83,11 @@ public:
        *
        */
       bool getTerminalAuthenticationData(
-        std::vector<unsigned char> efCardAccess,
-        std::vector<unsigned char> chat,
-        std::string cvCACHAR,
-        std::vector<unsigned char> idPICC,
-        std::list<std::vector<unsigned char> >& list_certificates,
+        const std::vector<unsigned char>& efCardAccess,
+        const std::vector<unsigned char>& chat,
+        const std::string& cvCACHAR,
+        const std::vector<unsigned char>& idPICC,
+        std::vector<std::vector<unsigned char> >& list_certificates,
         std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
         std::vector<unsigned char>& y_Puk_IFD_DH_CA_);
 
@@ -104,13 +104,13 @@ public:
       bool finalizeAuthentication(
         std::vector<unsigned char> efCardSecurity,
         std::vector<unsigned char> GAResult,
-        std::vector<std::vector<unsigned char> >& apdus);
+        std::vector<CAPDU>& apdus);
 
       /**
        *
        */
       bool readAttributes(
-        std::vector<std::vector<unsigned char> > apdus);
+        std::vector<RAPDU>& apdus);
 	
 	private:
 		  static eIdECardClient*	m_instance;

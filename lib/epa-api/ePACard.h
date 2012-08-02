@@ -8,116 +8,115 @@
 #if !defined(__EPACARD_INCLUDED__)
 #define __EPACARD_INCLUDED__
 
-// ---------------------------------------------------------------------------
-// Global includes
-// ---------------------------------------------------------------------------
-#include <ICard.h>
-#include <ICardDetector.h>
+#include "ICard.h"
+#include "ICardDetector.h"
 
 namespace Bundesdruckerei
 {
-  namespace nPA
-  {
-
-    /**
-	*
-	*/
-	class ePACard : public ICard
+    namespace nPA
     {
-    public:
-      bool subSystemSupportsPACE(void)
-      {
-          IReader* reader = ( IReader* ) m_subSystem;
-          if (!reader)
-              return false;
-          return reader->supportsPACE();
-      };
-      PaceOutput subSystemEstablishPACEChannel(PaceInput input)
-      {
-          IReader* reader = ( IReader* ) m_subSystem;
-          if (!reader)
-              return PaceOutput();
-          return reader->establishPACEChannel(input);
-      };
 
-      /*!
-       * ctor
-       */
-      ePACard(
-        ECARD_HANDLE);
+        /**
+         *
+         */
+        class ePACard : public ICard
+        {
+            private:
+                std::vector<unsigned char> m_ef_cardaccess;
+                std::vector<unsigned char> m_kEnc;
+                std::vector<unsigned char> m_kMac;
+                unsigned long long m_ssc;
 
-      /*!
-       *
-       */
-      string getCardDescription (
-        void );
+            protected:
+                CAPDU applySM(const CAPDU& apdu);
+                RAPDU removeSM(const RAPDU& apdu);
 
-      /*!
-       *
-       */
-      ECARD_PIN_STATE getPinState (
-        void );
+            public:
+                static const unsigned short FID_EF_CARDACCESS = 0x011C;
+                static const unsigned char SFID_EF_CARDACCESS =   0x1C;
 
-      /*!
-       * Select an file on the ePA.
-       */
-      bool selectEF(
-        unsigned short FID);
+                bool subSystemSupportsPACE(void);
+                PaceOutput subSystemEstablishPACEChannel(const PaceInput& input);
 
-      /*!
-       * Select an EF on the ePA and return the FCP.
-       */
-      bool selectEF(
-        unsigned short FID,       
-        vector<BYTE>& fcp);
+                /*!
+                 * ctor
+                 */
+                ePACard(
+                        ECARD_HANDLE);
 
-      /*!
-       * Select an DF on the ePA.
-       */
-      bool selectDF(
-        unsigned short FID);
+                /*!
+                 *
+                 */
+                string getCardDescription (
+                        void );
 
-      /*!
-       * Select the MF of the ePA
-       */
-      bool selectMF(
-        void);
+                /*!
+                 *
+                 */
+                ECARD_PIN_STATE getPinState (
+                        void );
 
-      /*!
-       * Return the allocated size for the file specified by FID.
-       */
-      unsigned short getFileSize(
-        IN unsigned short FID);
+                /*!
+                 * Select an EF on the ePA.
+                 */
+                bool selectEF(
+                        unsigned short FID);
 
-      /*!
-       *
-       */
-      bool readFile(
-        unsigned short size,
-        vector<BYTE>& result);
+                /*!
+                 * Select an EF on the ePA and return the FCP.
+                 */
+                bool selectEF(
+                        unsigned short FID,
+                        vector<unsigned char>& fcp);
 
-      /*
-       *
-       */
-      bool sentAPDU(
-        const CardCommand& cmd,
-        vector<BYTE>& result);
-    }; // class ePACard : public ICard
-	
-	
-	/**
-	*
-	*/
-	class ePACardDetector : public ICardDetector
-	{
-		public:
-		/**
-		*
-		*/
-		ICard* getCard (IReader* );
-	}; // class ePACardDetector : public ICardDetector
+                bool selectDF(
+                        unsigned short FID);
 
-  } // namespace nPA
+                /*!
+                 * Select the MF of the ePA
+                 */
+                bool selectMF(
+                        void);
+
+                /*!
+                 * Return the allocated size for the file specified by FID.
+                 */
+                unsigned short getFileSize(
+                        IN unsigned short FID);
+
+                /*!
+                 *
+                 */
+                bool readFile(
+                        size_t size,
+                        vector<unsigned char>& result);
+
+                bool readFile(
+                        unsigned char sfid,
+                        size_t size,
+                        vector<unsigned char>& result);
+
+                RAPDU sendAPDU(
+                        const CAPDU& cmd);
+
+                void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
+
+        }; // class ePACard : public ICard
+
+
+        /**
+         *
+         */
+        class ePACardDetector : public ICardDetector
+        {
+            public:
+                /**
+                 *
+                 */
+                ICard* getCard (IReader* );
+        }; // class ePACardDetector : public ICardDetector
+
+    } // namespace nPA
 } // namespace Bundesdruckerei
 
 #endif 
