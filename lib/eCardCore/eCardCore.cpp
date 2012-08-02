@@ -87,6 +87,34 @@ ECARD_STATUS __STDCALL__ eCardClose(
   return ECARD_SUCCESS; // Hmm what else?
 }
 
+/**
+*
+*/
+ECARD_STATUS __STDCALL__ eCardSendAPDU(
+  IN ECARD_HANDLE hCard,
+  IN const std::vector<unsigned char>& capdu,
+  IN OUT std::vector<unsigned char>& rapdu)
+{
+  // Check handle ...
+  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
+    return ECARD_INVALID_PARAMETER_1;
+
+  // Try to get card
+  ICard* card_ = (ICard*) hCard;
+  // No card -> Leave
+  if (0x00 == card_)
+    return ECARD_INVALID_PARAMETER_1;
+
+  try {
+    RAPDU r = card_->sendAPDU(CAPDU(capdu));
+	rapdu = r.asBuffer();
+  } catch (...) {
+	  return ECARD_READ_ERROR;
+  }
+
+  return ECARD_SUCCESS;
+}
+
 /*
 *
 */

@@ -1,5 +1,6 @@
 #include <eCardTypes.h>
 #include <eCardStatus.h>
+#include <vector>
 
 #if !defined(__ECARDCORE_INCLUDED__)
 #define __ECARDCORE_INCLUDED__
@@ -57,6 +58,11 @@ ECARD_STATUS __STDCALL__ eCardAddCardDetector(
 ECARD_STATUS __STDCALL__ eCardClose(
   IN ECARD_HANDLE hCardSystem);
 
+ECARD_STATUS __STDCALL__ eCardSendAPDU(
+  IN ECARD_HANDLE hCard,
+  IN const std::vector<unsigned char>& capdu,
+  IN OUT std::vector<unsigned char>& rapdu);
+
 /*!
  * @brief This function returns the number of known readers
  *        within the system.
@@ -101,7 +107,7 @@ ECARD_STATUS __STDCALL__ eCardGetReaderName(
  * @brief This function opens a card connection. The reader is specified 
  *        by @ref idx.
  *
- * @param hEDA [IN] handle to the eCardCore-API.
+ * @param hCardSystem [IN] handle to the eCardCore-API.
  * @param idx [IN] zero based indes to the reader.
  * @param hCard [OUT] A handle that identifies the connection
  *              to the smart card in the designated reader.

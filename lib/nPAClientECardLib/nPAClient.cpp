@@ -681,7 +681,7 @@ NPACLIENT_ERROR nPAClient::readAttributed(
 	  std::vector<unsigned char> rapdu;
       std::vector<unsigned char> capdu_buf = capdu.asBuffer();
 
-	  if (ECARD_SUCCESS != ePASendAPDU(m_hCard, capdu_buf, rapdu))
+	  if (ECARD_SUCCESS != eCardSendAPDU(m_hCard, capdu_buf, rapdu))
 		  return NPACLIENT_ERROR_TRANSMISSION_ERROR;
 
       m_rapdus.push_back(rapdu);

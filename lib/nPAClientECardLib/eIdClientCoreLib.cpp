@@ -33,12 +33,12 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
 //      ECARD_PROTOCOL usedProtocol        = PROTOCOL_EXTERNAL_LIB;
 
     CharMap paraMap;
-    paraMap["ServerAddress"]           = (char**) &authParams->m_serverAddress;
-    paraMap["SessionIdentifier"]       = (char**) &authParams->m_sessionIdentifier;
-    paraMap["Binding"]                 = (char**) &authParams->m_binding;
-    paraMap["PathSecurity-Protocol"]   = (char**) &authParams->m_pathSecurityProtocol;
-    paraMap["PathSecurity-Parameters"] = (char**) &authParams->m_pathSecurityParameters;
-    paraMap["RefreshAddress"]          = (char**) &authParams->m_refreshAddress;
+    paraMap[(char *) "ServerAddress"]           = (char**) &authParams->m_serverAddress;
+    paraMap[(char *) "SessionIdentifier"]       = (char**) &authParams->m_sessionIdentifier;
+    paraMap[(char *) "Binding"]                 = (char**) &authParams->m_binding;
+    paraMap[(char *) "PathSecurity-Protocol"]   = (char**) &authParams->m_pathSecurityProtocol;
+    paraMap[(char *) "PathSecurity-Parameters"] = (char**) &authParams->m_pathSecurityParameters;
+    paraMap[(char *) "RefreshAddress"]          = (char**) &authParams->m_refreshAddress;
 
     // TODO use the correct parameters
     IIdP* pIdP = eIdECardClient::createInstance(&paraMap);

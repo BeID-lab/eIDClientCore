@@ -17,10 +17,6 @@
  *        the ePA card and to perform all needed protocols to access the ePA.
  */
 
-#if defined(__cplusplus)
-extern "C"
-{
-#endif
 
 /**
  * @struct KEY_REFERENCE
@@ -118,17 +114,5 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
   IN const std::vector<unsigned char>& x_Puk_IFD_DH,
   IN const std::vector<unsigned char>& y_Puk_IFD_DH,
   IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
-
-/**
- *
- */
-ECARD_STATUS __STDCALL__ ePASendAPDU(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& capdu,
-  IN OUT std::vector<unsigned char>& rapdu);
-
-#if defined(__cplusplus)
-}
-#endif
 
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

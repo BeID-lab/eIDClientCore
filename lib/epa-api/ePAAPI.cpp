@@ -105,32 +105,3 @@ ECARD_STATUS __STDCALL__ ePAReadFile(
 
   return ECARD_SUCCESS;
 }
-
-/**
-*
-*/
-ECARD_STATUS __STDCALL__ ePASendAPDU(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& capdu,
-  IN OUT std::vector<unsigned char>& rapdu)
-{
-  // Check handle ...
-  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
-    return ECARD_INVALID_PARAMETER_1;
-
-  // Try to get ePA card
-  ICard* card_ = (ICard*) hCard;
-  ePACard* ePA_ = dynamic_cast<ePACard*>(card_);
-
-  // No ePA -> Leave
-  if (0x00 == ePA_)
-    return ECARD_INVALID_EPA;
-
-  try {
-    RAPDU r = ePA_->sendAPDU(CAPDU(capdu));
-	rapdu = r.asBuffer();
-  } catch (...) {
-	  return ECARD_READ_ERROR;
-  }
-  return ECARD_SUCCESS;
-}
