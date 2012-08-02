@@ -108,7 +108,7 @@ eIdECardClient::eIdECardClient(CharMap* paraMap)
 	m_strServerAddress = "";
 	CharMapIt	it;
 
-	it = paraMap->find("ServerAddress");
+	it = paraMap->find((char *) "ServerAddress");
 	if(it != paraMap->end())
 	{
 		if( it->second != 0x00 )
@@ -117,7 +117,7 @@ eIdECardClient::eIdECardClient(CharMap* paraMap)
                 m_strServerAddress = *(it->second);
 		}
     }
-	it = paraMap->find("SessionIdentifier");
+	it = paraMap->find((char *) "SessionIdentifier");
 	if(it != paraMap->end())
 	{	
 		if( it->second != 0x00 )
@@ -126,7 +126,7 @@ eIdECardClient::eIdECardClient(CharMap* paraMap)
                 m_strSessionIdentifierN = *(it->second);
 		}
     }
-	it = paraMap->find("PathSecurity-Parameters");
+	it = paraMap->find((char *) "PathSecurity-Parameters");
 	if(it != paraMap->end())
 	{
 		if( it->second != 0x00 )

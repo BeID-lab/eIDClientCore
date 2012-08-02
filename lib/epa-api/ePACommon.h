@@ -60,17 +60,6 @@ std::vector<unsigned char> decryptResponse_AES(
 
 /**
  */
-std::vector<unsigned char> generate_PrK_IFD_DHx(
-  IN const AlgorithmIdentifier* PACEDomainParameterInfo_);
-
-/**
- */
-ECP::Point calculate_PuK_IFD_DHx(
-  IN const std::vector<unsigned char>& PrK_IFD_DHx,
-  IN const AlgorithmIdentifier* PACEDomainParameterInfo);
-
-/**
- */
 std::vector<unsigned char> calculateMAC(
   IN const std::vector<unsigned char>& toBeMaced,
   IN const std::vector<unsigned char>& kMac);

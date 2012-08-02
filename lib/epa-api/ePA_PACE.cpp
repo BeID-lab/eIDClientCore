@@ -15,6 +15,10 @@ using namespace Bundesdruckerei::nPA;
 #include <ePACommon.h>
 
 #include <cstdio>
+/**
+ */
+static std::vector<unsigned char> generate_PrK_IFD_DHx(
+  IN const AlgorithmIdentifier* PACEDomainParameterInfo_);
 
 /*
  * Calculate the SK.PACE.xyz
@@ -102,7 +106,40 @@ ECP::Point calculate_PuK_IFD_DH1(
   const std::vector<unsigned char>& PrK_IFD_DH1,
   const AlgorithmIdentifier* const PACEDomainParameterInfo)
 {
-  return calculate_PuK_IFD_DHx(PrK_IFD_DH1, PACEDomainParameterInfo);
+    hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DHx in calculate_PuK_IFD_DHx", (void*) &PrK_IFD_DH1[0], PrK_IFD_DH1.size());
+
+    Integer k(&PrK_IFD_DH1[0], PrK_IFD_DH1.size());
+
+    Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
+    Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
+
+    Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
+    ECP ecp(Mod, a, b);
+
+    Integer X("8BD2AEB9CB7E57CB2C4B482FFC81B7AFB9DE27E1E3BD23C23A4453BD9ACE3262h");
+    Integer Y("547EF835C3DAC4FD97F8461A14611DC9C27745132DED8E545C1D54C72F046997h");
+    ECP::Point G(X, Y);  
+
+    ECP::Point result = ecp.Multiply(k, G);
+
+    std::vector<unsigned char> x_;
+    std::vector<unsigned char> y_;
+
+    x_.resize(result.x.ByteCount());
+    y_.resize(result.y.ByteCount());
+    result.x.Encode(&x_[0], result.x.ByteCount());
+    result.y.Encode(&y_[0], result.y.ByteCount());
+
+    if (x_.size() != 0x20)
+        x_.insert(x_.begin(), 0x00);
+
+    if (y_.size() != 0x20)
+        y_.insert(y_.begin(), 0x00);
+
+    hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DHx.x", (void*) &x_[0], x_.size());
+    hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DHx.y", (void*) &y_[0], y_.size());
+
+    return result;
 }
 
 /*
@@ -664,6 +701,19 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
   }
 
   return ECARD_SUCCESS;
+}
+
+std::vector<unsigned char> generate_PrK_IFD_DHx(
+												IN const AlgorithmIdentifier* PACEDomainParameterInfo_)
+{
+	std::vector<unsigned char> result;
+	result.resize(32);
+	
+	AutoSeededRandomPool rng;  
+	rng.GenerateBlock(
+					  &result[0], result.size()); 
+	
+	return result;
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
