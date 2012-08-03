@@ -84,10 +84,9 @@ class PCSCReader : public IReader
     vector<BYTE> getATRForPresentCard(
       void);
 
-    bool supportsPACE(void);
+    bool supportsPACE(void) const;
 
-	PaceOutput establishPACEChannel(
-			const PaceInput&);
+	PaceOutput establishPACEChannel(const PaceInput&) const;
 };
 
 #endif

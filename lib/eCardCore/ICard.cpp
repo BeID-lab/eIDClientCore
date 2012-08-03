@@ -42,6 +42,12 @@ RAPDU ICard::sendAPDU(const CAPDU& cmd)
 }
 
 
+const IReader *ICard::getSubSystem(void) const
+{
+  return ( IReader* ) m_subSystem;
+}
+
+
 /*
  *
  */

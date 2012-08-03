@@ -29,15 +29,6 @@ string ePACard::getCardDescription (
   return "German nPA";
 }
 
-/*
- *
- */
-ECARD_PIN_STATE ePACard::getPinState (
-  void )
-{
-  return PIN_STATE_ACTIVATED;
-}
-
 bool ePACard::selectMF(
         void)
 {
@@ -242,22 +233,6 @@ void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)
     m_kEnc = kEnc;
     m_kMac = kMac;
     m_ssc = 0;
-}
-
-bool ePACard::subSystemSupportsPACE(void)
-{
-    IReader* reader = ( IReader* ) m_subSystem;
-    if (!reader)
-        return false;
-    return reader->supportsPACE();
-};
-
-PaceOutput ePACard::subSystemEstablishPACEChannel(const PaceInput& input)
-{
-    IReader* reader = ( IReader* ) m_subSystem;
-    if (!reader)
-        return PaceOutput();
-    return reader->establishPACEChannel(input);
 }
 
 ICard* ePACardDetector::getCard(IReader* reader)

@@ -544,11 +544,11 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
   }
 
   char bufPIN[10];
-  memset(&bufPIN[0], 0x00, 10);
+  memset(&bufPIN[0], 0x00, sizeof bufPIN);
   
   fnUserInteractionCallback(chatFromCertificate, chatRequired, chatOptional,
 	                        strCertificateDescription.c_str(), strServiceName.c_str(), strServiceURL.c_str(),
-							userSelectedChat, &bufPIN[0], 10);
+							userSelectedChat, &bufPIN[0], sizeof bufPIN);
 
   strPIN.assign(&bufPIN[0]);
 //  userSelectedChat = paramPACE.userSelectedChat;

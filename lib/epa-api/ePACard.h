@@ -35,9 +35,6 @@ namespace Bundesdruckerei
                 static const unsigned short FID_EF_CARDACCESS = 0x011C;
                 static const unsigned char SFID_EF_CARDACCESS =   0x1C;
 
-                bool subSystemSupportsPACE(void);
-                PaceOutput subSystemEstablishPACEChannel(const PaceInput& input);
-
                 /*!
                  * ctor
                  */
@@ -48,12 +45,6 @@ namespace Bundesdruckerei
                  *
                  */
                 string getCardDescription (
-                        void );
-
-                /*!
-                 *
-                 */
-                ECARD_PIN_STATE getPinState (
                         void );
 
                 /*!

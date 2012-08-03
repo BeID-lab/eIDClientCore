@@ -185,14 +185,11 @@ class IReader
     /*!
      *
      */
-    virtual vector<unsigned char> getATRForPresentCard(
-      void) = 0;
+    virtual vector<unsigned char> getATRForPresentCard(void) = 0;
 
-    virtual bool supportsPACE(
-      void) = 0;
+    virtual bool supportsPACE(void) const = 0;
 
-	virtual PaceOutput establishPACEChannel(
-			const PaceInput&) = 0;
+	virtual PaceOutput establishPACEChannel(const PaceInput&) const = 0;
 }; // class IReader
 
 #endif // #if !defined(__IREADER_INCLUDED__)

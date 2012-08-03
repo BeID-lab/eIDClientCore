@@ -63,6 +63,8 @@ class ICard
     UINT64 getChipId(
       void);
 
+    const IReader *getSubSystem(void) const;
+
     // -------------------------------------------------------------------------
     // Pure virtuals
     // -------------------------------------------------------------------------
@@ -72,12 +74,6 @@ class ICard
      */
     virtual string getCardDescription (
       void ) = 0;
-
-    /*!
-     *
-     */
-    virtual ECARD_PIN_STATE getPinState (
-      void ) = 0;    
 
 }; // class ICard
 

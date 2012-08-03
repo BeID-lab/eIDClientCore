@@ -739,7 +739,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   if (0x00 == ePA_)
     return ECARD_INVALID_EPA;
 
-  if (ePA_->subSystemSupportsPACE()) {
+  if (ePA_->getSubSystem()->supportsPACE()) {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
       enum PaceInput::PinID pin_id;
       switch (keyReference) {
@@ -759,8 +759,9 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
               pin_id = PaceInput::undef;
       }
 
-      PaceOutput output = ePA_->subSystemEstablishPACEChannel(PaceInput(pin_id,
-                  password, chat, certificate_description));
+      std::vector<unsigned char> no_password;
+      PaceOutput output = ePA_->getSubSystem()->establishPACEChannel(PaceInput(pin_id,
+                  no_password, chat, certificate_description));
 
       car_cvca = output.get_car_curr();
       x_Puk_ICC_DH2 = output.get_id_icc();

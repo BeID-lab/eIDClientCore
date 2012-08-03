@@ -417,7 +417,7 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
   
   chatUserSelected = chatFromCertificate;
   memset(bufPIN, 0x00, nBufLength);
-  strcpy(bufPIN,"123456");
+  strncpy(bufPIN, "123456", nBufLength);
 
   return NPACLIENT_ERROR_SUCCESS;
 }

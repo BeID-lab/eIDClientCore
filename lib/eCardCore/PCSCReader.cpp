@@ -269,7 +269,7 @@ vector<BYTE> PCSCReader::getATRForPresentCard()
   return atr;
 }
 
-bool PCSCReader::supportsPACE(void)
+bool PCSCReader::supportsPACE(void) const
 {
     if (0 == m_ioctl_pace)
         return false;
@@ -436,7 +436,7 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
     return paceoutput;
 }
 
-PaceOutput PCSCReader::establishPACEChannel(const PaceInput& input)
+PaceOutput PCSCReader::establishPACEChannel(const PaceInput& input) const
 {
     PaceOutput output;
 
