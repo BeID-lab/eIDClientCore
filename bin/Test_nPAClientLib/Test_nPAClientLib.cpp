@@ -94,7 +94,6 @@ void CeIdObject::OnStartElement (const XML_Char *pszName, const XML_Char **papsz
 	string	strParamName = "";
 	string	strParamValue = "";
 
-	printf ("We got a start element %s\n",strCurrentTag.c_str());
 	if( strcmp(strCurrentTag.c_str(), "param") == 0 )
 	{
 		for (int i=0; papszAttrs[i]; i+=2)
@@ -133,12 +132,10 @@ void CeIdObject::OnStartElement (const XML_Char *pszName, const XML_Char **papsz
 			if( strcmp(strParam.c_str(), "action") == 0 )
 			{
 				m_strAction.assign(papszAttrs[i+1]);
-				printf("action: %s \n", m_strAction.c_str());
 			}
 			else if( strcmp(strParam.c_str(), "method") == 0 )
 			{
 				m_strMethod.assign(papszAttrs[i+1]);
-				printf("method: %s \n", m_strMethod.c_str());
 			}
 		}
 	}
@@ -146,7 +143,6 @@ void CeIdObject::OnStartElement (const XML_Char *pszName, const XML_Char **papsz
 	{
 		for (int i=0; papszAttrs[i]; i+=2)
         {
-			printf("%s : %s \n", papszAttrs[i], papszAttrs[i+1]);
 
 			string	strParam(papszAttrs[i]);
 			if( strcmp(strParam.c_str(), "type") == 0 )
