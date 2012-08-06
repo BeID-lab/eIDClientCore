@@ -25,13 +25,11 @@ using namespace Bundesdruckerei::nPA;
  */
 extern "C" NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
   AuthenticationParams_t* authParams,
+  ECARD_PROTOCOL usedProtocol,
   PNPACLIENT_HANDLE hClient)
 {
   try 
   {
-    ECARD_PROTOCOL usedProtocol        = PROTOCOL_PCSC;
-//      ECARD_PROTOCOL usedProtocol        = PROTOCOL_EXTERNAL_LIB;
-
     CharMap paraMap;
     paraMap[(char *) "ServerAddress"]           = (char**) &authParams->m_serverAddress;
     paraMap[(char *) "SessionIdentifier"]       = (char**) &authParams->m_sessionIdentifier;
@@ -438,6 +436,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAFreeDataBuffer(
  */
 extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWithParamMap(
   IN AuthenticationParams_t paraMap,
+  ECARD_PROTOCOL usedProtocol,
   IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
   IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
 {
@@ -473,7 +472,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
   std::string	strPIN;
 
   // Initialize the nPA access
-  error = nPAInitializeProtocol(&paraMap, &hnPAClient);
+  error = nPAInitializeProtocol(&paraMap, usedProtocol, &hnPAClient);
   
   fnCurrentStateCallback(NPACLIENT_STATE_INITIALIZE, error);
 
@@ -626,5 +625,5 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolPcSc
     authParams_.m_sessionIdentifier = SessionIdentifier;
     authParams_.m_pathSecurityParameters = PathSecurityParameters;
 
-	return nPAeIdPerformAuthenticationProtocolWithParamMap(authParams_, fnUserInteractionCallback, fnCurrentStateCallback);
+	return nPAeIdPerformAuthenticationProtocolWithParamMap(authParams_, PROTOCOL_PCSC, fnUserInteractionCallback, fnCurrentStateCallback);
 }

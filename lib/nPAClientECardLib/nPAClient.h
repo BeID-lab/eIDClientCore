@@ -171,8 +171,8 @@ namespace Bundesdruckerei
     {
     private:
       IIdP*               m_Idp;
-      ECARD_HANDLE        m_hSystem;
-      ECARD_HANDLE        m_hCard;
+      IReaderManager*     m_hSystem;
+      ICard*              m_hCard;
       ePAClientProtocol*  m_clientProtocol;
       static nPAClient*   m_instance;
 

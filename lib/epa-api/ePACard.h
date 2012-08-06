@@ -39,7 +39,7 @@ namespace Bundesdruckerei
                  * ctor
                  */
                 ePACard(
-                        ECARD_HANDLE);
+                        IReader*);
 
                 /*!
                  *

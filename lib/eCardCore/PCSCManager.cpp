@@ -43,8 +43,7 @@ PCSCManager::~PCSCManager (
 vector<IReader*> PCSCManager::getReaders (
   void )
 {
-  vector<IReader*> readerList;
-  return readerList;
+  return m_readerList;
 }
 
 /*
@@ -63,7 +62,6 @@ void PCSCManager::findReaders (
       retValue, __FILE__, __LINE__);
     return;
   }
-
   DWORD dwSize = 0;
   
   if ( ( retValue = SCardListReaders ( hScardContext, NULL,
@@ -100,6 +98,7 @@ void PCSCManager::findReaders (
 #else
   char* pReader = readers;
 #endif
+
   
   while ( '\0' != *pReader )
   {
@@ -115,8 +114,7 @@ void PCSCManager::findReaders (
 #else
     m_readerList.push_back ( new PCSCReader ( pReader, m_cardDetectors ) );
     pReader = pReader + strlen ( pReader ) + 1;
-#endif        
-    
+#endif
   }
 
   delete [] readers;

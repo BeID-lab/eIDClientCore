@@ -4,6 +4,7 @@
 #include <eCardTypes.h>
 #include <eCardStatus.h>
 #include <ePAAPI.h>
+#include <ICard.h>
 
 #include <vector>
 #include <string>
@@ -14,7 +15,7 @@ class ePAClientProtocol
 {
 private:
   /** Handle to a valid ePA card */
-  ECARD_HANDLE m_hCard;
+  ICard *m_hCard;
   /** Encryption key for secure messaging after PACE */
   std::vector<unsigned char> m_kEnc;
   /** Message authentication code (MAC) key for secure messaging after PACE */
@@ -44,7 +45,7 @@ public:
    * @param hCard Handle to an ePA card
    */
   ePAClientProtocol(
-    IN ECARD_HANDLE hCard);
+    IN ICard* hCard);
 
   ~ePAClientProtocol(
     void);

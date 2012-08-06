@@ -23,6 +23,7 @@ using namespace Bundesdruckerei::eIdUtils;
 
 #include <cassert>
 #include <debug.h>
+#include "eCardCore/PCSCManager.h"
 
 nPAClient* nPAClient::m_instance = 0x00;
 
@@ -84,14 +85,14 @@ nPAClient::~nPAClient(
   // Close the card.
   if (0x00 != m_hCard)
   {
-    eCardCloseReader(m_hCard);
+    delete m_hCard;
     m_hCard = 0x00;
   }
 
   // Close the card subsystem.
   if (0x00 != m_hSystem)
   {
-    eCardClose(m_hSystem);
+    delete m_hSystem;
     m_hSystem = 0x00;
   }
 
@@ -110,8 +111,7 @@ NPACLIENT_ERROR nPAClient::initialize(
 
   assert(0x00 != m_Idp);
 
-  // Check that we have an valid IdP instance. If not return 
-  // an error.
+  // Check that we have an valid IdP instance. If not return an error.
   if (0x00 == m_Idp)
     return NPACLIENT_ERROR_IDP_INVALID_CONNECTION;
 
@@ -120,84 +120,76 @@ NPACLIENT_ERROR nPAClient::initialize(
     return error;
 
   // Connect to the underlying smart card system.
-  if ((status = eCardOpen(&m_hSystem, usedProtocol)) != ECARD_SUCCESS)
-    return NPACLIENT_ERROR_PCSC_INITIALIZATION_FAILED;
+  switch (usedProtocol) {
+    case PROTOCOL_PCSC:
+      {
+        m_hSystem = new PCSCManager();
+      }
+      break;
+    default:
+      {
+        return ECARD_PROTOCOL_UNKNOWN;
+      }
+  }
 
-  assert(0x00 != m_hSystem);
+  // Add an instance of an detection object to the smart card system.
+  m_hSystem->addCardDetector(new ePACardDetector());
 
-  // Add an instance of an detection object to the smart card system. We only
-  // handle the nPA card!
-  if ((status = eCardAddCardDetector(m_hSystem, new ePACardDetector())) != ECARD_SUCCESS)
-    return NPACLIENT_ERROR_INVALID_CARD_DETECTOR;
-
-  int readerCount_ = eCardGetReaderCount(m_hSystem);
-  
-  eCardCore_debug(DEBUG_LEVEL_CLIENT, "eCardGetReaderCount(%08X) returnd %d", m_hSystem, readerCount_);
-  
-  if (0 == readerCount_)
-    return NPACLIENT_ERROR_NO_USABLE_READER_PRESENT;
-
-  DWORD ePACounter_ = 0;
+  vector<IReader *> readers;
   // Is there a specified CardReader?
+  if(paraMap->find((char *) "CardReaderName") == paraMap->end())
+      readers = m_hSystem->getReaders();
+  else {
+      IReader *reader = m_hSystem->getReader(*paraMap->find((char *) "CardReaderName")->second);
+      if (reader == 0x00)
+          return ECARD_NO_SUCH_READER;
+      readers.push_back(reader);
+  }
 
-//  if(paraMap->find("CardReaderName") == paraMap->end())
-//  {
-    // Try to find an valid nPA card.
-    for (int i = 0; i < readerCount_; i++)
-    {  
-      ECARD_HANDLE hTempCard_ = 0x00;
-      if (ECARD_SUCCESS == eCardOpenReader(m_hSystem, i, &hTempCard_))
-      {    
-        ePACounter_++;
-        // We have more than one card ... So we have to close the old one.
-        if (m_hCard != 0x00) 
-        {
-          eCardCloseReader(m_hCard);
-          m_hCard = 0x00;
-        } // if (m_hCard != 0x00) 
+  eCardCore_info(DEBUG_LEVEL_CLIENT, "Found %d reader%s", readers.size(), readers.size() == 1 ? "" : "s");
+  if (readers.empty())
+      return NPACLIENT_ERROR_NO_USABLE_READER_PRESENT;
+  
+  size_t ePACounter = 0;
+  // Try to find a valid nPA card.
+  for (int i = 0; i < readers.size(); i++)
+  {
+      eCardCore_info(DEBUG_LEVEL_CLIENT, "Trying %s.", readers[i]->getReaderName().c_str());
 
-        m_hCard = hTempCard_;
-        break;
-      } // if (ECARD_SUCCESS == eCardOpenReader(hSystem, i, &hTempCard))
-    } // for (int i = 0; i < readerCount; i++)
+      if (!readers[i]->open())
+          continue;
 
-  //}
-  //else
-  //{
-  //  // Try to use the specified reader
-  //  ECARD_HANDLE hTempCard_ = 0x00;
-  //  eCardCore_debug("Open Reader with Name == %s", * paraMap->find("CardReaderName")->second);
-  //  if(ECARD_SUCCESS == eCardOpenReaderByName(m_hSystem, * paraMap->find("CardReaderName")->second, &hTempCard_))
-  //  {
-  //    ePACounter_++;
-  //    // We have more than one card ... So we have to close the old one.
-  //    if (m_hCard != 0x00) 
-  //    {
-  //      eCardCloseReader(m_hCard);
-  //      m_hCard = 0x00;
-  //    } // if (m_hCard != 0x00) 
+      ICard *hTempCard_ = readers[i]->getCard();
+      if (hTempCard_)
+      {
+          // We have more than one card ... So we have to close the old one.
+          if (m_hCard != 0x00) 
+              delete m_hCard;
 
-  //    m_hCard = hTempCard_;
-  //  }
-  //}
-  eCardCore_debug(DEBUG_LEVEL_CLIENT, "ePACounter_ == %d", readerCount_);
+          m_hCard = hTempCard_;
+          ePACounter++;
 
+          eCardCore_info(DEBUG_LEVEL_CLIENT, "Found %s", m_hCard->getCardDescription().c_str());
+          vector<unsigned char> atr = readers[i]->getATRForPresentCard();
+          hexdump(DEBUG_LEVEL_CLIENT, "Answer-to-Reset (ATR):", atr.data(),
+                  atr.size());
+      } else
+          readers[i]->close();
+  }
+
+  eCardCore_debug(DEBUG_LEVEL_CLIENT, "Found %d nPA%s", ePACounter, ePACounter == 1 ? "" : "s");
   // We can only handle one nPA.
-  if (1 < ePACounter_)
+  if (1 < ePACounter)
    return NPACLIENT_ERROR_TO_MANY_CARDS_FOUND;
-
   // We need at least one nPA.
-  if (1 > ePACounter_)
+  if (1 > ePACounter)
     return NPACLIENT_ERROR_NO_VALID_CARD_FOUND;
 
   // Create the new protocol.
   m_clientProtocol = new ePAClientProtocol(m_hCard);
-  assert(0x00 != m_clientProtocol);
 
   if (0x00 == m_clientProtocol)
     return NPACLIENT_ERROR_PROTCOL_INITIALIZATION_FAILD;
-
-  eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::initialize ok");
 
   return NPACLIENT_ERROR_SUCCESS;
 }
@@ -677,14 +669,11 @@ NPACLIENT_ERROR nPAClient::readAttributed(
 
   for (size_t i = 0; i < m_capdus.size(); ++i)
   {
-      CAPDU capdu = m_capdus.at(i);
-	  std::vector<unsigned char> rapdu;
-      std::vector<unsigned char> capdu_buf = capdu.asBuffer();
-
-	  if (ECARD_SUCCESS != eCardSendAPDU(m_hCard, capdu_buf, rapdu))
+      try {
+          m_rapdus.push_back(m_hCard->sendAPDU(m_capdus[i]));
+      } catch (...) {
 		  return NPACLIENT_ERROR_TRANSMISSION_ERROR;
-
-      m_rapdus.push_back(rapdu);
+      }
   }
 
   std::string attributes;

@@ -229,7 +229,7 @@ vector <unsigned char> PCSCReader::sendAPDU (
     if ( 0x00 == m_hCard )
         throw WrongHandle();
 
-    r = SCardTransmit ( m_hCard, SCARD_PCI_T1, &cmd[0],
+    r = SCardTransmit ( m_hCard, SCARD_PCI_T1, cmd.data(),
             ( DWORD ) cmd.size(), NULL, res, &reslen );
 
     if(r != SCARD_S_SUCCESS)

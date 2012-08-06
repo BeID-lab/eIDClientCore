@@ -5,7 +5,7 @@
  *
  */
 ICard::ICard (
-  ECARD_HANDLE subSystem ) : m_subSystem ( subSystem ),
+  IReader* subSystem ) : m_subSystem ( subSystem ),
     m_chipID(0xFFFFFFFFFFFFFFFFLL)
 {}
 
@@ -14,8 +14,7 @@ ICard::ICard (
  */
 ICard::~ICard()
 {
-  IReader* reader = ( IReader* ) m_subSystem;
-  reader->close();
+  m_subSystem->close();
 }
 
 
@@ -24,15 +23,13 @@ ICard::~ICard()
  */
 RAPDU ICard::sendAPDU(const CAPDU& cmd)
 {
-  IReader* reader = ( IReader* ) m_subSystem;
-
   eCardCore_info(DEBUG_LEVEL_APDU, "Outgoing APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
           cmd.getCLA(), cmd.getINS(), cmd.getP1(), cmd.getP2(),
           cmd.getData().size(), cmd.getNe());
   if (!cmd.getData().empty())
       hexdump(DEBUG_LEVEL_APDU, NULL, &cmd.getData()[0], cmd.getData().size());
 
-  RAPDU rapdu = RAPDU(reader->sendAPDU( m_chipID, cmd.asBuffer()));
+  RAPDU rapdu = RAPDU(m_subSystem->sendAPDU( m_chipID, cmd.asBuffer()));
 
   eCardCore_info(DEBUG_LEVEL_APDU, "Incoming APDU:  SW=%04X  Nr=%u", rapdu.getSW(), rapdu.getData().size());
   if (!rapdu.getData().empty())

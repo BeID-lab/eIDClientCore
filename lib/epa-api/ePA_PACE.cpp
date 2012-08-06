@@ -765,9 +765,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
       car_cvca = output.get_car_curr();
       x_Puk_ICC_DH2 = output.get_id_icc();
-
-      hexdump(DEBUG_LEVEL_CRYPTO, "bla idpicc", &x_Puk_ICC_DH2[0], x_Puk_ICC_DH2.size());
-      hexdump(DEBUG_LEVEL_CRYPTO, "bla idpicc", &output.get_id_icc()[0], output.get_id_icc().size());
   } else {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader does not support PACE. Will establish PACE channel.");
 

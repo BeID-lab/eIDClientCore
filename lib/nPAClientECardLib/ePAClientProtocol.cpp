@@ -47,7 +47,7 @@ extern "C" void ePAClientProtocol_deallocator(
 /**
  */
 ePAClientProtocol::ePAClientProtocol(
-  ECARD_HANDLE hCard) : m_hCard(hCard)
+  ICard *hCard) : m_hCard(hCard)
 {
 }
 

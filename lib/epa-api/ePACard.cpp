@@ -13,7 +13,7 @@ using namespace Bundesdruckerei::nPA;
  *
  */
 ePACard::ePACard(
-  ECARD_HANDLE hSubSystem) : ICard(hSubSystem)
+  IReader* hSubSystem) : ICard(hSubSystem)
 {
     if (!selectMF()
             || !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))

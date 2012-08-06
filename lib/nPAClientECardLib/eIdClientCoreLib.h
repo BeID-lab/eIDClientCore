@@ -108,7 +108,6 @@ typedef struct AuthenticationParams
   const char* m_refreshAddress;
   const char* m_pin;
   const char* m_userSelectedChat;
-  const char* m_cardReaderName;
   void*       m_extension; //Global Tester Params for example
 
   /**
@@ -117,7 +116,7 @@ typedef struct AuthenticationParams
   AuthenticationParams(
     void) : m_serverAddress(0x00), m_sessionIdentifier(0x00), m_binding(0x00),
     m_pathSecurityProtocol(0x00), m_pathSecurityParameters(0x00), m_refreshAddress(0x00),
-    m_pin(0), m_userSelectedChat(0x00), m_cardReaderName(0x00), m_extension(0x00) { /* */ }
+    m_pin(0), m_userSelectedChat(0x00), m_extension(0x00) { /* */ }
 } AuthenticationParams_t;
 
 #if defined(__cplusplus)

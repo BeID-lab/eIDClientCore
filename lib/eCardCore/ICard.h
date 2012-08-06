@@ -20,7 +20,7 @@ class ICard
       const ICard&);
 
   protected:
-    ECARD_HANDLE m_subSystem;
+    IReader *m_subSystem;
     unsigned long long m_chipID;
 
   public:
@@ -30,7 +30,7 @@ class ICard
      *
      */
     ICard (
-      ECARD_HANDLE subSystem );
+      IReader* subSystem );
 
     /*!
      *
