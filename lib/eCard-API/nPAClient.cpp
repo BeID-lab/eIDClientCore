@@ -8,7 +8,7 @@
 #include "nPAClient.h"
 using namespace Bundesdruckerei::nPA;
 
-#include <eIdUtils.h>
+#include "eIdUtils.h"
 using namespace Bundesdruckerei::eIdUtils;
 
 #include <CertificateBody.h>
@@ -16,10 +16,8 @@ using namespace Bundesdruckerei::eIdUtils;
 #include <CertificateDescription.h>
 #include <PlainTermsOfUsage.h>
 
-#include <eCardStatus.h>
-#include <eCardCore.h>
-#include <nPACard.h>
-#include <nPACommon.h>
+#include "eCardCore/eCardStatus.h"
+#include "nPA-EAC/nPACard.h"
 
 #include <cassert>
 #include <debug.h>
@@ -152,7 +150,7 @@ NPACLIENT_ERROR nPAClient::initialize(
   
   size_t ePACounter = 0;
   // Try to find a valid nPA card.
-  for (int i = 0; i < readers.size(); i++)
+  for (size_t i = 0; i < readers.size(); i++)
   {
       eCardCore_info(DEBUG_LEVEL_CLIENT, "Trying %s.", readers[i]->getReaderName().c_str());
 
@@ -587,8 +585,8 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 
   ECARD_STATUS status = ECARD_SUCCESS;
   // Run the Terminal authentication until the signature action.
-  if ((status = m_clientProtocol->TerminalAuthentication(IN list_certificates, 
-      IN terminalCertificate_, IN x_Puk_IFD_DH_, IN authenticatedAuxiliaryData_, OUT toBeSigned_)) != ECARD_SUCCESS)
+  if ((status = m_clientProtocol->TerminalAuthentication(list_certificates, 
+      terminalCertificate_, x_Puk_IFD_DH_, authenticatedAuxiliaryData_, toBeSigned_)) != ECARD_SUCCESS)
   {
     return NPACLIENT_ERROR_TA_FAILED;
   }
@@ -635,8 +633,8 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
 
   std::vector<unsigned char> GeneralAuthenticationResult;
 
-  if ((status = m_clientProtocol->ChipAuthentication(IN x_Puk_IFD_DH_, 
-    IN y_Puk_IFD_DH_, GeneralAuthenticationResult)) != ECARD_SUCCESS)
+  if ((status = m_clientProtocol->ChipAuthentication(x_Puk_IFD_DH_, 
+    y_Puk_IFD_DH_, GeneralAuthenticationResult)) != ECARD_SUCCESS)
   {
     return NPACLIENT_ERROR_CA_FAILED;
   }

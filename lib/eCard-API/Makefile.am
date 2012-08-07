@@ -11,7 +11,5 @@ libeCard_API_la_LIBADD = $(EXPAT_LIBS) $(CRYPTOPP_LIBS) \
 						 $(top_builddir)/lib/eCardCore/libeCardCore.la
 libeCard_API_la_CPPFLAGS = $(EXPAT_CFLAGS) $(CRYPTOPP_CFLAGS) \
 						   -I$(top_srcdir)/lib \
-						   -I$(top_srcdir)/lib/eCardCore \
-						   -I$(top_srcdir)/lib/nPA-EAC \
 						   -I$(top_srcdir)/lib/eidasn1 \
 						   -I$(top_srcdir)/lib/eIDClientConnection

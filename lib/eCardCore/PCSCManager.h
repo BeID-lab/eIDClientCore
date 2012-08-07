@@ -1,24 +1,7 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: PCSCManager.h 771 2010-06-11 11:08:46Z x_schrom $
-// ---------------------------------------------------------------------------
-
-/*!
- * @file PCSCManager.h
- */
-
 #if !defined(__PCSCMANAGER_INCLUDED__)
 #define __PCSCMANAGER_INCLUDED__
 
 #include "IReaderManager.h"
-
-#if defined(_WIN32)
-#  include <winscard.h>
-#else
-#  include <PCSC/winscard.h>
-#endif
 
 /*!
  * @class PCSCManager

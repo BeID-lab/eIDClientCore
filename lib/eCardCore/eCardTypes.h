@@ -3,10 +3,6 @@
 
 #include <stddef.h>
 
-#define IN
-#define OUT
-#define OPTIONAL
-
 typedef unsigned char BYTE;
 typedef BYTE* PBYTE;
 
@@ -15,6 +11,7 @@ typedef DWORD* PDWORD;
 
 typedef void* ECARD_HANDLE;
 typedef ECARD_HANDLE* PECARD_HANDLE;
+#define ECARD_INVALID_HANDLE_VALUE ((ECARD_HANDLE) 0xFFFFFFFF)
 
 typedef long long INT64;
 typedef unsigned long long UINT64;
@@ -29,31 +26,12 @@ typedef unsigned long ULONG;
 typedef void * LPVOID;
 
 
-#define ECARD_INVALID_HANDLE_VALUE ((ECARD_HANDLE) 0xFFFFFFFF)
-
 /*!
  * @enum ECARD_PROTOCOL
  */
 enum ECARD_PROTOCOL
 {
-  PROTOCOL_CTAPI,
   PROTOCOL_PCSC,
-  PROTOCOL_BTRD,
-  PROTOCOL_PCSC_TCP,
-  PROTOCOL_PCSC_LIBRFID,
-  PROTOCOL_EXTERNAL_LIB,
-  PROTOCOL_TCP_GT
-};
-
-/*!
- * @enum ECARD_PIN_STATE
- */
-enum ECARD_PIN_STATE
-{
-  PIN_STATE_ACTIVATED,   // The PIN is not activated
-  PIN_STATE_NOT_ACTIVE,  // The PIN is activated
-  PIN_STATE_UNKNOWN,     // The card is not known by the API
-  PIN_STATE_NOPIN        // The card has no PIN protection
 };
 
 #endif

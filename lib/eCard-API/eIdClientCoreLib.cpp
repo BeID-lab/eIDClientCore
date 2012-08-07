@@ -13,9 +13,6 @@
 #include "eIdECardClient.h"
 #include "nPAClient.h"
 
-#include <eCardStatus.h>
-#include <eCardCore.h>
-
 using namespace Bundesdruckerei::nPA;
 
 #include <cassert>
@@ -23,7 +20,7 @@ using namespace Bundesdruckerei::nPA;
 /*
  *
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitializeProtocol(
   AuthenticationParams_t* authParams,
   ECARD_PROTOCOL usedProtocol,
   PNPACLIENT_HANDLE hClient)
@@ -80,7 +77,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAInitializeProtocol(
 /*
  *
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAFinalizeProtocol(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
   NPACLIENT_HANDLE hClient)
 {
   assert(0x00 != hClient);
@@ -102,7 +99,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAFinalizeProtocol(
 /*
  *
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   NPACLIENT_HANDLE hClient,
   chat_t* chatFromCertificate,
   time_t* certificateValidFrom,
@@ -200,7 +197,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos(
 /*
  *
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos2(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   NPACLIENT_HANDLE hClient,
   nPADataBuffer_t* chatFromCertificate,
   nPADataBuffer_t* chatRequired,
@@ -286,7 +283,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAQueryPACEInfos2(
   return ret;
 }
 
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
   NPACLIENT_HANDLE hClient,
   const char* password,
   chat_t chatSelectedByUser,
@@ -324,7 +321,7 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAPerformPACE(
 /*
  *
  */
-NPACLIENT_ERROR NPACLIENT_API nPAPerformTerminalAuthentication(
+NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
   NPACLIENT_HANDLE hClient)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
@@ -351,7 +348,7 @@ NPACLIENT_ERROR NPACLIENT_API nPAPerformTerminalAuthentication(
 /*
  *
  */
-NPACLIENT_ERROR NPACLIENT_API nPAPerformChipAuthentication(
+NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
   NPACLIENT_HANDLE hClient)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
@@ -378,9 +375,9 @@ NPACLIENT_ERROR NPACLIENT_API nPAPerformChipAuthentication(
 /*
  *
  */
-NPACLIENT_ERROR NPACLIENT_API nPAReadAttributes(
-  IN NPACLIENT_HANDLE hClient,
-  OUT nPADataBuffer_t* samlEncodedAttributes)
+NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
+  NPACLIENT_HANDLE hClient,
+  nPADataBuffer_t* samlEncodedAttributes)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 
@@ -414,7 +411,7 @@ NPACLIENT_ERROR NPACLIENT_API nPAReadAttributes(
  *
  * @return NPACLIENT_ERROR_SUCCESS The protocol is finalized properly.
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAFreeDataBuffer(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAFreeDataBuffer(
   nPADataBuffer_t* pDataBuffer)
 {
   assert(0x00 != pDataBuffer);
@@ -434,11 +431,11 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAFreeDataBuffer(
 /*
  *
  */
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWithParamMap(
-  IN AuthenticationParams_t paraMap,
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithParamMap(
+  AuthenticationParams_t paraMap,
   ECARD_PROTOCOL usedProtocol,
-  IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-  IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
+  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
+  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
 {
   assert(0x00 != fnUserInteractionCallback);
   assert(0x00 != fnCurrentStateCallback);
@@ -612,12 +609,12 @@ extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolWith
   return NPACLIENT_ERROR_SUCCESS; 
 }
 
-extern "C" NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolPcSc(
-  IN const char* const IdpAddress,
-  IN const char* const SessionIdentifier,
-  IN const char* const PathSecurityParameters,
-  IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-  IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
+  const char* const IdpAddress,
+  const char* const SessionIdentifier,
+  const char* const PathSecurityParameters,
+  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
+  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
 {
     AuthenticationParams_t authParams_;
  

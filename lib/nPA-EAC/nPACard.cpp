@@ -5,18 +5,18 @@ using namespace Bundesdruckerei::nPA;
 /**
  */
 static std::vector<unsigned char> buildDO87_AES(
-  IN const std::vector<unsigned char>& kEnc,
-  IN const std::vector<unsigned char>& data,
-  IN unsigned long long ssc);
+  const std::vector<unsigned char>& kEnc,
+  const std::vector<unsigned char>& data,
+  unsigned long long ssc);
 
 /**
  */
 static std::vector<unsigned char> buildDO8E_AES(
-  IN const std::vector<unsigned char>& kMac,
-  IN const std::vector<unsigned char>& data,
-  IN const std::vector<unsigned char>& do87,
-  IN const std::vector<unsigned char>& do97,
-  IN OUT unsigned long long &ssc);
+  const std::vector<unsigned char>& kMac,
+  const std::vector<unsigned char>& data,
+  const std::vector<unsigned char>& do87,
+  const std::vector<unsigned char>& do97,
+  unsigned long long &ssc);
 
 /*
  *
@@ -153,7 +153,7 @@ bool ePACard::readFile(
  *
  */
 unsigned short ePACard::getFileSize(
-  IN unsigned short FID)
+  unsigned short FID)
 {
   vector<BYTE> fci;
   selectEF(FID, fci);
@@ -180,9 +180,9 @@ unsigned short ePACard::getFileSize(
  * Date : October 01, 2004
  */
 static std::vector<unsigned char> buildDO87_AES(
-										 IN const std::vector<unsigned char>& kEnc,
-										 IN const std::vector<unsigned char>& data,
-										 IN unsigned long long ssc)
+										 const std::vector<unsigned char>& kEnc,
+										 const std::vector<unsigned char>& data,
+										 unsigned long long ssc)
 {
 	std::vector<unsigned char> do87;
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
@@ -267,11 +267,11 @@ static std::vector<unsigned char> buildDO87_AES(
  * Date : October 01, 2004
  */
 static std::vector<unsigned char> buildDO8E_AES(
-										 IN const std::vector<unsigned char>& kMac,
-										 IN const std::vector<unsigned char>& data,
-										 IN const std::vector<unsigned char>& do87,
-										 IN const std::vector<unsigned char>& do97,
-										 IN OUT unsigned long long &ssc)
+										 const std::vector<unsigned char>& kMac,
+										 const std::vector<unsigned char>& data,
+										 const std::vector<unsigned char>& do87,
+										 const std::vector<unsigned char>& do97,
+										 unsigned long long &ssc)
 {
 	std::vector<unsigned char> mac;
 	mac.resize(8);

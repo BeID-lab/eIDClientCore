@@ -1,10 +1,9 @@
 #define STRSAFE_NO_DEPRECATE
 
-#include <eCardCore.h>
-#include <eCardTypes.h>
-#include <eCardStatus.h>
-#include <ICard.h>
-#include <nPACommon.h>
+#include "eCardCore/eCardTypes.h"
+#include "eCardCore/eCardStatus.h"
+#include "eCardCore/ICard.h"
+#include "nPACommon.h"
 
 #include <PACEDomainParameterInfo.h>
 #include <ECParameters.h>
@@ -27,9 +26,9 @@
  * Date : October 01, 2004
  */
 bool verifyResponse_AES( 
-						IN const std::vector<unsigned char>& kMac, 
-						IN const std::vector<unsigned char>& dataPart,
-						IN unsigned long long &ssc)
+						const std::vector<unsigned char>& kMac, 
+						const std::vector<unsigned char>& dataPart,
+						unsigned long long &ssc)
 {
 	if (0x00 == dataPart.size())
 		return false;
@@ -113,9 +112,9 @@ bool verifyResponse_AES(
  * @brief Decrypt the response.
  */
 std::vector<unsigned char> decryptResponse_AES(
-											   IN std::vector<unsigned char>& kEnc,
-											   IN const std::vector<unsigned char>& returnedData,
-											   IN unsigned long long ssc)
+											   std::vector<unsigned char>& kEnc,
+											   const std::vector<unsigned char>& returnedData,
+											   unsigned long long ssc)
 {
 	std::vector<unsigned char> result_;
 	

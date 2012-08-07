@@ -1,18 +1,10 @@
 #if !defined(__PCSCREDARE_INCLUDED__)
 #define __PCSCREDARE_INCLUDED__
 
-/*!
- * @file PCSCReader.h
- */
-
 #include "IReader.h"
 #include "ICardDetector.h"
 
 #include <winscard.h>
-#ifdef _WIN32
-#else
-#include <reader.h>
-#endif
 
 /*!
  * @class PCSCReader

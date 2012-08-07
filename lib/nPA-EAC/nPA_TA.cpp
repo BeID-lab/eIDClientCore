@@ -4,12 +4,12 @@
 #include <debug.h>
 using namespace Bundesdruckerei::nPA;
 
-#include <ICard.h>
+#include "eCardCore/ICard.h"
 #include <SecurityInfos.h>
 #include <PACEDomainParameterInfo.h>
-#include <eIDHelper.h>
-#include <eIDOID.h>
-#include <nPACommon.h>
+#include "eidasn1/eIDHelper.h"
+#include "eidasn1/eIDOID.h"
+#include "nPACommon.h"
 
 USING_NAMESPACE(CryptoPP)
 
@@ -226,14 +226,14 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
  *
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& efCardAccess,
-  IN const std::vector<unsigned char>& carCVCA,
-  IN const std::vector<std::vector<unsigned char> >& list_certificates,
-  IN const std::vector<unsigned char>& terminalCertificate,
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
-  IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
-  IN OUT std::vector<unsigned char>& toBeSigned)
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& efCardAccess,
+  const std::vector<unsigned char>& carCVCA,
+  const std::vector<std::vector<unsigned char> >& list_certificates,
+  const std::vector<unsigned char>& terminalCertificate,
+  const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
+  const std::vector<unsigned char>& authenticatedAuxiliaryData,
+  std::vector<unsigned char>& toBeSigned)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 
@@ -372,8 +372,8 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  *
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& signature)
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& signature)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 

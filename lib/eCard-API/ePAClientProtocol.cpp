@@ -1,32 +1,32 @@
 #include "ePAClientProtocol.h"
 
-#include <eCardStatus.h>
-#include <nPAAPI.h>
+#include "eCardCore/eCardStatus.h"
+//#include <nPAAPI.h>
 
-#include <SignedData.h>
-#include <ContentInfo.h>
-#include <nPAStatus.h>
+//#include <SignedData.h>
+//#include <ContentInfo.h>
+//#include <nPAStatus.h>
 
-#include <SecurityInfos.h>
-#include <PACEDomainParameterInfo.h>
-#include <eIDHelper.h>
-#include <eIDOID.h>
-#include <ECParameters.h>
+//#include <SecurityInfos.h>
+//#include <PACEDomainParameterInfo.h>
+//#include <eIDHelper.h>
+//#include <eIDOID.h>
+//#include <ECParameters.h>
 #include <debug.h>
 
 ECARD_STATUS __STDCALL__ ePASelectFile(
-  IN ECARD_HANDLE hCard,
-  IN USHORT fid);
+  ECARD_HANDLE hCard,
+  USHORT fid);
 
 ECARD_STATUS __STDCALL__ ePAGetFileSize(
-  IN ECARD_HANDLE hCard,
-  IN USHORT fid,
-  IN OUT PDWORD dwSize);
+  ECARD_HANDLE hCard,
+  USHORT fid,
+  PDWORD dwSize);
 
 ECARD_STATUS __STDCALL__ ePAReadFile(
-  IN ECARD_HANDLE hCard,
-  IN size_t bytesToRead,
-  IN OUT std::vector<unsigned char>& fileContent);
+  ECARD_HANDLE hCard,
+  size_t bytesToRead,
+  std::vector<unsigned char>& fileContent);
 
 /**
  */
@@ -59,11 +59,11 @@ ePAClientProtocol::~ePAClientProtocol(
 /**
  */
 ECARD_STATUS ePAClientProtocol::PACE(
-  IN const std::vector<unsigned char>& chat,
-  IN const std::vector<unsigned char>& certificate_description,
-  IN const std::vector<unsigned char>& password,
-  IN KEY_REFERENCE keyReference,
-  OUT unsigned char& PINCount)
+  const std::vector<unsigned char>& chat,
+  const std::vector<unsigned char>& certificate_description,
+  const std::vector<unsigned char>& password,
+  KEY_REFERENCE keyReference,
+  unsigned char& PINCount)
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
@@ -95,11 +95,11 @@ ECARD_STATUS ePAClientProtocol::PACE(
 /**
  */
 ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
-  IN std::vector<std::vector<unsigned char> >& list_certificates,
-  IN const std::vector<unsigned char>& terminalCertificate,
-  IN const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
-  IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
-  IN OUT std::vector<unsigned char>& toBeSigned)
+  std::vector<std::vector<unsigned char> >& list_certificates,
+  const std::vector<unsigned char>& terminalCertificate,
+  const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
+  const std::vector<unsigned char>& authenticatedAuxiliaryData,
+  std::vector<unsigned char>& toBeSigned)
 {
   std::vector<unsigned char> carCVCA_;
   carCVCA_ = std::vector<unsigned char> ( m_carCVCA.begin(), m_carCVCA.end() );
@@ -226,7 +226,7 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardSecurity(
 /**
  */
 ECARD_STATUS ePAClientProtocol::SendSignature(
-  IN const std::vector<unsigned char>& signature)
+  const std::vector<unsigned char>& signature)
 {
   return ePASendSignature(m_hCard, signature);
 }
@@ -234,9 +234,9 @@ ECARD_STATUS ePAClientProtocol::SendSignature(
 /**
  */
 ECARD_STATUS ePAClientProtocol::ChipAuthentication(
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
-  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
-  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult)
+  const std::vector<unsigned char>& x_Puk_IFD_DH,
+  const std::vector<unsigned char>& y_Puk_IFD_DH,
+  std::vector<unsigned char>& GeneralAuthenticationResult)
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
@@ -256,7 +256,7 @@ ECARD_STATUS ePAClientProtocol::ChipAuthentication(
 /**
  */
 ECARD_STATUS ePAClientProtocol::GetEFCardAccess(
-  IN OUT std::vector<unsigned char>& efCardAccess)
+  std::vector<unsigned char>& efCardAccess)
 {
   efCardAccess = m_efCardAccess;
   
@@ -266,7 +266,7 @@ ECARD_STATUS ePAClientProtocol::GetEFCardAccess(
 /**
  */
 ECARD_STATUS ePAClientProtocol::GetEFCardSecurity(
-  IN OUT std::vector<unsigned char>& efCardSecurity)
+  std::vector<unsigned char>& efCardSecurity)
 {
   efCardSecurity = m_efCardSecurity;
   
@@ -274,7 +274,7 @@ ECARD_STATUS ePAClientProtocol::GetEFCardSecurity(
 }
 
 ECARD_STATUS ePAClientProtocol::GetIDPICC(
-  IN OUT std::vector<unsigned char>& idPICC)
+  std::vector<unsigned char>& idPICC)
 {
   idPICC = m_x_Puk_ICC_DH2;
   

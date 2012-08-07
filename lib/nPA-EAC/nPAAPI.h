@@ -1,8 +1,21 @@
 #if !defined(__NPAAPI_INCLUDED__)
 #define __NPAAPI_INCLUDED__
 
+#include "eCardCore/eCardStatus.h"
+#include "eCardCore/eCardTypes.h"
 #include <vector>
-#include "eCardCore.h"
+
+#if defined(WIN32) || defined(WINCE)// Windows related stuff
+#   if defined(ECARD_EXPORTS)
+#       define ECARD_API __declspec(dllexport)
+#   else
+#       define ECARD_API __declspec(dllimport)
+#   endif
+#   define __STDCALL__ __stdcall
+#else // Linux related stuff
+#   define ECARD_API
+#   define __STDCALL__
+#endif
 
 /**
  * @file nPAAPI.h
@@ -39,15 +52,15 @@ typedef enum KEY_REFERENCE_t
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  IN ECARD_HANDLE hCard,
-  IN KEY_REFERENCE keyReference,
-  IN const std::vector<unsigned char>& chat,
-  IN const std::vector<unsigned char>& certificate_description,
-  IN const std::vector<unsigned char>& password,
-  IN const std::vector<unsigned char>& efCardAccess,
-  IN OUT std::vector<unsigned char>& car_cvca,
-  IN OUT std::vector<unsigned char>& x_Puk_ICC_DH2,
-  OUT unsigned char* PINCount);
+  ECARD_HANDLE hCard,
+  KEY_REFERENCE keyReference,
+  const std::vector<unsigned char>& chat,
+  const std::vector<unsigned char>& certificate_description,
+  const std::vector<unsigned char>& password,
+  const std::vector<unsigned char>& efCardAccess,
+  std::vector<unsigned char>& car_cvca,
+  std::vector<unsigned char>& x_Puk_ICC_DH2,
+  unsigned char* PINCount);
 
 /**
  * @brief Perform the Terminal Authentication protocol. For further information look at
@@ -67,14 +80,14 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& efCardAccess,
-  IN const std::vector<unsigned char>& car_cvca,
-  IN const std::vector<std::vector<unsigned char> >& list_certificates,
-  IN const std::vector<unsigned char>& terminalCertificate,
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
-  IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
-  IN OUT std::vector<unsigned char>& toBeSigned);
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& efCardAccess,
+  const std::vector<unsigned char>& car_cvca,
+  const std::vector<std::vector<unsigned char> >& list_certificates,
+  const std::vector<unsigned char>& terminalCertificate,
+  const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
+  const std::vector<unsigned char>& authenticatedAuxiliaryData,
+  std::vector<unsigned char>& toBeSigned);
 
 /**
  * @brief Send the signature data to the chip. The signature will be created on 
@@ -88,8 +101,8 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& signature);
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& signature);
 
 /**
  * @param hCard                       [IN] Handle to an valid nPA card.
@@ -103,9 +116,9 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
-  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
-  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& x_Puk_IFD_DH,
+  const std::vector<unsigned char>& y_Puk_IFD_DH,
+  std::vector<unsigned char>& GeneralAuthenticationResult);
 
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

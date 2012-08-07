@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <AlgorithmIdentifier.h>
+#include <eidasn1/AlgorithmIdentifier.h>
 
 #if defined(WIN32)
 // CRYPTOPP includes
@@ -31,33 +31,33 @@ USING_NAMESPACE(CryptoPP)
  * Verifies the MAC of an secure messaging RAPDU.
  */
 bool verifyResponse_AES( 
-  IN const std::vector<unsigned char>& kMac, 
-  IN const std::vector<unsigned char>& dataPart,
-  IN OUT unsigned long long &ssc);
+  const std::vector<unsigned char>& kMac, 
+  const std::vector<unsigned char>& dataPart,
+  unsigned long long &ssc);
 
 /**
  */
 std::vector<unsigned char> decryptResponse_AES(
-  IN std::vector<unsigned char>& kEnc,
-  IN const std::vector<unsigned char>& returnedData,
-  IN unsigned long long ssc);
+  std::vector<unsigned char>& kEnc,
+  const std::vector<unsigned char>& returnedData,
+  unsigned long long ssc);
 
 /**
  */
 std::vector<unsigned char> calculateMAC(
-  IN const std::vector<unsigned char>& toBeMaced,
-  IN const std::vector<unsigned char>& kMac);
+  const std::vector<unsigned char>& toBeMaced,
+  const std::vector<unsigned char>& kMac);
 
 /**
  *
  */
 std::string getCAR(
-  IN const std::vector<unsigned char>& certificate);
+  const std::vector<unsigned char>& certificate);
 
 /**
  *
  */
 std::string getCHR(
-  IN const std::vector<unsigned char>& certificate);
+  const std::vector<unsigned char>& certificate);
 
 #endif

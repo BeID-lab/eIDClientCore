@@ -5,27 +5,26 @@
 
 using namespace Bundesdruckerei::nPA;
 
-#include <ICard.h>
+#include "eCardCore/ICard.h"
 #include <SecurityInfos.h>
 #include <PACEDomainParameterInfo.h>
-#include <eIDHelper.h>
-#include <eIDOID.h>
+#include "eidasn1/eIDHelper.h"
+#include "eidasn1/eIDOID.h"
 #include <ECParameters.h>
-
-#include <nPACommon.h>
+#include "nPACommon.h"
 
 #include <cstdio>
 /**
  */
 static std::vector<unsigned char> generate_PrK_IFD_DHx(
-  IN const AlgorithmIdentifier* PACEDomainParameterInfo_);
+  const AlgorithmIdentifier* PACEDomainParameterInfo_);
 
 /*
  * Calculate the SK.PACE.xyz
  */
 std::vector<unsigned char> generateSKPACE_FromPassword(
-  IN const std::vector<unsigned char>& password,
-  IN KEY_REFERENCE keyReference)
+  const std::vector<unsigned char>& password,
+  KEY_REFERENCE keyReference)
 {
   std::vector<unsigned char> result;
   unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x03 };	// always 0x03 acc. EAC 2.05 page 54
@@ -704,7 +703,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 }
 
 std::vector<unsigned char> generate_PrK_IFD_DHx(
-												IN const AlgorithmIdentifier* PACEDomainParameterInfo_)
+												const AlgorithmIdentifier* PACEDomainParameterInfo_)
 {
 	std::vector<unsigned char> result;
 	result.resize(32);
@@ -717,15 +716,15 @@ std::vector<unsigned char> generate_PrK_IFD_DHx(
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  IN ECARD_HANDLE hCard,
-  IN KEY_REFERENCE keyReference,
-  IN const std::vector<unsigned char>& chat,
-  IN const std::vector<unsigned char>& certificate_description,
-  IN const std::vector<unsigned char>& password,
-  IN const std::vector<unsigned char>& efCardAccess,
-  IN OUT std::vector<unsigned char>& car_cvca,
-  IN OUT std::vector<unsigned char>& x_Puk_ICC_DH2,
-  OUT unsigned char* PINCount)
+  ECARD_HANDLE hCard,
+  KEY_REFERENCE keyReference,
+  const std::vector<unsigned char>& chat,
+  const std::vector<unsigned char>& certificate_description,
+  const std::vector<unsigned char>& password,
+  const std::vector<unsigned char>& efCardAccess,
+  std::vector<unsigned char>& car_cvca,
+  std::vector<unsigned char>& x_Puk_ICC_DH2,
+  unsigned char* PINCount)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)

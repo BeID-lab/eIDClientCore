@@ -1,13 +1,11 @@
 #if !defined(__EPACLIENTPROTOCOL_INCLUDED__)
 #define __EPACLIENTPROTOCOL_INCLUDED__
 
-#include <eCardTypes.h>
-#include <eCardStatus.h>
-#include <nPAAPI.h>
-#include <ICard.h>
-
-#include <vector>
+#include "eCardCore/ICard.h"
+#include "eCardCore/eCardStatus.h"
+#include "nPA-EAC/nPAAPI.h"
 #include <string>
+#include <vector>
 
 /**
  */
@@ -45,7 +43,7 @@ public:
    * @param hCard Handle to an ePA card
    */
   ePAClientProtocol(
-    IN ICard* hCard);
+    ICard* hCard);
 
   ~ePAClientProtocol(
     void);
@@ -58,11 +56,11 @@ public:
    * @param keyReference 
    */
   ECARD_STATUS PACE(
-    IN const std::vector<unsigned char>& chat,
-    IN const std::vector<unsigned char>& certificate_description,
-    IN const std::vector<unsigned char>& password,
-    IN KEY_REFERENCE keyReference,
-    OUT unsigned char& PINCount);
+    const std::vector<unsigned char>& chat,
+    const std::vector<unsigned char>& certificate_description,
+    const std::vector<unsigned char>& password,
+    KEY_REFERENCE keyReference,
+    unsigned char& PINCount);
 
   /**
    * @brief Perform the terminal authentication.
@@ -72,11 +70,11 @@ public:
    * @param toBeSigned The data which will be signed by the eID server.
    */
   ECARD_STATUS TerminalAuthentication(
-    IN std::vector<std::vector<unsigned char> >& list_certificates,
-    IN const std::vector<unsigned char>& terminalCertificate,
-    IN const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
-    IN const std::vector<unsigned char>& authenticatedAuxiliaryData,
-    IN OUT std::vector<unsigned char>& toBeSigned);
+    std::vector<std::vector<unsigned char> >& list_certificates,
+    const std::vector<unsigned char>& terminalCertificate,
+    const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
+    const std::vector<unsigned char>& authenticatedAuxiliaryData,
+    std::vector<unsigned char>& toBeSigned);
 
   /**
    * @brief Send the signature, created by the eID server, to the chip.
@@ -84,15 +82,15 @@ public:
    * @param signature The signature data.
    */
   ECARD_STATUS SendSignature(
-    IN const std::vector<unsigned char>& signature);
+    const std::vector<unsigned char>& signature);
 
   /**
    * @brief Perform the chip authentication.
    */
   ECARD_STATUS ChipAuthentication(
-    IN const std::vector<unsigned char>& x_Puk_IFD_DH,
-    IN const std::vector<unsigned char>& y_Puk_IFD_DH,
-    IN OUT std::vector<unsigned char>& GeneralAuthenticationResult);
+    const std::vector<unsigned char>& x_Puk_IFD_DH,
+    const std::vector<unsigned char>& y_Puk_IFD_DH,
+    std::vector<unsigned char>& GeneralAuthenticationResult);
 
   /**
    * @brief Get the PACE domain parameter info from EF.CardAccess.
@@ -104,19 +102,19 @@ public:
    * @brief Get the EF.CardAccess.
    */
   ECARD_STATUS GetEFCardAccess(
-    IN OUT std::vector<unsigned char>& efCardAccess);
+    std::vector<unsigned char>& efCardAccess);
 
   /**
    * @brief Get the EF.CardSecurity.
    */
   ECARD_STATUS GetEFCardSecurity(
-  IN OUT std::vector<unsigned char>& efCardSecurity);
+  std::vector<unsigned char>& efCardSecurity);
 
   /**
    * @brief Get the IDPICC.
    */
   ECARD_STATUS GetIDPICC(
-    IN OUT std::vector<unsigned char>& idPICC);
+    std::vector<unsigned char>& idPICC);
 
   std::string GetCARCVCA() { return m_carCVCA;}
 

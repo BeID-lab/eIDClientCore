@@ -4,7 +4,7 @@
 #include <debug.h>
 using namespace Bundesdruckerei::nPA;                                           
 
-#include <nPACommon.h>
+#include "nPACommon.h"
 
 /**
  */ 
@@ -37,10 +37,10 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 /**
  */
 ECARD_STATUS __STDCALL__ perform_CA_Step_C( 
-  IN ePACard* ePA_,
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
-  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
-  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult) 
+  ePACard* ePA_,
+  const std::vector<unsigned char>& x_Puk_IFD_DH,
+  const std::vector<unsigned char>& y_Puk_IFD_DH,
+  std::vector<unsigned char>& GeneralAuthenticationResult) 
 {
   GeneralAuthenticate authenticate = GeneralAuthenticate(
           GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
@@ -89,10 +89,10 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 /**
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
-  IN ECARD_HANDLE hCard,
-  IN const std::vector<unsigned char>& x_Puk_IFD_DH,
-  IN const std::vector<unsigned char>& y_Puk_IFD_DH,
-  IN OUT std::vector<unsigned char>& GeneralAuthenticationResult)
+  ECARD_HANDLE hCard,
+  const std::vector<unsigned char>& x_Puk_IFD_DH,
+  const std::vector<unsigned char>& y_Puk_IFD_DH,
+  std::vector<unsigned char>& GeneralAuthenticationResult)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)

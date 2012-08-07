@@ -27,7 +27,6 @@
 #include <expat.h>
 
 #include <eIdClientCoreLib.h>
-#include <eCardTypes.h>
 #include <eIDClientConnection.h>
 
 using namespace std;
@@ -268,7 +267,7 @@ DWORD
 #else
 void *
 #endif
-WINAPI getSamlResponseThread( LPVOID lpParam )
+WINAPI getSamlResponseThread( void * lpParam )
 {
     URL	urlIDP(strRefresh.c_str());
 

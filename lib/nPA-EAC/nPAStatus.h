@@ -1,7 +1,7 @@
 #if !defined(__NPASTATUS_INCLUDED__)
 #define _NPASTATUS_INCLUDED__
 
-#include <eCardStatus.h>
+#include "eCardCore/eCardStatus.h"
 
 #define ECARD_INVALID_EPA                         ECARD_MAKE_USER_ERROR(0x001)
 

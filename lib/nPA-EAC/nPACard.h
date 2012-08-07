@@ -1,8 +1,8 @@
 #if !defined(__NPACARD_INCLUDED__)
 #define __NPACARD_INCLUDED__
 
-#include "ICard.h"
-#include "ICardDetector.h"
+#include "eCardCore/ICard.h"
+#include "eCardCore/ICardDetector.h"
 
 namespace Bundesdruckerei
 {
@@ -66,7 +66,7 @@ namespace Bundesdruckerei
                  * Return the allocated size for the file specified by FID.
                  */
                 unsigned short getFileSize(
-                        IN unsigned short FID);
+                        unsigned short FID);
 
                 /*!
                  *

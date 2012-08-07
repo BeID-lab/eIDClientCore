@@ -17,9 +17,7 @@ using namespace std;
 
 typedef list<string>	APDUList_t;
 
-#include <time.h>
-
-#include "eIDClientConnection.h"
+#include <eIDClientConnection.h>
 
 class eIdECardClient : public IIdP
 {

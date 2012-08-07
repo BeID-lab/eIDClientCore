@@ -8,9 +8,9 @@
 #if !defined(__EIDUTILS__)
 #define __EIDUTILS__
 
+#include <string>
 #include <time.h>
 #include <vector>
-#include <iostream>
 
 
 namespace Bundesdruckerei

@@ -4,20 +4,20 @@
 //#include "CHAT.h"
 using namespace Bundesdruckerei::nPA;
 
-#include <ICard.h>
-#include <SecurityInfos.h>
+#include "eCardCore/ICard.h"
+#include "nPACommon.h"
 #include <PACEDomainParameterInfo.h>
-#include <eIDHelper.h>
-#include <eIDOID.h>
-#include <nPACommon.h>
+#include <SecurityInfos.h>
+#include "eidasn1/eIDHelper.h"
+#include "eidasn1/eIDOID.h"
 
 #include <cstdio>
 
 /** 
  */
 ECARD_STATUS __STDCALL__ ePASelectFile(
-  IN ECARD_HANDLE hCard,
-  IN USHORT fid)
+  ECARD_HANDLE hCard,
+  USHORT fid)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
@@ -50,9 +50,9 @@ ECARD_STATUS __STDCALL__ ePASelectFile(
 /**
  */
 ECARD_STATUS __STDCALL__ ePAGetFileSize(
-  IN ECARD_HANDLE hCard,
-  IN USHORT fid,
-  IN OUT PDWORD dwSize)
+  ECARD_HANDLE hCard,
+  USHORT fid,
+  PDWORD dwSize)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
@@ -75,9 +75,9 @@ ECARD_STATUS __STDCALL__ ePAGetFileSize(
 /**
  */
 ECARD_STATUS __STDCALL__ ePAReadFile(
-  IN ECARD_HANDLE hCard,
-  IN size_t bytesToRead,
-  IN OUT std::vector<unsigned char>& fileContent)
+  ECARD_HANDLE hCard,
+  size_t bytesToRead,
+  std::vector<unsigned char>& fileContent)
 {
   // Check handle ...
   if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)

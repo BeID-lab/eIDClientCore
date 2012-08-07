@@ -12,13 +12,11 @@
 #include <list>
 #include <string.h>
 
-#include <eIdUtils.h>
+#include "eCard-API/eIdUtils.h"
 using namespace Bundesdruckerei::eIdUtils;
 
-#include "eIdClientCoreLib.h"
-#include "CardCommand.h"
-
-#include <eCardTypes.h>
+#include "eCard-API/eIdClientCoreLib.h"
+#include "eCardCore/CardCommand.h"
 #include "ePAClientProtocol.h"
 
 struct CmpChar{

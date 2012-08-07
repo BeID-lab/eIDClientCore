@@ -1,7 +1,7 @@
 #if !defined(__CARDCOMMAND_INCLUDED__)
 #define __CARDCOMMAND_INCLUDED__
 
-#include <eCardTypes.h>
+#include "eCardTypes.h"
 
 #include <vector>
 

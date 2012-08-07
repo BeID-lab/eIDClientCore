@@ -8,11 +8,6 @@
 #if !defined(__NPACLIENTLIB_INCLUDED__)
 #define __NPACLIENTLIB_INCLUDED__
 
-//#include "nPAClientError.h"
-//#include "nPAClientTypes.h"
-
-#include <time.h>
-
 typedef unsigned long NPACLIENT_ERROR;
 
 #define NPACLIENT_ERROR_SUCCESS         (NPACLIENT_ERROR) 0x00000000
@@ -71,10 +66,6 @@ typedef unsigned long NPACLIENT_ERROR;
 #define NPACLIENT_ERROR_NO_TERMINAL_CERTIFICATE       (NPACLIENT_ERROR) (NPACLIENT_ERROR_FLAG | 0x00000301)
 #define NPACLIENT_ERROR_NO_CERTIFICATE_DESCRIPTION    (NPACLIENT_ERROR) (NPACLIENT_ERROR_FLAG | 0x00000302)
 
-#define IN
-#define OUT
-#define OPTIONAL
-
 typedef void* NPACLIENT_HANDLE;
 typedef NPACLIENT_HANDLE* PNPACLIENT_HANDLE;
 
@@ -124,11 +115,16 @@ extern "C"
 {
 #endif
 
-#if !defined(__APPLE__)
-# define NPACLIENT_API
-//# define NPACLIENT_API __stdcall
-#else
-# define NPACLIENT_API
+#if defined(WIN32) || defined(WINCE)// Windows related stuff
+#   if defined(ECARD_EXPORTS)
+#       define ECARD_API __declspec(dllexport)
+#   else
+#       define ECARD_API __declspec(dllimport)
+#   endif
+#   define __STDCALL__ __stdcall
+#else // Linux related stuff
+#   define ECARD_API
+#   define __STDCALL__
 #endif
 
 /*!
@@ -162,12 +158,12 @@ typedef NPACLIENT_ERROR (*nPAeIdUserInteractionCallback_t)(
   char* const bufPIN,
   const int nBufLength);
 
-NPACLIENT_ERROR NPACLIENT_API nPAeIdPerformAuthenticationProtocolPcSc(
-  IN const char* const IdpAddress,
-  IN const char* const SessionIdentifier,
-  IN const char* const PathSecurityParameters,
-  IN const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-  IN const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
+NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
+  const char* const IdpAddress,
+  const char* const SessionIdentifier,
+  const char* const PathSecurityParameters,
+  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
+  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
 
 typedef NPACLIENT_ERROR (*nPAeIdPerformAuthenticationProtocolPcSc_t)(
   const char* const IdpAddress,
