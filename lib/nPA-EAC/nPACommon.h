@@ -1,5 +1,5 @@
-#if !defined(__EPACOMMON_INCLUDED__)
-#define __EPACOMMON_INCLUDED__
+#if !defined(__NPACOMMON_INCLUDED__)
+#define __NPACOMMON_INCLUDED__
 
 #include <vector>
 
@@ -76,4 +76,4 @@ std::string getCAR(
 std::string getCHR(
   IN const std::vector<unsigned char>& certificate);
 
-#endif // #if !defined(__EPACOMMON_INCLUDED__)
+#endif

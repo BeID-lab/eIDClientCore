@@ -1,15 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePAAPI.cpp 1192 2011-06-09 13:54:43Z dietrfra $
-// ---------------------------------------------------------------------------
-
-//#define PROTO_TEST
-
-#include "ePAAPI.h"
-#include "ePAStatus.h"
-#include "ePACard.h"
+#include "nPAAPI.h"
+#include "nPAStatus.h"
+#include "nPACard.h"
 //#include "CHAT.h"
 using namespace Bundesdruckerei::nPA;
 
@@ -18,7 +9,7 @@ using namespace Bundesdruckerei::nPA;
 #include <PACEDomainParameterInfo.h>
 #include <eIDHelper.h>
 #include <eIDOID.h>
-#include <ePACommon.h>
+#include <nPACommon.h>
 
 #include <cstdio>
 

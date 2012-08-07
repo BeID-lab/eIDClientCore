@@ -3,7 +3,7 @@
 
 
 #include "eIdECardClient.h"
-#include <ePACommon.h>
+#include <nPACommon.h>
 #include "eIdUtils.h"
 #include <debug.h>
 

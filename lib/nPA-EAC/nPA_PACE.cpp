@@ -1,6 +1,6 @@
-#include "ePAAPI.h"
-#include "ePAStatus.h"
-#include "ePACard.h"
+#include "nPAAPI.h"
+#include "nPAStatus.h"
+#include "nPACard.h"
 #include <debug.h>
 
 using namespace Bundesdruckerei::nPA;
@@ -12,7 +12,7 @@ using namespace Bundesdruckerei::nPA;
 #include <eIDOID.h>
 #include <ECParameters.h>
 
-#include <ePACommon.h>
+#include <nPACommon.h>
 
 #include <cstdio>
 /**

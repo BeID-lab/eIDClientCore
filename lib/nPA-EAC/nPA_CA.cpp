@@ -1,10 +1,10 @@
-#include "ePAAPI.h"
-#include "ePAStatus.h"
-#include "ePACard.h"
+#include "nPAAPI.h"
+#include "nPAStatus.h"
+#include "nPACard.h"
 #include <debug.h>
 using namespace Bundesdruckerei::nPA;                                           
 
-#include <ePACommon.h>
+#include <nPACommon.h>
 
 /**
  */ 

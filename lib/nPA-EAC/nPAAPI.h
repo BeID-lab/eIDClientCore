@@ -1,20 +1,13 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePAAPI.h 1289 2011-09-06 09:29:44Z dietrfra $
-// ---------------------------------------------------------------------------
-
-#if !defined(__EPAAPI_INCLUDED__)
-#define __EPAAPI_INCLUDED__
+#if !defined(__NPAAPI_INCLUDED__)
+#define __NPAAPI_INCLUDED__
 
 #include <vector>
 #include "eCardCore.h"
 
 /**
- * @file ePAAPI.h
- * @brief This file describes the ePA-API. The ePA-API is used to communicate with 
- *        the ePA card and to perform all needed protocols to access the ePA.
+ * @file nPAAPI.h
+ * @brief Communicates with the nPA card and to perform all needed protocols to
+ * access the nPA.
  */
 
 
@@ -33,7 +26,7 @@ typedef enum KEY_REFERENCE_t
  * @brief Perform the PACE protocol. For further information look at
  *        EAC 2.01.
  *
- * @param hCard         [IN] Handle to an valid ePA card.
+ * @param hCard         [IN] Handle to an valid nPA card.
  * @param keyReference  [IN] The reference to the key which is to be used. @see KEY_REFERENCE
  * @param chat          [IN] The CHAT (may be restricted by the user) to be used.
  * @param password      [IN] The password provided by the user.
@@ -60,7 +53,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @brief Perform the Terminal Authentication protocol. For further information look at
  *        EAC 2.01.
  *
- * @param hCard               [IN] Handle to an valid ePA card.
+ * @param hCard               [IN] Handle to an valid nPA card.
  * @param efCardAccess        [IN] The content of the EF.CardAccess file.
  * @param car_cvca            [IN] The CAR of the CVCA stored into the chip.
  * @param list_certificates   [IN] The raw list of link certificates and DVCA certificate.
@@ -87,7 +80,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  * @brief Send the signature data to the chip. The signature will be created on 
  *        the eID server @see eIDServer.cpp function createServerSignature.
  *
- * @param hCard     [IN] Handle to an valid ePA card.
+ * @param hCard     [IN] Handle to an valid nPA card.
  * @param signature [IN] The raw signature data which will be send to the chip.
  *
  * @return ECARD_SUCCESS if successfully. All other values indication an error.
@@ -99,7 +92,7 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
   IN const std::vector<unsigned char>& signature);
 
 /**
- * @param hCard                       [IN] Handle to an valid ePA card.
+ * @param hCard                       [IN] Handle to an valid nPA card.
  * @param x_Puk_IFD_DH                [IN] The x part of the public key used for chip authentication. @see eIDServer.cpp function createChipAuthenticationKey
  * @param y_Puk_IFD_DH                [IN] The y part of the public key used for chip authentication. @see eIDServer.cpp function createChipAuthenticationKey
  * @param GeneralAuthenticationResult [OUT] The last result from the client side chip communication. This data must be send to the eID Server to create the new

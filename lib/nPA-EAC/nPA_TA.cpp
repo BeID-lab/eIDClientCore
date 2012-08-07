@@ -1,13 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePA_TA.cpp 1427 2012-01-17 15:04:42Z x_schrom $
-// ---------------------------------------------------------------------------
-
-#include "ePAAPI.h"
-#include "ePAStatus.h"
-#include "ePACard.h"
+#include "nPAAPI.h"
+#include "nPAStatus.h"
+#include "nPACard.h"
 #include <debug.h>
 using namespace Bundesdruckerei::nPA;
 
@@ -16,7 +9,7 @@ using namespace Bundesdruckerei::nPA;
 #include <PACEDomainParameterInfo.h>
 #include <eIDHelper.h>
 #include <eIDOID.h>
-#include <ePACommon.h>
+#include <nPACommon.h>
 
 USING_NAMESPACE(CryptoPP)
 

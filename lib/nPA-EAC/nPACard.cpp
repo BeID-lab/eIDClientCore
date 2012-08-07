@@ -1,12 +1,5 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2008 Bundesdruckerei GmbH.
-// All rights reserved.
-//
-// $Id: ePACard.cpp 1310 2011-09-20 11:41:06Z x_schrom $
-// ---------------------------------------------------------------------------
-
-#include "ePACard.h"
-#include "ePACommon.h"
+#include "nPACard.h"
+#include "nPACommon.h"
 using namespace Bundesdruckerei::nPA;
 
 /*

@@ -1,17 +1,10 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePACommon.cpp 1291 2011-09-07 10:25:24Z dietrfra $
-// ---------------------------------------------------------------------------
-
 #define STRSAFE_NO_DEPRECATE
 
 #include <eCardCore.h>
 #include <eCardTypes.h>
 #include <eCardStatus.h>
 #include <ICard.h>
-#include <ePACommon.h>
+#include <nPACommon.h>
 
 #include <PACEDomainParameterInfo.h>
 #include <ECParameters.h>

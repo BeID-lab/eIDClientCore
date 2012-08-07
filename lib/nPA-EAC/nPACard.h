@@ -1,12 +1,5 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePACard.h 429 2009-09-18 09:19:55Z rfiedler $
-// ---------------------------------------------------------------------------
-
-#if !defined(__EPACARD_INCLUDED__)
-#define __EPACARD_INCLUDED__
+#if !defined(__NPACARD_INCLUDED__)
+#define __NPACARD_INCLUDED__
 
 #include "ICard.h"
 #include "ICardDetector.h"

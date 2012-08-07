@@ -1,11 +1,11 @@
 #include "ePAClientProtocol.h"
 
 #include <eCardStatus.h>
-#include <ePAAPI.h>
+#include <nPAAPI.h>
 
 #include <SignedData.h>
 #include <ContentInfo.h>
-#include <ePAStatus.h>
+#include <nPAStatus.h>
 
 #include <SecurityInfos.h>
 #include <PACEDomainParameterInfo.h>

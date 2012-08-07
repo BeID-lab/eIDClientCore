@@ -1,7 +1,7 @@
 bin_PROGRAMS = Test_nPAClientLib
 
-INCLUDES = -I$(top_srcdir)/lib/nPAClientECardLib
-LIBS = $(top_builddir)/lib/nPAClientECardLib/libnPAClientECardLib.la
+INCLUDES = -I$(top_srcdir)/lib/eCard-API
+LIBS = $(top_builddir)/lib/eCard-API/libeCard-API.la
 
 Test_nPAClientLib_SOURCES = Test_nPAClientLib.cpp
 Test_nPAClientLib_LDADD  = $(EXPAT_LIBS) \

@@ -18,8 +18,8 @@ using namespace Bundesdruckerei::eIdUtils;
 
 #include <eCardStatus.h>
 #include <eCardCore.h>
-#include <ePACard.h>
-#include <ePACommon.h>
+#include <nPACard.h>
+#include <nPACommon.h>
 
 #include <cassert>
 #include <debug.h>

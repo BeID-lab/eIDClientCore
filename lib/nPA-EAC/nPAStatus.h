@@ -1,12 +1,5 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: ePAStatus.h 1289 2011-09-06 09:29:44Z dietrfra $
-// ---------------------------------------------------------------------------
-
-#if !defined(__EPASTATUS_INCLUDED__)
-#define _EPASTATUS_INCLUDED__
+#if !defined(__NPASTATUS_INCLUDED__)
+#define _NPASTATUS_INCLUDED__
 
 #include <eCardStatus.h>
 

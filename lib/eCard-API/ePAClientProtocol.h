@@ -3,7 +3,7 @@
 
 #include <eCardTypes.h>
 #include <eCardStatus.h>
-#include <ePAAPI.h>
+#include <nPAAPI.h>
 #include <ICard.h>
 
 #include <vector>
