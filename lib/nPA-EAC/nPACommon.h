@@ -28,22 +28,6 @@
 USING_NAMESPACE(CryptoPP)
 
 /**
- */
-std::vector<unsigned char> buildDO87_AES(
-  IN const std::vector<unsigned char>& kEnc,
-  IN const std::vector<unsigned char>& data,
-  IN unsigned long long ssc);
-
-/**
- */
-std::vector<unsigned char> buildDO8E_AES(
-  IN const std::vector<unsigned char>& kMac,
-  IN const std::vector<unsigned char>& data,
-  IN const std::vector<unsigned char>& do87,
-  IN const std::vector<unsigned char>& do97,
-  IN OUT unsigned long long &ssc);
-
-/**
  * Verifies the MAC of an secure messaging RAPDU.
  */
 bool verifyResponse_AES( 

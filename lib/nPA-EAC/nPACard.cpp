@@ -2,6 +2,22 @@
 #include "nPACommon.h"
 using namespace Bundesdruckerei::nPA;
 
+/**
+ */
+static std::vector<unsigned char> buildDO87_AES(
+  IN const std::vector<unsigned char>& kEnc,
+  IN const std::vector<unsigned char>& data,
+  IN unsigned long long ssc);
+
+/**
+ */
+static std::vector<unsigned char> buildDO8E_AES(
+  IN const std::vector<unsigned char>& kMac,
+  IN const std::vector<unsigned char>& data,
+  IN const std::vector<unsigned char>& do87,
+  IN const std::vector<unsigned char>& do97,
+  IN OUT unsigned long long &ssc);
+
 /*
  *
  */
@@ -157,6 +173,179 @@ unsigned short ePACard::getFileSize(
   return 0;
 }
 
+/*
+ * Build up the DO87 Part of an Secure Messaging APDU according to 
+ * PKI for Machine Readable Travel Documents offering ICC read-only access
+ * Release : 1.1
+ * Date : October 01, 2004
+ */
+static std::vector<unsigned char> buildDO87_AES(
+										 IN const std::vector<unsigned char>& kEnc,
+										 IN const std::vector<unsigned char>& data,
+										 IN unsigned long long ssc)
+{
+	std::vector<unsigned char> do87;
+	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
+	
+	data_.push_back(0x80);
+	while (data_.size() % kEnc.size())
+		data_.push_back(0x00);
+	
+	unsigned char iv_[] = { 
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	
+	// Build the IV
+	std::vector<unsigned char> ssc_;
+	
+	for (int i = 0; i < 8; i++)
+		ssc_.push_back(0x00);
+	
+	ssc_.push_back((ssc << 56) & 0xFF);
+	ssc_.push_back((ssc << 48) & 0xFF);
+	ssc_.push_back((ssc << 40) & 0xFF);
+	ssc_.push_back((ssc << 32) & 0xFF);
+	ssc_.push_back((ssc << 24) & 0xFF);
+	ssc_.push_back((ssc << 16) & 0xFF);
+	ssc_.push_back((ssc << 8) & 0xFF);
+	ssc_.push_back(ssc & 0xFF);
+	
+	Integer issc(&ssc_[0], kEnc.size());
+	issc += 1;
+	
+	std::vector<unsigned char> vssc;
+	vssc.resize(kEnc.size());
+	issc.Encode(&vssc[0], kEnc.size());
+	
+	std::vector<unsigned char> calculatedIV_;
+	
+	CBC_Mode<AES>::Encryption AESCBC_encryption;
+	if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
+		return calculatedIV_; // Wen can return here because the resulting vector is empty. 
+	// This will be checked by the caller.
+	
+	calculatedIV_.resize(kEnc.size());
+	AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
+	AESCBC_encryption.ProcessData(&calculatedIV_[0], &vssc[0], vssc.size());
+	
+	CBC_Mode<AES>::Encryption AESCBC_encryption1;
+	
+	std::vector<unsigned char> encryptedData_;
+	encryptedData_.resize(data_.size());
+	AESCBC_encryption1.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
+	AESCBC_encryption1.ProcessData(&encryptedData_[0], &data_[0], data_.size());
+	do87.push_back(0x87);
+	
+	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of 0x01 before content see below "do87.push_back(0x01);"
+	
+	if (encryptedSize <= 0x80)
+	{ 
+		do87.push_back(encryptedSize); 
+	} else if (encryptedSize > 0x80 && encryptedSize <= 0xFF)
+	{
+		do87.push_back(0x81);
+		do87.push_back(encryptedSize);
+	} else if (encryptedSize > 0xFF && encryptedSize <= 0xFFFF)
+	{
+		do87.push_back(0x82);
+		do87.push_back((encryptedSize & 0xFF00) >> 8);
+		do87.push_back(encryptedSize & 0xFF);
+	}
+	
+	// Append ISO padding byte
+	do87.push_back(0x01);
+	
+	for (size_t z = 0; z < encryptedData_.size(); z++)
+		do87.push_back(encryptedData_[z]);
+	
+	return do87;
+}
+/*
+ * Build up the DO8E Part of an Secure Messaging APDU according to 
+ * PKI for Machine Readable Travel Documents offering ICC read-only access
+ * Release : 1.1
+ * Date : October 01, 2004
+ */
+static std::vector<unsigned char> buildDO8E_AES(
+										 IN const std::vector<unsigned char>& kMac,
+										 IN const std::vector<unsigned char>& data,
+										 IN const std::vector<unsigned char>& do87,
+										 IN const std::vector<unsigned char>& do97,
+										 IN OUT unsigned long long &ssc)
+{
+	std::vector<unsigned char> mac;
+	mac.resize(8);
+	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
+	
+	// Do padding on data
+	data_.push_back(0x80);
+	while (data_.size() % kMac.size())
+		data_.push_back(0x00);
+	
+	// Append the DO87 data
+	for (size_t u = 0; u < do87.size(); u++)
+		data_.push_back(do87[u]);
+	
+	// Append the DO97 data
+	for (size_t u = 0; u < do97.size(); u++)
+		data_.push_back(do97[u]);
+	
+	std::vector<unsigned char> ssc_;
+	for (int i = 0; i < 8; i++)
+		ssc_.push_back(0x00);
+	
+	ssc_.push_back((ssc << 56) & 0xFF);
+	ssc_.push_back((ssc << 48) & 0xFF);
+	ssc_.push_back((ssc << 40) & 0xFF);
+	ssc_.push_back((ssc << 32) & 0xFF);
+	ssc_.push_back((ssc << 24) & 0xFF);
+	ssc_.push_back((ssc << 16) & 0xFF);
+	ssc_.push_back((ssc << 8) & 0xFF);
+	ssc_.push_back(ssc & 0xFF);
+	
+	Integer issc(&ssc_[0], kMac.size());
+	issc += 1;
+	
+	std::vector<unsigned char> vssc;
+	vssc.resize(kMac.size());
+	issc.Encode(&vssc[0], kMac.size());
+	issc.Encode(&ssc_[0], kMac.size());
+	
+	ssc = 0;
+	ssc += (unsigned long long) ssc_[8] << 56;
+	ssc += (unsigned long long) ssc_[9] << 48;
+	ssc += (unsigned long long) ssc_[10] << 40;
+	ssc += (unsigned long long) ssc_[11] << 32;
+	ssc += (unsigned long long) ssc_[12] << 24;
+	ssc += (unsigned long long) ssc_[13] << 16;
+	ssc += (unsigned long long) ssc_[14] << 8;
+	ssc += (unsigned long long) ssc_[15];
+	
+	for (size_t t = 0; t < data_.size(); t++)
+		vssc.push_back(data_[t]);
+	
+	vssc.push_back(0x80);
+	while (vssc.size() % kMac.size())
+		vssc.push_back(0x00);
+	
+	std::vector<unsigned char> result_;
+	result_.resize(vssc.size());
+	
+	CMAC<AES> cmac;
+	cmac.SetKey(&kMac[0], kMac.size()); 
+	cmac.Update(&vssc[0], vssc.size()); 
+	cmac.Final(&result_[0]);
+	
+	result_.resize(8);
+	
+	std::vector<unsigned char> do8E;
+	do8E.push_back(0x8E); do8E.push_back(0x08);
+	
+	for (size_t o = 0; o < result_.size(); o++)
+		do8E.push_back(result_[o]);
+	
+	return do8E;
+}
 CAPDU ePACard::applySM(const CAPDU& capdu)
 {
     std::vector<unsigned char> do87_, do8E_, do97_, Le, sm_data;
