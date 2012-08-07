@@ -4,7 +4,6 @@ typedef long ssize_t;
 
 #include <stdlib.h>
 #include <string.h>
-#include <iostream>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -16,9 +15,6 @@ typedef long ssize_t;
 #endif
 
 #include "eIDClientConnection.h"
-#include "gnutls.c"
-#include "socket.c"
-
 
 typedef struct
 {
@@ -33,6 +29,9 @@ typedef struct
 ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size);
 ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size);
 
+int my_connectsocket (const char *const hostname, const char *const port, const char *const path);
+int my_closesocket(int s);
+
 
 struct ssl_tls_driver {
     ssize_t (*send) (const void * const driver_data, const void *const buffer, size_t buffer_size);
@@ -43,12 +42,17 @@ struct ssl_tls_driver {
 
 struct ssl_tls_driver ssl_tls_driver;
 
+void gnutls_disconnect(const void * const driver_data);
+void * gnutls_connect(int fd, const unsigned char *const psk, size_t psk_len, const char *const sid, const char *const hostname);
+ssize_t gnutls_recv (const void * const driver_data, void *const buffer, size_t buffer_size);
+ssize_t gnutls_send(const void * const driver_data, const void *const buffer, size_t buffer_size);
 
-void getContent(const char* const data, const int nDataLength, const char* const bufResult, const int nBufResultLength);
 
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port, const char *const path, const char *const sid, const char* const pskKey)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port, const char *const path, const char *const sid, const char* const pskKey)
 {
+	socket_st *sock;
+
 	if(0x00 == hConnection)
 	{
 		return EID_CLIENT_CONNECTION_SOCKET_ERROR;
@@ -58,7 +62,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONN
 		*hConnection = 0x00;
 	}
 
-	socket_st *sock = (socket_st *) malloc(sizeof *sock);
+	sock = (socket_st *) malloc(sizeof *sock);
 	if(0x00 == sock)
 	{
 		return EID_CLIENT_CONNECTION_SOCKET_ERROR;
@@ -102,7 +106,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONN
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection)
 {
     socket_st * sock = (socket_st *) hConnection;
 
@@ -130,7 +134,7 @@ extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTI
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-extern "C" EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, const int nBufResultLength)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const data, char* const bufResult, const int nBufResultLength)
 {
     ssize_t ret;
     socket_st *sock;

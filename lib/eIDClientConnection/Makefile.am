@@ -1,24 +1,24 @@
 DEFS = eIDClientConnection.def
 EXPORTS = eIDClientConnection.exports
 
-EXTRA_DIST  = $(DEFS) gnutls.c socket.c
+EXTRA_DIST  = $(DEFS)
 
 lib_LTLIBRARIES = libeIDClientConnection.la
 
 noinst_HEADERS = eIDClientConnection.h
 
-libeIDClientConnection_la_SOURCES = eIDClientConnection.cpp
+libeIDClientConnection_la_SOURCES = eIDClientConnection.c gnutls.c socket.c
 libeIDClientConnection_la_LIBADD = $(GNUTLS_LIBS)
 if WIN32
 libeIDClientConnection_la_LIBADD += -lws2_32
 endif
 libeIDClientConnection_la_LDFLAGS = $(AM_LDFLAGS) \
 									-export-symbols $(EXPORTS) -no-undefined
-libeIDClientConnection_la_CPPFLAGS = $(GNUTLS_CFLAGS)
+libeIDClientConnection_la_CFLAGS = $(GNUTLS_CFLAGS)
 libeIDClientConnection_la_DEPENDENCIES = $(EXPORTS)
 
 $(EXPORTS): $(DEFS)
-	cat $^ | grep -v LIBRARY | grep -v EXPORTS > $@
+	cat $^ | grep -v LIBRARY | grep -v EXPORTS | grep eID > $@
 
 
 if BUILD_GNUTLS
@@ -48,10 +48,10 @@ $(GNUTLS): $(GNUTLS_DIR)/lib/auth_rsa_psk.c
 	$(MAKE) -C $(GNUTLS_DIR)/lib
 
 # building libgnutls also generates gnutls/gnutls.h
-eIDClientConnection.cpp: $(GNUTLS)
+eIDClientConnection.c: $(GNUTLS)
 
 libeIDClientConnection_la_LIBADD += $(GNUTLS) -lgcrypt
-libeIDClientConnection_la_CPPFLAGS += -I$(GNUTLS_DIR)/lib/includes -I$(GNUTLS_DIR)/libextra/includes
+libeIDClientConnection_la_CFLAGS += -I$(GNUTLS_DIR)/lib/includes -I$(GNUTLS_DIR)/libextra/includes
 libeIDClientConnection_la_DEPENDENCIES += $(GNUTLS)
 
 #install-exec-local:
