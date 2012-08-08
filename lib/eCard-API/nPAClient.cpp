@@ -462,11 +462,11 @@ NPACLIENT_ERROR nPAClient::performPACE(
   // Actually we running the PACE protocol
   m_protocolState = PACE_Running;
 
-  std::vector<unsigned char> passwordInput(password, password + strlen(password));
+  std::vector<unsigned char> passwordInput (password, password + strlen(password));
 
-  std::vector<unsigned char>
-      certificateDescriptionInput(certificateDescription.pDataBuffer,
-              certificateDescription.pDataBuffer + certificateDescription.bufferSize);
+  std::vector<unsigned char> certificateDescriptionInput
+      (certificateDescription.pDataBuffer,
+       certificateDescription.pDataBuffer + certificateDescription.bufferSize);
 
   std::vector<BYTE> chat_;
   chat_.push_back(0x7F); chat_.push_back(0x4C);
@@ -490,22 +490,17 @@ NPACLIENT_ERROR nPAClient::performPACE(
 
   chat_[2] = chat_.size() - 3;
 
-  std::vector<unsigned char> chat = m_Idp->getRequiredChat();
-
-  std::vector<unsigned char> chatInput;
-  chatInput = chat_;
-
   for (size_t i = 0; i < chat_.size(); ++i)
   {
     m_chatUsed.push_back(chat_[i]);
   }
 
-  chatInput = chat_;
+  PaceInput pace_input = PaceInput(PaceInput::pin, passwordInput, chat_,
+          certificateDescriptionInput);
 
   // Running the protocol
   ECARD_STATUS status = ECARD_SUCCESS; 
-  if ((status = m_clientProtocol->PACE(chatInput, certificateDescriptionInput,
-                  passwordInput, PIN, *retryCounter)) != ECARD_SUCCESS)
+  if ((status = m_clientProtocol->PACE(pace_input, *retryCounter)) != ECARD_SUCCESS)
   {
     // @TODO: Do logging ...
 

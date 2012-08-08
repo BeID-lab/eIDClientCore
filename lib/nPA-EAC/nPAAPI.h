@@ -2,6 +2,7 @@
 #define __NPAAPI_INCLUDED__
 
 #include "eCardCore/eCardStatus.h"
+#include "eCardCore/IReader.h"
 #include "eCardCore/eCardTypes.h"
 #include <vector>
 
@@ -25,24 +26,11 @@
 
 
 /**
- * @struct KEY_REFERENCE
- */
-typedef enum KEY_REFERENCE_t
-{
-  MRZ = 1,
-  CAN,
-  PIN,
-  PUK
-} KEY_REFERENCE;
-
-/**
  * @brief Perform the PACE protocol. For further information look at
  *        EAC 2.01.
  *
  * @param hCard         [IN] Handle to an valid nPA card.
- * @param keyReference  [IN] The reference to the key which is to be used. @see KEY_REFERENCE
- * @param chat          [IN] The CHAT (may be restricted by the user) to be used.
- * @param password      [IN] The password provided by the user.
+ * @param pace_input    [IN]
  * @param efCardAccess  [IN] The content of the EF.CardAccess file.
  * @param car_cvca      [OUT] The CAR of the CVCA stored into the chip.
  * @param x_Puk_ICC_DH2 [OUT] The x part of PuK.ICC.DH2. This part will be needed while the terminal authentication.
@@ -52,11 +40,8 @@ typedef enum KEY_REFERENCE_t
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  ECARD_HANDLE hCard,
-  KEY_REFERENCE keyReference,
-  const std::vector<unsigned char>& chat,
-  const std::vector<unsigned char>& certificate_description,
-  const std::vector<unsigned char>& password,
+  ICard &hCard,
+  const PaceInput& pace_input,
   const std::vector<unsigned char>& efCardAccess,
   std::vector<unsigned char>& car_cvca,
   std::vector<unsigned char>& x_Puk_ICC_DH2,

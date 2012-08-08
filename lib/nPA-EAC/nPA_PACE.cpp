@@ -24,7 +24,7 @@ static std::vector<unsigned char> generate_PrK_IFD_DHx(
  */
 std::vector<unsigned char> generateSKPACE_FromPassword(
   const std::vector<unsigned char>& password,
-  KEY_REFERENCE keyReference)
+  PaceInput::PinID keyReference)
 {
   std::vector<unsigned char> result;
   unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x03 };	// always 0x03 acc. EAC 2.05 page 54
@@ -39,19 +39,19 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
 
   switch (keyReference)
   {
-  case MRZ:
+      case PaceInput::mrz:
 	  paceH.Update(c_mrz, 4);
 	  break;
 
-  case CAN:
+  case PaceInput::can:
 	  paceH.Update(c_can, 4);
 	  break;
 
-  case PIN:
+  case PaceInput::pin:
 	  paceH.Update(c_pin, 4);
 	  break;
 
-  case PUK:
+  case PaceInput::puk:
 	  paceH.Update(c_puk, 4);
 	  break;
   }
@@ -401,9 +401,9 @@ std::vector<unsigned char> generate_PuK_IFD_DH2(
  */
 ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
   const OBJECT_IDENTIFIER_t& PACE_OID_, 
-  KEY_REFERENCE keyReference, 
+  PaceInput::PinID keyReference, 
   const std::vector<unsigned char>& chat, 
-  ICard* card_)
+  ICard& card_)
 {
 	vector<unsigned char> data;
 	MSE mse = MSE(MSE::P1_SET|MSE::P1_COMPUTE|MSE::P1_VERIFY, MSE::P2_AT);
@@ -420,9 +420,9 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	// Append Key reference
 	data.push_back(0x83);
 	data.push_back(0x01);
-	if (CAN == keyReference) data.push_back(0x02);
-	if (PIN == keyReference) data.push_back(0x03);
-	if (PUK == keyReference) data.push_back(0x04);
+	if (PaceInput::can == keyReference) data.push_back(0x02);
+	if (PaceInput::pin == keyReference) data.push_back(0x03);
+	if (PaceInput::puk == keyReference) data.push_back(0x04);
 	// @TODO: MRZ not handled!! Different preparation function if needed.
 
 	// Append CHAT
@@ -431,7 +431,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	mse.setData(data);
 
 	// Do the dirty work.
-	RAPDU rapdu = card_->sendAPDU(mse);
+	RAPDU rapdu = card_.sendAPDU(mse);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 	{
@@ -450,8 +450,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 ECARD_STATUS __STDCALL__ perform_PACE_Step_C( 
   const OBJECT_IDENTIFIER_t& PACE_OID_,
   const std::vector<unsigned char>& password,
-  KEY_REFERENCE keyReference,
-  ICard* card_,
+  PaceInput::PinID keyReference,
+  ICard& card_,
   std::vector<unsigned char>& rndICC)
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
@@ -465,7 +465,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 	authenticate.setData(data);
 
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to get RND.ICC");
-	RAPDU rapdu = card_->sendAPDU(authenticate);
+	RAPDU rapdu = card_.sendAPDU(authenticate);
 	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_C_FAILED;
 
@@ -501,7 +501,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 
 ECARD_STATUS __STDCALL__ perform_PACE_Step_D( 
   ECP::Point PuK_IFD_DH1_,
-  ICard* card_,
+  ICard& card_,
   ECP::Point& Puk_ICC_DH1_)
 {
   GeneralAuthenticate authenticate(0x00, 0x00);
@@ -545,7 +545,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
   authenticate.setData(dataPart_);
 
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Map Nonce");
-  RAPDU rapdu = card_->sendAPDU(authenticate);
+  RAPDU rapdu = card_.sendAPDU(authenticate);
   if (!rapdu.isOK())
     return ECARD_PACE_STEP_D_FAILED;
 
@@ -578,7 +578,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 */
 ECARD_STATUS __STDCALL__ perform_PACE_Step_E( 
   ECP::Point PuK_IFD_DH2_,
-  ICard* card_,
+  ICard& card_,
   ECP::Point& Puk_ICC_DH2_)
 {
   GeneralAuthenticate authenticate(0x00, 0x00);
@@ -621,7 +621,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Perform Key Agreement");
 
-  RAPDU rapdu = card_->sendAPDU(authenticate);
+  RAPDU rapdu = card_.sendAPDU(authenticate);
   if (!rapdu.isOK())
     return ECARD_PACE_STEP_E_FAILED;
 
@@ -653,7 +653,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 ECARD_STATUS __STDCALL__ perform_PACE_Step_F( 
   const std::vector<unsigned char>& macedPuk_ICC_DH2,
   const std::vector<unsigned char>& macedPuk_IFD_DH2,
-  ICard* card_,
+  ICard& card_,
   std::string& car_cvca)
 {
   GeneralAuthenticate authenticate(0x00, 0x00);
@@ -675,7 +675,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to perform explicit authentication");
 
-  RAPDU rapdu = card_->sendAPDU(authenticate);
+  RAPDU rapdu = card_.sendAPDU(authenticate);
   if (!rapdu.isOK())
     return ECARD_PACE_STEP_F_FAILED;
 
@@ -716,51 +716,23 @@ std::vector<unsigned char> generate_PrK_IFD_DHx(
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  ECARD_HANDLE hCard,
-  KEY_REFERENCE keyReference,
-  const std::vector<unsigned char>& chat,
-  const std::vector<unsigned char>& certificate_description,
-  const std::vector<unsigned char>& password,
+  ICard& hCard,
+  const PaceInput& pace_input,
   const std::vector<unsigned char>& efCardAccess,
   std::vector<unsigned char>& car_cvca,
   std::vector<unsigned char>& x_Puk_ICC_DH2,
   unsigned char* PINCount)
 {
-  // Check handle ...
-  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
-    return ECARD_INVALID_PARAMETER_1;
-
   // Try to get ePA card
-  ICard* card_ = (ICard*) hCard;
-  ePACard* ePA_ = dynamic_cast<ePACard*>(card_);
+  ePACard& ePA_ = dynamic_cast<ePACard&>(hCard);
 
-  // No ePA -> Leave
-  if (0x00 == ePA_)
-    return ECARD_INVALID_EPA;
-
-  if (ePA_->getSubSystem()->supportsPACE()) {
+  if (ePA_.getSubSystem()->supportsPACE()) {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
-      enum PaceInput::PinID pin_id;
-      switch (keyReference) {
-          case MRZ:
-              pin_id = PaceInput::mrz;
-              break;
-          case CAN:
-              pin_id = PaceInput::can;
-              break;
-          case PIN:
-              pin_id = PaceInput::pin;
-              break;
-          case PUK:
-              pin_id = PaceInput::puk;
-              break;
-          default:
-              pin_id = PaceInput::undef;
-      }
 
       std::vector<unsigned char> no_password;
-      PaceOutput output = ePA_->getSubSystem()->establishPACEChannel(PaceInput(pin_id,
-                  no_password, chat, certificate_description));
+      PaceInput pace_input_ = pace_input;
+      pace_input_.set_pin(no_password);
+      PaceOutput output = ePA_.getSubSystem()->establishPACEChannel(pace_input_);
 
       car_cvca = output.get_car_curr();
       x_Puk_ICC_DH2 = output.get_id_icc();
@@ -816,9 +788,10 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
           }
       }
-  
+
+
       ECARD_STATUS status = ECARD_SUCCESS;  
-      if (ECARD_SUCCESS != (status = perform_PACE_Step_B(PACE_OID_, keyReference, chat, card_)))
+      if (ECARD_SUCCESS != (status = perform_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat(), ePA_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -826,7 +799,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       }
 
       std::vector<unsigned char> rndICC_;
-      if (ECARD_SUCCESS != (status = perform_PACE_Step_C(PACE_OID_, password, keyReference, card_, rndICC_)))
+      if (ECARD_SUCCESS != (status = perform_PACE_Step_C(PACE_OID_, pace_input.get_pin(), pace_input.get_pin_id(), ePA_, rndICC_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -838,7 +811,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       ECP::Point PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PrK_IFD_DH1_, PACEDomainParameterInfo_);
 
       ECP::Point PuK_ICC_DH1_;
-      if (ECARD_SUCCESS != (status = perform_PACE_Step_D(PuK_IFD_DH1_, card_, PuK_ICC_DH1_)))
+      if (ECARD_SUCCESS != (status = perform_PACE_Step_D(PuK_IFD_DH1_, ePA_, PuK_ICC_DH1_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -851,7 +824,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
               rndICC_, PACEDomainParameterInfo_);
 
       ECP::Point PuK_ICC_DH2_;
-      if (ECARD_SUCCESS != (status = perform_PACE_Step_E(PuK_IFD_DH2_, card_, PuK_ICC_DH2_)))
+      if (ECARD_SUCCESS != (status = perform_PACE_Step_E(PuK_IFD_DH2_, ePA_, PuK_ICC_DH2_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -888,14 +861,14 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
       std::string car_cvca_;
       if (ECARD_SUCCESS != (status = perform_PACE_Step_F(calculateMAC(toBeMaced_PuK_ICC_DH2_, kMac_),
-                      calculateMAC(toBeMaced_PuK_IFD_DH2_, kMac_), card_, car_cvca_)))
+                      calculateMAC(toBeMaced_PuK_IFD_DH2_, kMac_), ePA_, car_cvca_)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
           return status;
       }
 
-      ePA_->setKeys(kEnc_, kMac_);
+      ePA_.setKeys(kEnc_, kMac_);
 
       car_cvca = std::vector<unsigned char> ( car_cvca_.begin(), car_cvca_.end() );
 

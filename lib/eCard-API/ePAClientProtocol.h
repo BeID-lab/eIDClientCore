@@ -50,16 +50,9 @@ public:
 
   /**
    * @brief Perform the PACE protocol.
-   *
-   * @param chat The CHAT selected by the user.
-   * @param password The password provided by the user.
-   * @param keyReference 
    */
   ECARD_STATUS PACE(
-    const std::vector<unsigned char>& chat,
-    const std::vector<unsigned char>& certificate_description,
-    const std::vector<unsigned char>& password,
-    KEY_REFERENCE keyReference,
+    const PaceInput& pace_input,
     unsigned char& PINCount);
 
   /**

@@ -1,17 +1,5 @@
-#include "ePAClientProtocol.h"
-
 #include "eCardCore/eCardStatus.h"
-//#include <nPAAPI.h>
-
-//#include <SignedData.h>
-//#include <ContentInfo.h>
-//#include <nPAStatus.h>
-
-//#include <SecurityInfos.h>
-//#include <PACEDomainParameterInfo.h>
-//#include <eIDHelper.h>
-//#include <eIDOID.h>
-//#include <ECParameters.h>
+#include "ePAClientProtocol.h"
 #include <debug.h>
 
 ECARD_STATUS __STDCALL__ ePASelectFile(
@@ -59,11 +47,8 @@ ePAClientProtocol::~ePAClientProtocol(
 /**
  */
 ECARD_STATUS ePAClientProtocol::PACE(
-  const std::vector<unsigned char>& chat,
-  const std::vector<unsigned char>& certificate_description,
-  const std::vector<unsigned char>& password,
-  KEY_REFERENCE keyReference,
-  unsigned char& PINCount)
+        const PaceInput& pace_input,
+        unsigned char& PINCount)
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
@@ -79,8 +64,11 @@ ECARD_STATUS ePAClientProtocol::PACE(
   std::vector<unsigned char> car_cvca_;
   std::vector<unsigned char> x_Puk_ICC_DH2_;
 
+  if (!m_hCard)
+    return ECARD_ERROR;
+
   // Run the PACE protocol.
-  if (ECARD_SUCCESS != (status_ = ePAPerformPACE(m_hCard, keyReference, chat, certificate_description, password,
+  if (ECARD_SUCCESS != (status_ = ePAPerformPACE(*m_hCard, pace_input,
 	  efCardAccess_, car_cvca_, x_Puk_ICC_DH2_, &PINCount)))
     return status_;
 
