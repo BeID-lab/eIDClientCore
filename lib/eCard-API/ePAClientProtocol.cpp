@@ -98,10 +98,11 @@ ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
   std::vector<unsigned char> x_PuK_ICC_DH2_;
   x_PuK_ICC_DH2_ = m_x_Puk_ICC_DH2;
  
-  //assert(0x20 == x_PuK_ICC_DH2_.size());
+  if (!m_hCard)
+    return ECARD_ERROR;
 
   // Do work
-  return ePAPerformTA(m_hCard, efCardAccess_, carCVCA_, list_certificates,
+  return ePAPerformTA(*m_hCard, efCardAccess_, carCVCA_, list_certificates,
           terminalCertificate, x_PuK_IFD_DH_CA, authenticatedAuxiliaryData,
           toBeSigned);
 }
@@ -216,7 +217,9 @@ ECARD_STATUS ePAClientProtocol::read_EF_CardSecurity(
 ECARD_STATUS ePAClientProtocol::SendSignature(
   const std::vector<unsigned char>& signature)
 {
-  return ePASendSignature(m_hCard, signature);
+  if (!m_hCard)
+    return ECARD_ERROR;
+  return ePASendSignature(*m_hCard, signature);
 }
 
 /**
@@ -235,7 +238,10 @@ ECARD_STATUS ePAClientProtocol::ChipAuthentication(
   if (ECARD_SUCCESS != (status_ = read_EF_CardSecurity()))
     return status_;
 
-  if (ECARD_SUCCESS != (status_ = ePAPerformCA(m_hCard, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
+  if (!m_hCard)
+    return ECARD_ERROR;
+
+  if (ECARD_SUCCESS != (status_ = ePAPerformCA(*m_hCard, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
     return status_;
 
   return ECARD_SUCCESS;

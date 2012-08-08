@@ -65,7 +65,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& efCardAccess,
   const std::vector<unsigned char>& car_cvca,
   const std::vector<std::vector<unsigned char> >& list_certificates,
@@ -86,7 +86,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& signature);
 
 /**
@@ -101,7 +101,7 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& x_Puk_IFD_DH,
   const std::vector<unsigned char>& y_Puk_IFD_DH,
   std::vector<unsigned char>& GeneralAuthenticationResult);

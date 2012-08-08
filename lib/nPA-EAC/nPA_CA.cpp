@@ -9,7 +9,7 @@ using namespace Bundesdruckerei::nPA;
 /**
  */ 
 ECARD_STATUS __STDCALL__ perform_CA_Step_B( 
-  ePACard* ePA_ ) 
+  ICard& ePA_ ) 
 {
   MSE mse = MSE(MSE::P1_SET|MSE::P1_COMPUTE, MSE::P2_AT);
 
@@ -27,7 +27,7 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set cryptographic algorithm for CA.");
 
   // Do the dirty work.
-  RAPDU MseSetAT_Result_ = ePA_->sendAPDU(mse);
+  RAPDU MseSetAT_Result_ = ePA_.sendAPDU(mse);
   if (MseSetAT_Result_.getSW() != 0x9000)
       return ECARD_CA_STEP_B_FAILED;
 
@@ -37,7 +37,7 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 /**
  */
 ECARD_STATUS __STDCALL__ perform_CA_Step_C( 
-  ePACard* ePA_,
+  ICard& ePA_,
   const std::vector<unsigned char>& x_Puk_IFD_DH,
   const std::vector<unsigned char>& y_Puk_IFD_DH,
   std::vector<unsigned char>& GeneralAuthenticationResult) 
@@ -74,7 +74,7 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
 
   // Do the dirty work.
-  RAPDU GenralAuthenticate_Result_ = ePA_->sendAPDU(authenticate);
+  RAPDU GenralAuthenticate_Result_ = ePA_.sendAPDU(authenticate);
   if (GenralAuthenticate_Result_.getSW() != 0x9000)
     return ECARD_CA_STEP_B_FAILED;
 
@@ -89,29 +89,17 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 /**
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& x_Puk_IFD_DH,
   const std::vector<unsigned char>& y_Puk_IFD_DH,
   std::vector<unsigned char>& GeneralAuthenticationResult)
 {
-  // Check handle ...
-  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
-    return ECARD_INVALID_PARAMETER_1;
-
-  // Try to get ePA card
-  ICard* card_ = (ICard*) hCard;
-  ePACard* ePA_ = dynamic_cast<ePACard*>(card_);
-
-  // No ePA -> Leave
-  if (0x00 == ePA_)
-    return ECARD_INVALID_EPA;
-
   ECARD_STATUS status_ = ECARD_SUCCESS; 
   
-  if (ECARD_SUCCESS !=  (status_ = perform_CA_Step_B(ePA_)))
+  if (ECARD_SUCCESS !=  (status_ = perform_CA_Step_B(hCard)))
     return status_;
 
-  if (ECARD_SUCCESS !=  (status_ = perform_CA_Step_C(ePA_, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
+  if (ECARD_SUCCESS !=  (status_ = perform_CA_Step_C(hCard, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
     return status_;
 
   return ECARD_SUCCESS;

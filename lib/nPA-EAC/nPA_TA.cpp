@@ -25,7 +25,7 @@ USING_NAMESPACE(CryptoPP)
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR( 
   std::vector<unsigned char> &carCVCA, 
-  ICard* card_ )
+  ICard& card_ )
 {
   MSE mse(MSE::P1_SET|MSE::P1_VERIFY, MSE::P2_DST);
 
@@ -44,7 +44,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set CAR for PuK.CVCA.xy.n");
 
   // Do the dirty work.
-  RAPDU rapdu = card_->sendAPDU(mse);
+  RAPDU rapdu = card_.sendAPDU(mse);
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_A_FAILED;
 
@@ -56,7 +56,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate( 
   const std::vector<unsigned char>& cvcertificate,
-  ICard* card_ )
+  ICard& card_ )
 {
   int copyOffset = 0;
 
@@ -91,7 +91,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send VERIFY CERTIFICATE.");
 
   // Do the dirty work.
-  RAPDU rapdu = card_->sendAPDU(verify);
+  RAPDU rapdu = card_.sendAPDU(verify);
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_B_FAILED;
 
@@ -103,7 +103,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_C( 
   std::vector<unsigned char> &carDVCA, 
-  ICard* card_ )
+  ICard& card_ )
 {
   MSE mse(MSE::P1_SET|MSE::P1_VERIFY, MSE::P2_DST);
 
@@ -121,7 +121,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_C(
 
   // Do the dirty work.
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set CAR for PuK.DV");
-  RAPDU rapdu = card_->sendAPDU(mse);
+  RAPDU rapdu = card_.sendAPDU(mse);
 
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_C_FAILED;
@@ -136,7 +136,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
   const std::vector<unsigned char>& keyID,
   const std::vector<unsigned char>& x_Puk_IFD_DH,
   const std::vector<unsigned char>& authenticatedAuxiliaryData,
-  ICard* card_ )
+  ICard& card_ )
 {
   MSE mse(MSE::P1_SET|MSE::P1_VERIFY, MSE::P2_AT);
 
@@ -166,7 +166,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
   
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send SET MSE AT for authentication.");
   // Do the dirty work.
-  RAPDU rapdu = card_->sendAPDU(mse);
+  RAPDU rapdu = card_.sendAPDU(mse);
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_E_FAILED;
 
@@ -179,7 +179,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_F( 
   std::vector<unsigned char>& RND_ICC,
-  ICard* card_ )
+  ICard& card_ )
 {
   GetChallenge get(GetChallenge::P1_NO_INFO);
   get.setNe(TA_LENGTH_NONCE);
@@ -187,7 +187,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_F(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GET CHALLENGE to get encrypted nonce.");
 
   // Do the dirty work.
-  RAPDU rapdu = card_->sendAPDU(get);
+  RAPDU rapdu = card_.sendAPDU(get);
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_F_FAILED;
 
@@ -201,7 +201,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_F(
  */
 ECARD_STATUS __STDCALL__ perform_TA_Step_G( 
   const std::vector<unsigned char>& signature,
-  ICard* card_ )
+  ICard& card_ )
 {
   ExternalAuthenticate authenticate(ExternalAuthenticate::P1_NO_INFO, ExternalAuthenticate::P2_NO_INFO);
 
@@ -210,7 +210,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
   eCardCore_info(DEBUG_LEVEL_CRYPTO, "EXTERNAL AUTHENTICATE for signature verification.");
 
   // Do the dirty work.
-  RAPDU rapdu = card_->sendAPDU(authenticate);
+  RAPDU rapdu = card_.sendAPDU(authenticate);
   // Caution! getSW() only checks the last 2 Bytes -> We only check the correctnes of Secure Messaging and not of the Command
   if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
     return ECARD_TA_STEP_G_FAILED;
@@ -226,7 +226,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
  *
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& efCardAccess,
   const std::vector<unsigned char>& carCVCA,
   const std::vector<std::vector<unsigned char> >& list_certificates,
@@ -236,18 +236,6 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   std::vector<unsigned char>& toBeSigned)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
-
-  // Check handle ...
-  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
-    return ECARD_INVALID_PARAMETER_1;
-
-  // Try to get ePA card
-  ICard* card_ = (ICard*) hCard;
-  ePACard* ePA_ = dynamic_cast<ePACard*>(card_);
-
-  // No ePA -> Leave
-  if (0x00 == ePA_)
-    return ECARD_INVALID_EPA;
 
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
@@ -316,7 +304,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
       hexdump(DEBUG_LEVEL_CRYPTO, "CAR", &_current_car[0], _current_car.size());
 
-      if (ECARD_SUCCESS != (status = perform_TA_Step_Set_CAR(_current_car, card_)))
+      if (ECARD_SUCCESS != (status = perform_TA_Step_Set_CAR(_current_car, hCard)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -327,7 +315,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
       cert = list_certificates[i];
       hexdump(DEBUG_LEVEL_CRYPTO, "certificate", &cert[0], cert.size());
 
-      if (ECARD_SUCCESS != (status = perform_TA_Step_Verify_Certificate(cert, card_)))
+      if (ECARD_SUCCESS != (status = perform_TA_Step_Verify_Certificate(cert, hCard)))
       {
           asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -341,7 +329,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
   std::string chrTerm_ = getCHR(terminalCertificate);
   hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", &chrTerm_[0], chrTerm_.size());
 
-  if (ECARD_SUCCESS != (status = perform_TA_Step_E(_current_car, x_Puk_IFD_DH_, authenticatedAuxiliaryData, card_)))
+  if (ECARD_SUCCESS != (status = perform_TA_Step_E(_current_car, x_Puk_IFD_DH_, authenticatedAuxiliaryData, hCard)))
   {
     asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -350,7 +338,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
   std::vector<unsigned char> RND_ICC_;
 
-  if (ECARD_SUCCESS != (status = perform_TA_Step_F(RND_ICC_, card_)))
+  if (ECARD_SUCCESS != (status = perform_TA_Step_F(RND_ICC_, hCard)))
   {
     asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
@@ -372,24 +360,12 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  *
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
-  ECARD_HANDLE hCard,
+  ICard& hCard,
   const std::vector<unsigned char>& signature)
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 
-  // Check handle ...
-  if (0x00 == hCard || ECARD_INVALID_HANDLE_VALUE == hCard)
-    return ECARD_INVALID_PARAMETER_1;
-
-  // Try to get ePA card
-  ICard* card_ = (ICard*) hCard;
-  ePACard* ePA_ = dynamic_cast<ePACard*>(card_);
-
-  // No ePA -> Leave
-  if (0x00 == ePA_)
-    return ECARD_INVALID_EPA;
-
-  if (ECARD_SUCCESS != (status = perform_TA_Step_G(signature, card_)))
+  if (ECARD_SUCCESS != (status = perform_TA_Step_G(signature, hCard)))
     return status;
 
   return ECARD_SUCCESS;
