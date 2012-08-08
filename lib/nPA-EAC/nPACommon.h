@@ -2,8 +2,7 @@
 #define __NPACOMMON_INCLUDED__
 
 #include <vector>
-
-#include <eidasn1/AlgorithmIdentifier.h>
+#include <AlgorithmIdentifier.h>
 
 #if defined(WIN32)
 // CRYPTOPP includes
