@@ -45,16 +45,9 @@ const vector<unsigned char> ePACard::get_ef_cardaccess() const
 
 const vector<unsigned char> ePACard::get_ef_cardsecurity()
 {
-    if (m_ef_cardsecurity.empty()) {
-#if 1
-        if (!readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
-            throw WrongHandle();
-#else
-        /* nPA seems not to support implicit selection of EF.CardSecurity */
-        if (!selectEF(FID_EF_CARDSECURITY)
-                || !readFile(m_ef_cardsecurity))
-            throw WrongHandle();
-#endif
+    if (m_ef_cardsecurity.empty()
+            && !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
+        throw WrongHandle();
     }
 
     return m_ef_cardsecurity;
