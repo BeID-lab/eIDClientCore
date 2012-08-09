@@ -226,8 +226,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
  *
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  ICard& hCard,
-  const std::vector<unsigned char>& efCardAccess,
+  ePACard& hCard,
   const std::vector<unsigned char>& carCVCA,
   const std::vector<std::vector<unsigned char> >& list_certificates,
   const std::vector<unsigned char>& terminalCertificate,
@@ -239,7 +238,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
   // Parse the EF.CardAccess file to get needed information.
   SecurityInfos	*secInfos_ = 0x00;
-  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, &efCardAccess[0], efCardAccess.size()).code != RC_OK)
+  if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, hCard.get_ef_cardaccess().data(), hCard.get_ef_cardaccess().size()).code != RC_OK)
   {
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
     return ECARD_EFCARDACCESS_PARSER_ERROR;

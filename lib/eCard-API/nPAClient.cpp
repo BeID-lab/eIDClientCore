@@ -522,7 +522,6 @@ NPACLIENT_ERROR nPAClient::performPACE(
 NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
   void)
 {
-  std::vector<unsigned char> efCardAccess;
   std::vector<unsigned char> idPICC;
   std::vector<std::vector<unsigned char> > list_certificates;
 
@@ -533,17 +532,19 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 
   m_protocolState = TA_Running;
 
-  std::vector<unsigned char> efCardAccess_;
   std::vector<unsigned char> idPICC_;
 
-  m_clientProtocol->GetEFCardAccess(efCardAccess_);
   m_clientProtocol->GetIDPICC(idPICC_);
   
-  efCardAccess = efCardAccess_;
   idPICC = idPICC_;
 
+  if (!m_hCard)
+    return ECARD_ERROR;
 
-  if (!m_Idp->getTerminalAuthenticationData(efCardAccess, m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates, 
+  // Try to get ePA card
+  Bundesdruckerei::nPA::ePACard& ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard&>(*m_hCard);
+
+  if (!m_Idp->getTerminalAuthenticationData(ePA_.get_ef_cardaccess(), m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates, 
       m_x_Puk_IFD_DH_CA_, m_y_Puk_IFD_DH_CA_))
   {
     return NPACLIENT_ERROR_TA_INITIALIZATION_FAILD;
@@ -615,8 +616,16 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
 {
   ECARD_STATUS status = ECARD_SUCCESS;
 
+  if (!m_hCard)
+    return ECARD_ERROR;
+
+  // Try to get ePA card
+  Bundesdruckerei::nPA::ePACard& ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard&>(*m_hCard);
+
   if (TA_Done != m_protocolState)
     return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
+
+  const vector<unsigned char> ef_cardsecurity = ePA_.get_ef_cardsecurity();
 
   // Used in TA and CA
   std::vector<unsigned char> x_Puk_IFD_DH_;
@@ -634,16 +643,10 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
     return NPACLIENT_ERROR_CA_FAILED;
   }
 
-  std::vector<unsigned char> efCardSecurity_;
-  m_clientProtocol->GetEFCardSecurity(efCardSecurity_);
-
-  std::vector<unsigned char> efCardSecurity;
-  efCardSecurity = efCardSecurity_;
-
   std::vector<unsigned char> GAResult;
   GAResult = GeneralAuthenticationResult;
 
-  if (!m_Idp->finalizeAuthentication(efCardSecurity, GAResult, m_capdus))
+  if (!m_Idp->finalizeAuthentication(ef_cardsecurity, GAResult, m_capdus))
   {
     return NPACLIENT_ERROR_CA_SERVER_FAILED;
   }

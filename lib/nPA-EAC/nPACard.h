@@ -16,6 +16,7 @@ namespace Bundesdruckerei
         {
             private:
                 std::vector<unsigned char> m_ef_cardaccess;
+                std::vector<unsigned char> m_ef_cardsecurity;
                 std::vector<unsigned char> m_kEnc;
                 std::vector<unsigned char> m_kMac;
                 unsigned long long m_ssc;
@@ -25,8 +26,10 @@ namespace Bundesdruckerei
                 RAPDU removeSM(const RAPDU& apdu);
 
             public:
-                static const unsigned short FID_EF_CARDACCESS = 0x011C;
-                static const unsigned char SFID_EF_CARDACCESS =   0x1C;
+                static const unsigned short FID_EF_CARDACCESS    = 0x011C;
+                static const unsigned short FID_EF_CARDSECURITY  = 0x011D;
+                static const unsigned char  SFID_EF_CARDACCESS   = 0x1C;
+                static const unsigned char  SFID_EF_CARDSECURITY = 0x1D;
 
                 /*!
                  * ctor
@@ -39,6 +42,9 @@ namespace Bundesdruckerei
                  */
                 string getCardDescription (
                         void );
+
+                const vector<unsigned char> get_ef_cardaccess() const;
+                const vector<unsigned char> get_ef_cardsecurity();
 
                 /*!
                  * Select an EF on the ePA.
@@ -78,6 +84,9 @@ namespace Bundesdruckerei
                 bool readFile(
                         unsigned char sfid,
                         size_t size,
+                        vector<unsigned char>& result);
+
+                bool readFile(
                         vector<unsigned char>& result);
 
                 RAPDU sendAPDU(

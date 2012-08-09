@@ -1,9 +1,10 @@
 #if !defined(__NPAAPI_INCLUDED__)
 #define __NPAAPI_INCLUDED__
 
-#include "eCardCore/eCardStatus.h"
 #include "eCardCore/IReader.h"
+#include "eCardCore/eCardStatus.h"
 #include "eCardCore/eCardTypes.h"
+#include "nPA-EAC/nPACard.h"
 #include <vector>
 
 #if defined(WIN32) || defined(WINCE)// Windows related stuff
@@ -31,7 +32,6 @@
  *
  * @param hCard         [IN] Handle to an valid nPA card.
  * @param pace_input    [IN]
- * @param efCardAccess  [IN] The content of the EF.CardAccess file.
  * @param car_cvca      [OUT] The CAR of the CVCA stored into the chip.
  * @param x_Puk_ICC_DH2 [OUT] The x part of PuK.ICC.DH2. This part will be needed while the terminal authentication.
  *
@@ -40,9 +40,8 @@
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  ICard &hCard,
+  Bundesdruckerei::nPA::ePACard& hCard,
   const PaceInput& pace_input,
-  const std::vector<unsigned char>& efCardAccess,
   std::vector<unsigned char>& car_cvca,
   std::vector<unsigned char>& x_Puk_ICC_DH2,
   unsigned char* PINCount);
@@ -52,7 +51,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  *        EAC 2.01.
  *
  * @param hCard               [IN] Handle to an valid nPA card.
- * @param efCardAccess        [IN] The content of the EF.CardAccess file.
  * @param car_cvca            [IN] The CAR of the CVCA stored into the chip.
  * @param list_certificates   [IN] The raw list of link certificates and DVCA certificate.
  * @param terminalCertificate [IN] The raw certificate of the terminal.
@@ -65,8 +63,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  ICard& hCard,
-  const std::vector<unsigned char>& efCardAccess,
+  Bundesdruckerei::nPA::ePACard& hCard,
   const std::vector<unsigned char>& car_cvca,
   const std::vector<std::vector<unsigned char> >& list_certificates,
   const std::vector<unsigned char>& terminalCertificate,

@@ -14,14 +14,6 @@ class ePAClientProtocol
 private:
   /** Handle to a valid ePA card */
   ICard *m_hCard;
-  /** Encryption key for secure messaging after PACE */
-  std::vector<unsigned char> m_kEnc;
-  /** Message authentication code (MAC) key for secure messaging after PACE */
-  std::vector<unsigned char> m_kMac;
-  /** Content of EF.CardAccess */
-  std::vector<unsigned char> m_efCardAccess;
-  /** Content of EF.CardSecurity */
-  std::vector<unsigned char> m_efCardSecurity;
   /** X part of Puk_ICC_DH2 after PACE */
   std::vector<unsigned char> m_x_Puk_ICC_DH2;
   /** CAR of the CVCA for TA after PACE */
@@ -86,70 +78,12 @@ public:
     std::vector<unsigned char>& GeneralAuthenticationResult);
 
   /**
-   * @brief Get the PACE domain parameter info from EF.CardAccess.
-   */
-//  ECARD_STATUS GetPACEDomainParamter(
-//    IN OUT std::vector<unsigned char>& pacedp);
-
-  /**
-   * @brief Get the EF.CardAccess.
-   */
-  ECARD_STATUS GetEFCardAccess(
-    std::vector<unsigned char>& efCardAccess);
-
-  /**
-   * @brief Get the EF.CardSecurity.
-   */
-  ECARD_STATUS GetEFCardSecurity(
-  std::vector<unsigned char>& efCardSecurity);
-
-  /**
    * @brief Get the IDPICC.
    */
   ECARD_STATUS GetIDPICC(
     std::vector<unsigned char>& idPICC);
 
   std::string GetCARCVCA() { return m_carCVCA;}
-
-  /**
-   * @brief change PIN
-   */
-//  ECARD_STATUS ChangePIN(
-//    IN const std::vector<unsigned char>& pin);
-
-  /**
-   * @brief reset retry counter PIN
-   */
-//  ECARD_STATUS ResetRetryCounterPIN();
-
-private:
-  /**
-   * @brief Read the content of EF.CardAccess.
-   */
-  ECARD_STATUS read_EF_CardAccess(
-    void);
-
-  /**
-   * @brief Read the content of EF.CardSecurity.
-   */
-  ECARD_STATUS read_EF_CardSecurity(
-    void);
-
-  /**
-   * @brief Read the content of EF.ChipSecurity.
-   */
-  ECARD_STATUS read_EF_ChipSecurity(
-    void);
 }; // class ePAClientProtocol
-
-/**
- */
-extern "C" unsigned char* ePAClientProtocol_allocator(
-  size_t size);
-
-/**
- */
-extern "C" void ePAClientProtocol_deallocator(
-  unsigned char* data);
 
 #endif

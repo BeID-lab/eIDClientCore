@@ -38,6 +38,28 @@ string ePACard::getCardDescription (
   return "German nPA";
 }
 
+const vector<unsigned char> ePACard::get_ef_cardaccess() const
+{
+    return m_ef_cardaccess;
+}
+
+const vector<unsigned char> ePACard::get_ef_cardsecurity()
+{
+    if (m_ef_cardsecurity.empty()) {
+#if 1
+        if (!readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
+            throw WrongHandle();
+#else
+        /* nPA seems not to support implicit selection of EF.CardSecurity */
+        if (!selectEF(FID_EF_CARDSECURITY)
+                || !readFile(m_ef_cardsecurity))
+            throw WrongHandle();
+#endif
+    }
+
+    return m_ef_cardsecurity;
+}
+
 bool ePACard::selectMF(
         void)
 {
@@ -149,28 +171,17 @@ bool ePACard::readFile(
     return response.isOK();
 }
 
-/*!
- *
- */
-unsigned short ePACard::getFileSize(
-  unsigned short FID)
+bool ePACard::readFile(
+        vector<unsigned char>& result)
 {
-  vector<BYTE> fci;
-  selectEF(FID, fci);
+    ReadBinary read = ReadBinary();
+    read.setNe(CAPDU::DATA_EXTENDED_MAX);
 
-  if (fci.size() == 0)
-    return 0;
+    RAPDU response = sendAPDU (read);
 
-  if (fci[2] == 0x80)
-  {
-    //Very rarely used, but allowed
-    if(fci[3] == 0x01)
-      return fci[4];
-    else if(fci[3] == 0x02)
-      return (fci[4] << 8) + fci[5];
-  }
+    result = response.getData();
 
-  return 0;
+    return response.isOK();
 }
 
 /*
@@ -359,6 +370,8 @@ CAPDU ePACard::applySM(const CAPDU& capdu)
     Le = capdu.encodedLe();
     if (!Le.empty()) {
         do97_.push_back(0x97);
+        if (Le.size() > 2)
+            Le.erase(Le.begin());
         do97_.push_back(Le.size());
         do97_.insert(do97_.end(), Le.begin(), Le.end());
     }

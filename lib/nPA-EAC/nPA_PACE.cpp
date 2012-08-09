@@ -716,16 +716,12 @@ std::vector<unsigned char> generate_PrK_IFD_DHx(
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  ICard& hCard,
+  ePACard& ePA_,
   const PaceInput& pace_input,
-  const std::vector<unsigned char>& efCardAccess,
   std::vector<unsigned char>& car_cvca,
   std::vector<unsigned char>& x_Puk_ICC_DH2,
   unsigned char* PINCount)
 {
-  // Try to get ePA card
-  ePACard& ePA_ = dynamic_cast<ePACard&>(hCard);
-
   if (ePA_.getSubSystem()->supportsPACE()) {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
 
@@ -741,7 +737,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
       // Parse the EF.CardAccess file to get needed information.
       SecurityInfos	*secInfos_ = 0x00;
-      if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, &efCardAccess[0], efCardAccess.size()).code != RC_OK)
+      if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, ePA_.get_ef_cardaccess().data(), ePA_.get_ef_cardaccess().size()).code != RC_OK)
       {
           asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
           return ECARD_EFCARDACCESS_PARSER_ERROR;

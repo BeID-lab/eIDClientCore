@@ -26,7 +26,7 @@
 #define SCARD_PROTOCOL_ANY (SCARD_PROTOCOL_T0|SCARD_PROTOCOL_T1)
 #endif
 
-#define ENABLE_PACE 1
+#define ENABLE_PACE 0
 
 #define FUNCTION_GetReadersPACECapabilities 0x01
 #define FUNCTION_EstabishPACEChannel        0x02
