@@ -516,9 +516,6 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
   std::vector<unsigned char> y_;
   y_.resize(PuK_IFD_DH1_.y.ByteCount());
 
-  // assert(0x20 == PuK_IFD_DH1_.x.ByteCount());
-  // assert(0x20 == PuK_IFD_DH1_.y.ByteCount());
-
   PuK_IFD_DH1_.x.Encode(&x_[0], PuK_IFD_DH1_.x.ByteCount());
   PuK_IFD_DH1_.y.Encode(&y_[0], PuK_IFD_DH1_.y.ByteCount());
 
@@ -839,9 +836,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       x_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.x.ByteCount());
       std::vector<unsigned char> y_Puk_ICC_DH2_;
       y_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.y.ByteCount());
-
-      // assert(0x20 == PuK_ICC_DH2_.x.ByteCount());
-      // assert(0x20 == PuK_ICC_DH2_.y.ByteCount());
 
       PuK_ICC_DH2_.x.Encode(&x_Puk_ICC_DH2_[0], PuK_ICC_DH2_.x.ByteCount());
       PuK_ICC_DH2_.y.Encode(&y_Puk_ICC_DH2_[0], PuK_ICC_DH2_.y.ByteCount());

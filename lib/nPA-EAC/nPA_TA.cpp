@@ -285,8 +285,6 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
     } // Find the PACEDomainParameter ...
   } // for (int i = 0; i < secInfos_->list.count; i++)
 
-  //assert(0x20 == x_Puk_IFD_DH_CA.size());
-
   int filler_ = 32 - x_Puk_IFD_DH_CA.size();
   // Copy the x part of the public key for chip authentication. This key was created on the server.
   std::vector<unsigned char> x_Puk_IFD_DH_;
@@ -343,8 +341,6 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
     asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
     return status;
   }
-
-  assert(0x20 == x_Puk_IFD_DH_.size());
 
   // Copy the data to the output buffer.
   toBeSigned = RND_ICC_;

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <string.h>
 
 
@@ -302,8 +301,6 @@ bool eIdECardClient::createSignature(
 
   std::vector<unsigned char> mySig = Hex2Byte(retSignature.c_str(), retSignature.length());
 
-  assert(retSignature.length() % 2 == 0);
-
   signature = mySig;
 
   return true;
@@ -410,7 +407,6 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 		}
 	}
 
-	assert(m_hConnection != 0x00);
 	if(m_hConnection == 0x00)
 	{
 		eCardCore_warn(DEBUG_LEVEL_PAOS, "m_hConnection == 0x00 (%s:%d)", __FILE__, __LINE__);

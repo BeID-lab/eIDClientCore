@@ -19,7 +19,6 @@ using namespace Bundesdruckerei::eIdUtils;
 #include "eCardCore/eCardStatus.h"
 #include "nPA-EAC/nPACard.h"
 
-#include <cassert>
 #include <debug.h>
 #include "eCardCore/PCSCManager.h"
 
@@ -106,8 +105,6 @@ NPACLIENT_ERROR nPAClient::initialize(
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
   ECARD_STATUS status = ECARD_SUCCESS;
-
-  assert(0x00 != m_Idp);
 
   // Check that we have an valid IdP instance. If not return an error.
   if (0x00 == m_Idp)
