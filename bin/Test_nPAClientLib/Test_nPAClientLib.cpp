@@ -7,7 +7,6 @@
 #   include <wininet.h>
 #   include <wincrypt.h>
 #else
-# define WINAPI
 # include <pthread.h>
 #endif
 
@@ -263,11 +262,11 @@ public:
 string strRefresh = "";
 
 #ifdef _WIN32
-DWORD
+DWORD WINAPI
 #else
 void *
 #endif
-WINAPI getSamlResponseThread( void * lpParam )
+getSamlResponseThread( void * lpParam )
 {
     URL	urlIDP(strRefresh.c_str());
 
