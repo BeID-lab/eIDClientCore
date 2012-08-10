@@ -14,8 +14,9 @@
 
 #include "eCardCore/CardCommand.h"
 #include "eIdClientCoreLib.h"
-#include "ePAClientProtocol.h"
 #include "eIdUtils.h"
+#include "ePAClientProtocol.h"
+
 using namespace Bundesdruckerei::eIdUtils;
 
 struct CmpChar{

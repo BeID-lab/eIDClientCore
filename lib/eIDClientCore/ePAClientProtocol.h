@@ -1,11 +1,12 @@
 #if !defined(__EPACLIENTPROTOCOL_INCLUDED__)
 #define __EPACLIENTPROTOCOL_INCLUDED__
 
+#include <string>
+#include <vector>
+
 #include "eCardCore/ICard.h"
 #include "eCardCore/eCardStatus.h"
 #include "nPA-EAC/nPAAPI.h"
-#include <string>
-#include <vector>
 
 /**
  */
