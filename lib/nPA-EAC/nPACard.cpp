@@ -48,7 +48,6 @@ const vector<unsigned char> ePACard::get_ef_cardsecurity()
     if (m_ef_cardsecurity.empty()
             && !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
         throw WrongHandle();
-    }
 
     return m_ef_cardsecurity;
 }

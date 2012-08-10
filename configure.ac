@@ -146,5 +146,5 @@ AC_CONFIG_FILES([Makefile
                  lib/eIDClientConnection/Makefile
                  lib/eidasn1/Makefile
                  lib/nPA-EAC/Makefile
-                 lib/eCard-API/Makefile])
+                 lib/eIDClientCore/Makefile])
 AC_OUTPUT
