@@ -27,10 +27,10 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   PaceInput::PinID keyReference)
 {
   std::vector<unsigned char> result;
-  unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x03 };	// always 0x03 acc. EAC 2.05 page 54
-  unsigned char c_can[] = { 0x00, 0x00, 0x00, 0x03 };
+  unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x01 };	// always 0x03 acc. EAC 2.05 page 54
+  unsigned char c_can[] = { 0x00, 0x00, 0x00, 0x02 };
   unsigned char c_pin[] = { 0x00, 0x00, 0x00, 0x03 };
-  unsigned char c_puk[] = { 0x00, 0x00, 0x00, 0x03 };
+  unsigned char c_puk[] = { 0x00, 0x00, 0x00, 0x04 };
 
   SHA1 paceH;
 
@@ -40,20 +40,23 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   switch (keyReference)
   {
       case PaceInput::mrz:
-	  paceH.Update(c_mrz, 4);
-	  break;
+          paceH.Update(c_mrz, 4);
+          break;
 
-  case PaceInput::can:
-	  paceH.Update(c_can, 4);
-	  break;
+      case PaceInput::can:
+          paceH.Update(c_can, 4);
+          break;
 
-  case PaceInput::pin:
-	  paceH.Update(c_pin, 4);
-	  break;
+      case PaceInput::pin:
+          paceH.Update(c_pin, 4);
+          break;
 
-  case PaceInput::puk:
-	  paceH.Update(c_puk, 4);
-	  break;
+      case PaceInput::puk:
+          paceH.Update(c_puk, 4);
+          break;
+
+      default:
+          eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Unknown PACE secret.");
   }
 
   // Get the first 16 bytes from result

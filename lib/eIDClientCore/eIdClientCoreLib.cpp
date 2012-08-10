@@ -13,9 +13,10 @@
 #include "eIdECardClient.h"
 #include "nPAClient.h"
 
-using namespace Bundesdruckerei::nPA;
+typedef void* NPACLIENT_HANDLE;
+typedef NPACLIENT_HANDLE* PNPACLIENT_HANDLE;
 
-#include <cassert>
+using namespace Bundesdruckerei::nPA;
 
 /*
  *
@@ -38,8 +39,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitializeProtocol(
     // TODO use the correct parameters
     IIdP* pIdP = eIdECardClient::createInstance(&paraMap);
 
-    assert(0x00 != pIdP);
-
     if (0x00 == pIdP)
       return NPACLIENT_ERROR_IDP_INSTANTIATION_ERROR;
 
@@ -51,7 +50,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitializeProtocol(
 
     // Create the nPAClient object
     nPAClient* pnPAClient = nPAClient::createInstance(pIdP);
-    assert(0x00 != pnPAClient);
 
     if (0x00 == pnPAClient)
       return NPACLIENT_ERROR_CLIENT_INSTANTIATION_ERROR;
@@ -80,8 +78,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitializeProtocol(
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
   NPACLIENT_HANDLE hClient)
 {
-  assert(0x00 != hClient);
-
   // Check for the validity of the parameters.
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -108,14 +104,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   nPADataBuffer_t* serviceName,
   nPADataBuffer_t* serviceURL)
 {
-  assert(0x00 != hClient);
-  assert(0x00 != chatFromCertificate);
-  assert(0x00 != certificateValidFrom);
-  assert(0x00 != certificateValidTo);
-  assert(0x00 != certificateDescription);
-  assert(0x00 != serviceName);
-  assert(0x00 != serviceURL);
-
   // Check for the validity of the parameters.
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -208,9 +196,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   nPADataBuffer_t* serviceName,
   nPADataBuffer_t* serviceURL)
 {
-	assert(0x00 != chatFromCertificate);
-	assert(0x00 != chatRequired);
-	assert(0x00 != chatOptional);
 
   if (0x00 != chatFromCertificate->pDataBuffer)
     return NPACLIENT_ERROR_INVALID_PARAMETER5;
@@ -292,9 +277,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 
-  assert(0x00 != hClient);
-  assert(0x00 != password);
-
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
@@ -326,8 +308,6 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 
-  assert(0x00 != hClient);
- 
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
@@ -352,8 +332,6 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
   NPACLIENT_HANDLE hClient)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
-
-  assert(0x00 != hClient);
 
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -380,9 +358,6 @@ NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
   nPADataBuffer_t* samlEncodedAttributes)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
-
-  assert(0x00 != hClient);
-  assert(0x00 != samlEncodedAttributes);
 
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -414,8 +389,6 @@ NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAFreeDataBuffer(
   nPADataBuffer_t* pDataBuffer)
 {
-  assert(0x00 != pDataBuffer);
-
   // The given buffer isn't valid.
   if (0x00 == pDataBuffer)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -437,8 +410,10 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
   const nPAeIdProtocolStateCallback_t fnCurrentStateCallback)
 {
-  assert(0x00 != fnUserInteractionCallback);
-  assert(0x00 != fnCurrentStateCallback);
+  if (!fnUserInteractionCallback)
+      return NPACLIENT_ERROR_INVALID_PARAMETER3;
+  if (!fnCurrentStateCallback)
+      return NPACLIENT_ERROR_INVALID_PARAMETER4;
 
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
   NPACLIENT_ERROR errorCallBack = NPACLIENT_ERROR_SUCCESS;
