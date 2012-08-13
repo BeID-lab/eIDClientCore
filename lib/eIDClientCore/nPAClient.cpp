@@ -8,8 +8,8 @@
 #include "nPAClient.h"
 using namespace Bundesdruckerei::nPA;
 
-#include "eIdUtils.h"
-using namespace Bundesdruckerei::eIdUtils;
+#include "eIDUtils.h"
+using namespace Bundesdruckerei::eIDUtils;
 
 #include <CertificateBody.h>
 #include <CVCertificate.h>
@@ -247,7 +247,8 @@ bool nPAClient::getCHAT2(
   }
 
   chatFromCertificate.pDataBuffer = new unsigned char[CVCertificate->certBody.certHolderAuthTemplate.chat.size];
-  assert(0x00 != chatFromCertificate.pDataBuffer);
+  if (0x00 == chatFromCertificate.pDataBuffer)
+	  return false;
 
   chatFromCertificate.bufferSize = CVCertificate->certBody.certHolderAuthTemplate.chat.size;
 
@@ -266,7 +267,8 @@ bool nPAClient::getRequiredCHAT(
   nPADataBuffer_t &requiredChat)
 {
   requiredChat.pDataBuffer = new unsigned char[m_Idp->getRequiredChat().size()];
-  assert(0x00 != requiredChat.pDataBuffer);
+  if (0x00 == requiredChat.pDataBuffer)
+	  return false;
 
   requiredChat.bufferSize = m_Idp->getRequiredChat().size();
 
@@ -285,7 +287,8 @@ bool nPAClient::getOptionalCHAT(
     return true;
 
   optionalChat.pDataBuffer = new unsigned char[m_Idp->getOptionalChat().size()];
-  assert(0x00 != optionalChat.pDataBuffer);
+  if (0x00 == optionalChat.pDataBuffer)
+	  return false;
 
   optionalChat.bufferSize = m_Idp->getOptionalChat().size();
 
@@ -373,7 +376,8 @@ bool nPAClient::getCertificateDescription(
 
 
   certificateDescription.pDataBuffer = new unsigned char[usage->size];
-  assert(0x00 != certificateDescription.pDataBuffer);
+  if (0x00 == certificateDescription.pDataBuffer)
+	  return false;
 
   certificateDescription.bufferSize = usage->size;
 
@@ -400,7 +404,8 @@ bool nPAClient::getServiceName(
   }
 
   serviceName.pDataBuffer = new unsigned char[certificateDescription_->subjectName.size];
-  assert(0x00 != serviceName.pDataBuffer);
+  if (0x00 == serviceName.pDataBuffer)
+	  return false;
 
   serviceName.bufferSize = certificateDescription_->subjectName.size;
 
@@ -433,7 +438,8 @@ bool nPAClient::getServiceURL(
   }
 
   serviceURL.pDataBuffer = new unsigned char[certificateDescription_->subjectURL->size];
-  assert(0x00 != serviceURL.pDataBuffer);
+  if (0x00 == serviceURL.pDataBuffer)
+	  return false;
 
   serviceURL.bufferSize = certificateDescription_->subjectURL->size;
 

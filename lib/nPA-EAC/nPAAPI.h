@@ -103,4 +103,8 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
   const std::vector<unsigned char>& y_Puk_IFD_DH,
   std::vector<unsigned char>& GeneralAuthenticationResult);
 
+ECARD_STATUS __STDCALL__ ePAGetRandom(
+        size_t size, std::vector<unsigned char>& random_bytes);
+
+
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

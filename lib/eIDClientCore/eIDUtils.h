@@ -15,7 +15,7 @@
 
 namespace Bundesdruckerei
 {
-  namespace eIdUtils
+  namespace eIDUtils
   {
 
     /*

@@ -1,8 +1,8 @@
 lib_LTLIBRARIES = libeIDClientCore.la
 
-noinst_HEADERS = eIdClientCoreLib.h eIdECardClient.h eIdUtils.h ePAClientProtocol.h nPAClient.h
+noinst_HEADERS = eIDClientCore.h eIDECardClient.h eIDUtils.h nPAClientProtocol.h nPAClient.h
 
-libeIDClientCore_la_SOURCES = eIdClientCoreLib.cpp eIdECardClient.cpp eIdUtils.cpp ePAClientProtocol.cpp nPAClient.cpp
+libeIDClientCore_la_SOURCES = eIDClientCore.cpp eIDECardClient.cpp eIDUtils.cpp nPAClientProtocol.cpp nPAClient.cpp
 libeIDClientCore_la_LIBADD = $(EXPAT_LIBS) $(CRYPTOPP_LIBS) \
 							 $(top_builddir)/lib/eCardCore/libeCardCore.la \
 							 $(top_builddir)/lib/eIDClientConnection/libeIDClientConnection.la \

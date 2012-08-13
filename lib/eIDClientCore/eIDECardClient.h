@@ -1,5 +1,5 @@
-#ifndef __eIdECardClient_H__
-#define __eIdECardClient_H__
+#ifndef __eIDECardClient_H__
+#define __eIDECardClient_H__
 
 #include <string>
 #include <sstream>
@@ -11,7 +11,7 @@
 #include "nPAClient.h"
 using namespace Bundesdruckerei::nPA;
 
-#include "eIdClientCoreLib.h"
+#include "eIDClientCore.h"
 
 using namespace std;
 

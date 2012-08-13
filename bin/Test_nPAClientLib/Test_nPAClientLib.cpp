@@ -11,7 +11,6 @@
 #endif
 
 #define	READ_BUFFER	8192
-#define	AGENTNAME	"eIdBdrClient"
 
 #include <stdio.h>
 #include <iostream>
@@ -25,7 +24,7 @@
 #define XML_STATIC
 #include <expat.h>
 
-#include <eIdClientCoreLib.h>
+#include <eIDClientCore.h>
 #include <eIDClientConnection.h>
 
 using namespace std;

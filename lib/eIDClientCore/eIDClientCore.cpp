@@ -9,8 +9,8 @@
  * @file nPAClient.cpp
  */
 
-#include "eIdClientCoreLib.h"
-#include "eIdECardClient.h"
+#include "eIDClientCore.h"
+#include "eIDECardClient.h"
 #include "nPAClient.h"
 
 typedef void* NPACLIENT_HANDLE;

@@ -13,11 +13,11 @@
 #include <string.h>
 
 #include "eCardCore/CardCommand.h"
-#include "eIdClientCoreLib.h"
-#include "eIdUtils.h"
-#include "ePAClientProtocol.h"
+#include "eIDClientCore.h"
+#include "eIDUtils.h"
+#include "nPAClientProtocol.h"
 
-using namespace Bundesdruckerei::eIdUtils;
+using namespace Bundesdruckerei::eIDUtils;
 
 struct CmpChar{
     bool operator()(const char* wc1, const char* wc2) const

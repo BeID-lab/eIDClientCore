@@ -1,8 +1,8 @@
 #include <string.h>
 
 
-#include "eIdECardClient.h"
-#include "eIdUtils.h"
+#include "eIDECardClient.h"
+#include "eIDUtils.h"
 #include <debug.h>
 
 
@@ -79,8 +79,6 @@ eIdECardClient::eIdECardClient()
 	m_strCurrentTag = "";
 	m_strSessionIdentifier = "";
 	m_hConnection = 0x00;
-
-	srand ( time(NULL) );
 }
 
 eIdECardClient::eIdECardClient(CharMap* paraMap)
@@ -100,8 +98,6 @@ eIdECardClient::eIdECardClient(CharMap* paraMap)
 	m_strCurrentTag = "";
 	m_strSessionIdentifier = "";
 	m_hConnection = 0x00;
-
-	srand ( time(NULL) );
 
 	m_strServerAddress = "";
 	CharMapIt	it;
@@ -901,12 +897,15 @@ string eIdECardClient::getRandomStringID(int nCount)
 	string	strRandomStringID;
 
 	char* buffer = (char*) malloc(nCount+1);
-
 	memset(buffer,'\0', nCount+1);
 
-	for (int i = 0; i < nCount; ++i)
-	{
-		int ran = rand() % 16;
+    vector<unsigned char> random_bytes;
+
+    if (ECARD_SUCCESS != ePAGetRandom(nCount, random_bytes))
+        return strRandomStringID;
+
+    for (size_t i = 0; i < random_bytes.size(); i++) {
+		int ran = random_bytes[i] % 16;
 		if (ran < 10)
 		{
 			ran += 48;

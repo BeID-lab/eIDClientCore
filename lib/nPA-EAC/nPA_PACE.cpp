@@ -873,4 +873,3 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   
   return ECARD_SUCCESS;
 }
-

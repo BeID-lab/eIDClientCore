@@ -5,8 +5,8 @@
 // $Id: BDRDate.cpp 731 2010-03-19 12:26:27Z dietrfra $
 // ---------------------------------------------------------------------------
 
-#include "eIdUtils.h"
-using namespace Bundesdruckerei::eIdUtils;
+#include "eIDUtils.h"
+using namespace Bundesdruckerei::eIDUtils;
 
 #include <string>
 #include <stdlib.h>

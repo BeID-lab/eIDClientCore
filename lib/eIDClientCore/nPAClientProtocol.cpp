@@ -1,5 +1,5 @@
 #include "eCardCore/eCardStatus.h"
-#include "ePAClientProtocol.h"
+#include "nPAClientProtocol.h"
 #include <debug.h>
 
 /**
