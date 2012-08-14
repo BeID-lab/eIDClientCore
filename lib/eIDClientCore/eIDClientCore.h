@@ -75,14 +75,6 @@ typedef unsigned long NPACLIENT_STATE;
 #define NPACLIENT_STATE_CA_PERFORMED      (NPACLIENT_STATE) 0x00000005
 #define NPACLIENT_STATE_READ_ATTRIBUTES   (NPACLIENT_STATE) 0x00000006
 
-typedef long long chat_t;
-
-typedef struct nPADataBuffer
-{
-  unsigned char* pDataBuffer;
-  unsigned long bufferSize;
-} nPADataBuffer_t;
-
 /**
  *
  */
@@ -124,36 +116,56 @@ extern "C"
 #   define __STDCALL__
 #endif
 
-/*!
- * @brief 
- *
- * @param 
- * @param 
- *
- * @return void
- */
+#include <time.h>
+
 typedef void (*nPAeIdProtocolStateCallback_t)(
   const NPACLIENT_STATE state,
   const NPACLIENT_ERROR error);
 
-/*!
- * @brief 
- *
- * @param 
- * @param 
- *
- * @return NPACLIENT_ERROR_
- */
-typedef NPACLIENT_ERROR (*nPAeIdUserInteractionCallback_t)(
-  const long long chatFromCertificate,
-  const long long chatRequired,
-  const long long chatOptional,
-  const char* const certificateDescription,
-  const char* const serviceName,
-  const char* const serviceURL,
-  long long& chatUserSelected,
-  char* const bufPIN,
-  const int nBufLength);
+enum DescriptionType {
+    DT_UNDEF = 0,
+    DT_PLAIN = 1,
+    DT_HTML  = 2,
+    DT_PDF   = 3,
+};
+
+enum PinID {
+    PI_UNDEF,
+    PI_MRZ,
+    PI_CAN,
+    PI_PIN,
+    PI_PUK,
+}; 
+
+typedef long long chat_t;
+
+typedef struct
+{
+    unsigned char *pDataBuffer;
+    unsigned long bufferSize;
+} nPADataBuffer_t;
+
+typedef struct {
+    const enum DescriptionType *description_type;
+    const nPADataBuffer_t *description;
+    const nPADataBuffer_t *name;
+    const nPADataBuffer_t *url;
+    const nPADataBuffer_t *chat_required;
+    const nPADataBuffer_t *chat_optional;
+    const time_t *valid_from;
+    const time_t *valid_to;
+} SPDescription_t;
+
+typedef struct {
+    char pin_required;
+    enum PinID pin_id;
+
+    const nPADataBuffer_t *chat_selected;
+    const nPADataBuffer_t *pin;
+} UserInput_t;
+
+typedef NPACLIENT_ERROR (*nPAeIdUserInteractionCallback_t)
+    (const SPDescription_t *description, UserInput_t *input);
 
 NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
   const char* const IdpAddress,

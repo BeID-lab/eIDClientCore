@@ -270,9 +270,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
 
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
   NPACLIENT_HANDLE hClient,
-  const char* password,
-  chat_t chatSelectedByUser,
-  nPADataBuffer_t &certificateDescription,
+  const nPADataBuffer_t *password,
+  const nPADataBuffer_t *chatSelectedByUser,
+  const nPADataBuffer_t *certificateDescription,
   unsigned char* retryCounter /*unused*/)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
@@ -415,6 +415,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   if (!fnCurrentStateCallback)
       return NPACLIENT_ERROR_INVALID_PARAMETER4;
 
+  SPDescription_t description;
+  UserInput_t input = { 0, PI_PIN, NULL, NULL };
+
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
   NPACLIENT_ERROR errorCallBack = NPACLIENT_ERROR_SUCCESS;
   NPACLIENT_HANDLE hnPAClient = 0x00;
@@ -437,14 +440,18 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   time_t certificateValidFrom = 0;
   time_t certificateValidTo = 0;
 
-  std::string	strCertificateDescription;
-  std::string	strServiceName;
-  std::string	strServiceURL;
-
-  std::string	strPIN;
+  enum DescriptionType description_type = DT_PLAIN;
 
   // Initialize the nPA access
   error = nPAInitializeProtocol(&paraMap, usedProtocol, &hnPAClient);
+  if (hnPAClient) {
+	  nPAClient* pnPAClient = (nPAClient*) hnPAClient;
+
+	  if (pnPAClient->passwordIsRequired())
+          input.pin_required = 1;
+	  else
+		  input.pin_required = 0;
+  }
   
   fnCurrentStateCallback(NPACLIENT_STATE_INITIALIZE, error);
 
@@ -453,57 +460,20 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	  return error;
   }
 
-  if ((error = nPAQueryPACEInfos2(hnPAClient, &bufChatFromCertificate, &bufChatRequired, &bufChatOptional, &certificateValidFrom,
-    &certificateValidTo, &certificateDescription, &serviceName, &serviceURL)) == NPACLIENT_ERROR_SUCCESS)
+  if ((error = nPAQueryPACEInfos2(hnPAClient, &bufChatFromCertificate,
+				  &bufChatRequired, &bufChatOptional, &certificateValidFrom,
+				  &certificateValidTo, &certificateDescription, &serviceName,
+				  &serviceURL)) == NPACLIENT_ERROR_SUCCESS)
   {
-    chatFromCertificate = 0x0000000000000000;
-    if(bufChatFromCertificate.bufferSize == 5)
-    {
-	  chatFromCertificate += (long long) *(bufChatFromCertificate.pDataBuffer) << 32;
-	  chatFromCertificate += (long long) *(bufChatFromCertificate.pDataBuffer + 1) << 24;
-	  chatFromCertificate += (long long) *(bufChatFromCertificate.pDataBuffer + 2) << 16;
-	  chatFromCertificate += (long long) *(bufChatFromCertificate.pDataBuffer + 3) << 8;
-	  chatFromCertificate += (long long) *(bufChatFromCertificate.pDataBuffer + 4);
-    }
-    chatRequired = 0x0000000000000000;
-    if(bufChatRequired.bufferSize == 5)
-    {
-	  chatRequired += (long long) *(bufChatRequired.pDataBuffer) << 32;
-	  chatRequired += (long long) *(bufChatRequired.pDataBuffer + 1) << 24;
-	  chatRequired += (long long) *(bufChatRequired.pDataBuffer + 2) << 16;
-	  chatRequired += (long long) *(bufChatRequired.pDataBuffer + 3) << 8;
-	  chatRequired += (long long) *(bufChatRequired.pDataBuffer + 4);
-    }
-    chatOptional = 0x0000000000000000;
-    if(bufChatOptional.bufferSize == 5)
-    {
-	  chatOptional += (long long) *(bufChatOptional.pDataBuffer) << 32;
-	  chatOptional += (long long) *(bufChatOptional.pDataBuffer + 1) << 24;
-	  chatOptional += (long long) *(bufChatOptional.pDataBuffer + 2) << 16;
-	  chatOptional += (long long) *(bufChatOptional.pDataBuffer + 3) << 8;
-	  chatOptional += (long long) *(bufChatOptional.pDataBuffer + 4);
-    }
-	if(certificateDescription.bufferSize > 0)
-	{
-		strCertificateDescription.assign((const char*)certificateDescription.pDataBuffer, certificateDescription.bufferSize);
-	}
-	if(serviceName.bufferSize > 0)
-	{
-		strServiceName.assign((const char*)serviceName.pDataBuffer, serviceName.bufferSize);
-	}
-	if(serviceURL.bufferSize > 0)
-	{
-		strServiceURL.assign((const char*)serviceURL.pDataBuffer, serviceURL.bufferSize);
-	}
+	  description.description_type = &description_type;
+	  description.chat_required = &bufChatRequired;
+	  description.chat_optional = &bufChatOptional;
+	  description.valid_from = &certificateValidFrom;
+	  description.valid_to = &certificateValidTo;
+	  description.description = &certificateDescription;
+	  description.name = &serviceName;
+	  description.url = &serviceURL;
   }
-
-  //paramPACE.chatFromCertificate = chatFromCertificate;
-  //paramPACE.chatRequired = chatRequired;
-  //paramPACE.chatOptional = chatOptional;
-  //
-  //paramPACE.certificateDescription = strCertificateDescription.c_str();
-  //paramPACE.serviceName = strServiceName.c_str();
-  //paramPACE.serviceURL = strServiceURL.c_str();
 
   fnCurrentStateCallback(NPACLIENT_STATE_GOT_PACE_INFO, error);
 
@@ -513,19 +483,13 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
     nPAFinalizeProtocol(hnPAClient);
     return error;
   }
-
-  char bufPIN[10];
-  memset(&bufPIN[0], 0x00, sizeof bufPIN);
   
-  fnUserInteractionCallback(chatFromCertificate, chatRequired, chatOptional,
-	                        strCertificateDescription.c_str(), strServiceName.c_str(), strServiceURL.c_str(),
-							userSelectedChat, &bufPIN[0], sizeof bufPIN);
+  fnUserInteractionCallback(&description, &input);
 
-  strPIN.assign(&bufPIN[0]);
 //  userSelectedChat = paramPACE.userSelectedChat;
   unsigned char retryCounter = (unsigned char) 0xFF;
 
-  error = nPAPerformPACE(hnPAClient, strPIN.c_str(), userSelectedChat, certificateDescription, &retryCounter);
+  error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescription, &retryCounter);
 
   fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
   

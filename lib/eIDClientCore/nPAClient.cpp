@@ -55,7 +55,7 @@ nPAClient* nPAClient::createInstance(
  */
 nPAClient::nPAClient(
   IIdP* pIdP) : m_Idp(pIdP), m_hSystem(0x00), m_hCard(0x00), m_clientProtocol(0x00),
-  m_protocolState(Unauthenticated), m_userSelectedChat(0x0000000000000000)
+  m_protocolState(Unauthenticated)
 {
 }
 
@@ -451,10 +451,21 @@ bool nPAClient::getServiceURL(
   return true;
 }
 
+bool nPAClient::passwordIsRequired(void) const
+{
+  if (!m_hCard)
+    return false;
+
+  // Try to get ePA card
+  Bundesdruckerei::nPA::ePACard& ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard&>(*m_hCard);
+
+  return !(ePA_.getSubSystem()->supportsPACE());
+}
+
 NPACLIENT_ERROR nPAClient::performPACE(
-  const char* password,
-  chat_t chatSelectedByUser,
-  nPADataBuffer_t &certificateDescription,
+  const nPADataBuffer_t * const password,
+  const nPADataBuffer_t * const chatSelectedByUser,
+  const nPADataBuffer_t * const certificateDescription,
   unsigned char* retryCounter /*unused*/)
 {
   // Check the state of the protocol. We can only run PACE if the
@@ -462,43 +473,31 @@ NPACLIENT_ERROR nPAClient::performPACE(
   if (Unauthenticated != m_protocolState)
     return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
+  std::vector<unsigned char> passwordInput;
+
+  if (password)
+    return NPACLIENT_ERROR_INVALID_PARAMETER1;
+  if (!chatSelectedByUser)
+    return NPACLIENT_ERROR_INVALID_PARAMETER2;
+  if (!certificateDescription)
+    return NPACLIENT_ERROR_INVALID_PARAMETER3;
+
   // Actually we running the PACE protocol
   m_protocolState = PACE_Running;
-
-  std::vector<unsigned char> passwordInput (password, password + strlen(password));
+  
+  if (password)
+	passwordInput = std::vector<unsigned char> (password->pDataBuffer,
+          password->pDataBuffer + password->bufferSize);
 
   std::vector<unsigned char> certificateDescriptionInput
-      (certificateDescription.pDataBuffer,
-       certificateDescription.pDataBuffer + certificateDescription.bufferSize);
+      (certificateDescription->pDataBuffer,
+       certificateDescription->pDataBuffer + certificateDescription->bufferSize);
 
-  std::vector<BYTE> chat_;
-  chat_.push_back(0x7F); chat_.push_back(0x4C);
-  chat_.push_back(0xFF); // Size will be set later
+  m_chatUsed = std::vector<unsigned char> (chatSelectedByUser->pDataBuffer,
+          chatSelectedByUser->pDataBuffer + chatSelectedByUser->bufferSize);
 
-  // Append the role of the terminal
-  chat_.push_back(0x06); // OID
-  chat_.push_back(m_terminalRole.size());
 
-  for (size_t i = 0; i < m_terminalRole.size(); i++)
-    chat_.push_back(m_terminalRole[i]);
-
-  // Append CHAT
-  chat_.push_back(0x53);
-  chat_.push_back(m_originalCHAT.size());
-  chat_.push_back(m_originalCHAT[0] & ((chatSelectedByUser >> 32) & 0xFF));
-  chat_.push_back(m_originalCHAT[1] & ((chatSelectedByUser >> 24) & 0xFF));
-  chat_.push_back(m_originalCHAT[2] & ((chatSelectedByUser >> 16) & 0xFF));
-  chat_.push_back(m_originalCHAT[3] & ((chatSelectedByUser >> 8) & 0xFF));
-  chat_.push_back(m_originalCHAT[4] & (chatSelectedByUser & 0xFF));
-
-  chat_[2] = chat_.size() - 3;
-
-  for (size_t i = 0; i < chat_.size(); ++i)
-  {
-    m_chatUsed.push_back(chat_[i]);
-  }
-
-  PaceInput pace_input = PaceInput(PaceInput::pin, passwordInput, chat_,
+  PaceInput pace_input = PaceInput(PaceInput::pin, passwordInput, m_chatUsed,
           certificateDescriptionInput);
 
   // Running the protocol
@@ -510,8 +509,6 @@ NPACLIENT_ERROR nPAClient::performPACE(
     return NPACLIENT_ERROR_PACE_FAILED;
   }
   
-  m_userSelectedChat = chatSelectedByUser;
-
   // PACE runs successfully
   m_protocolState = PACE_Done;
 

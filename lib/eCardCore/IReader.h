@@ -148,7 +148,7 @@ class IReader
      * @brief
      */
     string getReaderName (
-      void )
+      void ) const
     {
       return m_readerName;
     }

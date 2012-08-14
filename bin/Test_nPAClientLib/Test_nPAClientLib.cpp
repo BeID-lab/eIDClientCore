@@ -393,26 +393,27 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 	}
 }
 
+static string p("123456");
+static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
-  const long long chatFromCertificate,
-  const long long chatRequired,
-  const long long chatOptional,
-  const char* const certificateDescription,
-  const char* const serviceName,
-  const char* const serviceURL,
-  long long& chatUserSelected,
-  char* const bufPIN,
-  const int nBufLength)
+        const SPDescription_t *description, UserInput_t *input)
 {
-  std::cout << "certificateDescription : " << certificateDescription << std::endl;
-  std::cout << "serviceName : " << serviceName << std::endl;
-  std::cout << "serviceURL : " << serviceURL << std::endl;
+	std::cout << "certificateDescription : ";
+	std::cout.write((char *) description->description->pDataBuffer, description->description->bufferSize);
+	std::cout << std::endl;
+	std::cout << "serviceName : ";
+	std::cout.write((char *) description->name->pDataBuffer, description->name->bufferSize);
+	std::cout << std::endl;
+	std::cout << "serviceURL : ";
+	std::cout.write((char *) description->url->pDataBuffer, description->url->bufferSize);
+	std::cout << std::endl;
   
-  chatUserSelected = chatFromCertificate;
-  memset(bufPIN, 0x00, nBufLength);
-  strncpy(bufPIN, "123456", nBufLength);
+    input->chat_selected = description->chat_required;
 
-  return NPACLIENT_ERROR_SUCCESS;
+    if (input->pin_required)
+        input->pin = &pin;
+
+    return NPACLIENT_ERROR_SUCCESS;
 }
 
 string str_replace (string rep, string wit, string in)

@@ -181,7 +181,6 @@ namespace Bundesdruckerei
       Procolstate_t               m_protocolState;
       std::vector<unsigned char>  m_x_Puk_IFD_DH_CA_;
       std::vector<unsigned char>  m_y_Puk_IFD_DH_CA_;
-      chat_t                      m_userSelectedChat;
       std::vector<unsigned char>  m_chatUsed;
       std::vector<CAPDU>  m_capdus;
       std::vector<RAPDU>  m_rapdus;
@@ -269,13 +268,15 @@ namespace Bundesdruckerei
       bool getServiceURL(
         nPADataBuffer_t &serviceURL);
 
+      bool passwordIsRequired(void) const;
+
       /*
        *
        */
       NPACLIENT_ERROR performPACE(
-        const char* password,
-        chat_t chatSelectedByUser,
-        nPADataBuffer_t &certificateDescription,
+        const nPADataBuffer_t * const password,
+        const nPADataBuffer_t * const chatSelectedByUser,
+        const nPADataBuffer_t * const certificateDescription,
         unsigned char* retryCounter /*unused*/);
 
       /*

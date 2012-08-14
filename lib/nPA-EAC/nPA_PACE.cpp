@@ -27,7 +27,7 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   PaceInput::PinID keyReference)
 {
   std::vector<unsigned char> result;
-  unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x01 };	// always 0x03 acc. EAC 2.05 page 54
+  unsigned char c_mrz[] = { 0x00, 0x00, 0x00, 0x01 };
   unsigned char c_can[] = { 0x00, 0x00, 0x00, 0x02 };
   unsigned char c_pin[] = { 0x00, 0x00, 0x00, 0x03 };
   unsigned char c_puk[] = { 0x00, 0x00, 0x00, 0x04 };
@@ -35,7 +35,7 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   SHA1 paceH;
 
   // Hash the full password
-  paceH.Update(&password[0], password.size());
+  paceH.Update(password.data(), password.size());
 
   switch (keyReference)
   {
@@ -64,8 +64,8 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
   paceH.Final(&result[0]);
   result.resize(16);  
 
-  hexdump(DEBUG_LEVEL_CRYPTO, "###-> INPUT PIN", &password[0], password.size());
-  hexdump(DEBUG_LEVEL_CRYPTO, "###-> SKPACE", &result[0], result.size());
+  hexdump(DEBUG_LEVEL_CRYPTO, "###-> INPUT PIN", password.data(), password.size());
+  hexdump(DEBUG_LEVEL_CRYPTO, "###-> SKPACE", result.data(), result.size());
 
   return result;
 }
@@ -725,10 +725,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   if (ePA_.getSubSystem()->supportsPACE()) {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
 
-      std::vector<unsigned char> no_password;
-      PaceInput pace_input_ = pace_input;
-      pace_input_.set_pin(no_password);
-      PaceOutput output = ePA_.getSubSystem()->establishPACEChannel(pace_input_);
+      PaceOutput output = ePA_.getSubSystem()->establishPACEChannel(pace_input);
 
       car_cvca = output.get_car_curr();
       x_Puk_ICC_DH2 = output.get_id_icc();
