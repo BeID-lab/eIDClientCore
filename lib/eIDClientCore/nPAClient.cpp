@@ -191,14 +191,14 @@ NPACLIENT_ERROR nPAClient::initialize(
 /*
  *
  */
-bool nPAClient::getCHAT2(
+bool nPAClient::getCHAT(
   nPADataBuffer_t &chatFromCertificate)
 {
   CVCertificate_t	*CVCertificate = 0x00;
   if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
     &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
   {
-    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT2 - Could not parse terminal certificate.");
+    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT - Could not parse terminal certificate.");
 
     // @TODO: Do logging ...
 

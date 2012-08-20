@@ -97,63 +97,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
  */
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   NPACLIENT_HANDLE hClient,
-  nPADataBuffer_t* certificateDescription,
-  nPADataBuffer_t* serviceName,
-  nPADataBuffer_t* serviceURL)
-{
-  // Check for the validity of the parameters.
-  if (0x00 == hClient)
-    return NPACLIENT_ERROR_INVALID_PARAMETER1;
-  if (0x00 == certificateDescription)
-    return NPACLIENT_ERROR_INVALID_PARAMETER5;
-  if (0x00 == serviceName)
-    return NPACLIENT_ERROR_INVALID_PARAMETER6;
-  if (0x00 == serviceURL)
-    return NPACLIENT_ERROR_INVALID_PARAMETER7;
-  if (0x00 != certificateDescription->pDataBuffer)
-    return NPACLIENT_ERROR_INVALID_PARAMETER5;
-  if (0x00 != serviceName->pDataBuffer)
-    return NPACLIENT_ERROR_INVALID_PARAMETER6;
-  if (0x00 != serviceURL->pDataBuffer)
-    return NPACLIENT_ERROR_INVALID_PARAMETER7;
-
-  // Cast the handle to an pointer to an nPAClient object.
-  // I know it's very unsafe :(
-  nPAClient* pnPAClient = (nPAClient*) hClient;
-
-  // Query the certificate description of the requesting service. 
-  // The certificate description should be displayed to the user 
-  // by the UI component.
-  if (!pnPAClient->getCertificateDescription(*certificateDescription))
-  {  
-    // @TODO: Log event ...
-    return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
-  }
-
-  // Query the name of the requesting service. The name should be displayed
-  // to the user by the UI component.
-  if (!pnPAClient->getServiceName(*serviceName))
-  {  
-    // @TODO: Log event ...
-    return NPACLIENT_ERROR_READ_SERVICE_NAME;
-  }
-
-  // Query the URL of the requesting service. The URL should be displayed
-  // to the user by the UI component.
-  if (!pnPAClient->getServiceURL(*serviceURL))
-  {  
-    // @TODO: Log event ...
-//    return NPACLIENT_ERROR_READ_SERVICE_NAME;
-  }
-
-  // @TODO: Log event ...
-  return NPACLIENT_ERROR_SUCCESS;
-}
-/*
- *
- */
-extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
-  NPACLIENT_HANDLE hClient,
   nPADataBuffer_t* chatFromCertificate,
   nPADataBuffer_t* chatRequired,
   nPADataBuffer_t* chatOptional,
@@ -164,24 +107,57 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   nPADataBuffer_t* serviceURL)
 {
 
-  if (0x00 != chatFromCertificate->pDataBuffer)
+  // Check for the validity of the parameters.
+  if (!hClient)
+    return NPACLIENT_ERROR_INVALID_PARAMETER1;
+  if (!chatFromCertificate || chatFromCertificate->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER2;
+  if (!chatRequired || chatRequired->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER3;
+  if (!chatOptional || chatOptional->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER4;
+  if (!certificateValidFrom)
     return NPACLIENT_ERROR_INVALID_PARAMETER5;
-  if (0x00 != chatRequired->pDataBuffer)
-    return NPACLIENT_ERROR_INVALID_PARAMETER5;
-  if (0x00 != chatOptional->pDataBuffer)
-    return NPACLIENT_ERROR_INVALID_PARAMETER5;
+  if (!certificateValidTo)
+    return NPACLIENT_ERROR_INVALID_PARAMETER6;
+  if (!certificateDescription || chatOptional->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER7;
+  if (!serviceName || serviceName->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER8;
+  if (!serviceURL || serviceURL->pDataBuffer)
+    return NPACLIENT_ERROR_INVALID_PARAMETER9;
 
-  NPACLIENT_ERROR ret = nPAQueryPACEInfos(hClient, certificateDescription, serviceName, serviceURL);
 
   // Cast the handle to an pointer to an nPAClient object.
   // I know it's very unsafe :(
   nPAClient* pnPAClient = (nPAClient*) hClient;
 
+  // Query the certificate description of the requesting service. 
+  // The certificate description should be displayed to the user 
+  // by the UI component.
+  if (!pnPAClient->getCertificateDescription(*certificateDescription))
+  {  
+    return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
+  }
+
+  // Query the name of the requesting service. The name should be displayed
+  // to the user by the UI component.
+  if (!pnPAClient->getServiceName(*serviceName))
+  {  
+    return NPACLIENT_ERROR_READ_SERVICE_NAME;
+  }
+
+  // Query the URL of the requesting service. The URL should be displayed
+  // to the user by the UI component.
+  if (!pnPAClient->getServiceURL(*serviceURL))
+  {  
+    return NPACLIENT_ERROR_READ_SERVICE_NAME;
+  }
+
   // Query the CHAT date of the terminal certificate. The CHAT 
   // should be displayed to the user by the UI component.
-  if (!pnPAClient->getCHAT2(*chatFromCertificate))
+  if (!pnPAClient->getCHAT(*chatFromCertificate))
   {
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_CHAT; 
   }
 
@@ -189,7 +165,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   // should be displayed to the user by the UI component.
   if (!pnPAClient->getRequiredCHAT(*chatRequired))
   {
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_CHAT; 
   }
 
@@ -197,7 +172,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   // should be displayed to the user by the UI component.
   if (!pnPAClient->getOptionalCHAT(*chatOptional))
   {
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_CHAT; 
   }
 
@@ -205,7 +179,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   // should be displayed to the user by the UI component.
   if (!pnPAClient->getValidFromDate(*certificateValidFrom))
   { 
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_VALID_FROM_DATE;
   }
 
@@ -213,7 +186,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   // should be displayed to the user by the UI component.
   if (!pnPAClient->getValidToDate(*certificateValidTo))
   {  
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_VALID_TO_DATE;
   }
 
@@ -223,11 +195,10 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
 //  if (!pnPAClient->getCertificateDescriptionRaw(*certificateDescription))
   if (!pnPAClient->getCertificateDescription(*certificateDescription))	// terms of usage
   {  
-    // @TODO: Log event ...
     return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
   }
 
-  return ret;
+  return NPACLIENT_ERROR_SUCCESS;
 }
 
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
@@ -249,16 +220,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 	  error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription);
   } catch (...) {
 	  return NPACLIENT_ERROR_PACE_FAILED;
-  }
+  } 
 
-  if (error != NPACLIENT_ERROR_SUCCESS)
-  {
-    // @TODO: Log event ...
-    return error;
-  }
-
-  // @TODO: Log event ...
-  return NPACLIENT_ERROR_SUCCESS;
+  return error;
 }
 
 /*
@@ -267,23 +231,22 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
   NPACLIENT_HANDLE hClient)
 {
-  NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
+    NPACLIENT_ERROR error;
 
-  if (0x00 == hClient)
-    return NPACLIENT_ERROR_INVALID_PARAMETER1;
+    if (0x00 == hClient)
+        return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-  // Cast the handle to an pointer to an nPAClient object.
-  // I know it's very unsafe :(
-  nPAClient* pnPAClient = (nPAClient*) hClient;
+    // Cast the handle to an pointer to an nPAClient object.
+    // I know it's very unsafe :(
+    nPAClient* pnPAClient = (nPAClient*) hClient;
 
-  if ((error = pnPAClient->performTerminalAuthentication()) != NPACLIENT_ERROR_SUCCESS)
-  {
-    // @TODO: Log event ...
+    try {
+        error = pnPAClient->performTerminalAuthentication();
+    } catch (...) {
+        return NPACLIENT_ERROR_TA_FAILED;
+    }
+
     return error;
-  }
-
-  // @TODO: Log event ...
-  return NPACLIENT_ERROR_SUCCESS;
 }
 
 /*
@@ -292,23 +255,22 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
 NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
   NPACLIENT_HANDLE hClient)
 {
-  NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
+    NPACLIENT_ERROR error;
 
-  if (0x00 == hClient)
-    return NPACLIENT_ERROR_INVALID_PARAMETER1;
+    if (0x00 == hClient)
+        return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-  // Cast the handle to an pointer to an nPAClient object.
-  // I know it's very unsafe :(
-  nPAClient* pnPAClient = (nPAClient*) hClient;
+    // Cast the handle to an pointer to an nPAClient object.
+    // I know it's very unsafe :(
+    nPAClient* pnPAClient = (nPAClient*) hClient;
 
-  if ((error = pnPAClient->performChipAuthentication()) != NPACLIENT_ERROR_SUCCESS)
-  {
-    // @TODO: Log event ...
+    try {
+        error = pnPAClient->performChipAuthentication();
+    } catch (...) {
+        return NPACLIENT_ERROR_CA_FAILED;
+    }
+
     return error;
-  }
-
-  // @TODO: Log event ...
-  return NPACLIENT_ERROR_SUCCESS;
 }
 
 /*
@@ -317,7 +279,7 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
 NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
   NPACLIENT_HANDLE hClient)
 {
-  NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
+  NPACLIENT_ERROR error;
 
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
@@ -326,14 +288,13 @@ NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
   // I know it's very unsafe :(
   nPAClient* pnPAClient = (nPAClient*) hClient;
  
-  if ((error = pnPAClient->readAttributed()) != NPACLIENT_ERROR_SUCCESS)
-  {
-    // @TODO: Log event ...
-    return error;
+  try {
+      error = pnPAClient->readAttributed();
+  } catch (...) {
+      return NPACLIENT_ERROR_READ_FAILED;
   }
- 
-  // @TODO: Log event ...  
-  return NPACLIENT_ERROR_SUCCESS;
+
+  return error;
 }
 
 /*!
@@ -412,7 +373,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	  return error;
   }
 
-  if ((error = nPAQueryPACEInfos2(hnPAClient, &bufChatFromCertificate,
+  if ((error = nPAQueryPACEInfos(hnPAClient, &bufChatFromCertificate,
 				  &bufChatRequired, &bufChatOptional, &certificateValidFrom,
 				  &certificateValidTo, &certificateDescription, &serviceName,
 				  &serviceURL)) == NPACLIENT_ERROR_SUCCESS)

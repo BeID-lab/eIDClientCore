@@ -216,7 +216,7 @@ namespace Bundesdruckerei
 	  /*
        *
        */
-      bool getCHAT2(
+      bool getCHAT(
         nPADataBuffer_t &chatFromCertificate);
 
 	  /*
