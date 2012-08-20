@@ -106,49 +106,6 @@ bool ePACard::selectDF(
  *
  */
 bool ePACard::readFile(
-  size_t size,
-  vector<unsigned char>& result)
-{
-    ReadBinary read;
-    if (size < 0xC8)
-        read.setNe(size);
-    else
-        read.setNe(0xC8);
-
-    unsigned short offset = 0;
-    bool retValue = false;
-
-    while (offset < size)
-    {
-        read.setP1(offset >> 8);
-        read.setP2(offset & 0xFF);
-
-        if (size - offset > 0xC8)
-            read.setNe(0xC8);
-        else
-            read.setNe(size - offset);
-
-        RAPDU rapdu = sendAPDU (read);
-
-        if (rapdu.isOK())
-        {
-            for (size_t i = 0; i < rapdu.getData().size(); i++)
-                result.push_back(rapdu.getData()[i]);
-
-            offset += (unsigned short) rapdu.getData().size();
-
-        } else {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*
- *
- */
-bool ePACard::readFile(
   unsigned char sfid,
   size_t size,
   vector<unsigned char>& result)
@@ -242,12 +199,12 @@ static std::vector<unsigned char> buildDO87_AES(
 	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of 0x01 before content see below "do87.push_back(0x01);"
 	
 	if (encryptedSize <= 0x80)
-	{ 
-		do87.push_back(encryptedSize); 
+	{
+		do87.push_back((unsigned char) encryptedSize); 
 	} else if (encryptedSize > 0x80 && encryptedSize <= 0xFF)
 	{
 		do87.push_back(0x81);
-		do87.push_back(encryptedSize);
+		do87.push_back((unsigned char) encryptedSize);
 	} else if (encryptedSize > 0xFF && encryptedSize <= 0xFFFF)
 	{
 		do87.push_back(0x82);
@@ -362,9 +319,10 @@ CAPDU ePACard::applySM(const CAPDU& capdu)
     Le = capdu.encodedLe();
     if (!Le.empty()) {
         do97_.push_back(0x97);
-        if (Le.size() > 2)
+        if (Le.size() > 2) {
             Le.erase(Le.begin());
-        do97_.push_back(Le.size());
+		}
+        do97_.push_back((unsigned char) Le.size());
         do97_.insert(do97_.end(), Le.begin(), Le.end());
     }
 

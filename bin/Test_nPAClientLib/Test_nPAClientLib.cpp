@@ -275,7 +275,7 @@ getSamlResponseThread( void * lpParam )
     char sz[READ_BUFFER];
 
     connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(),
-            urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
+            urlIDP._port.c_str(), 0, NULL);
     if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
     {
         /* Send a GET request */
@@ -398,14 +398,14 @@ static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
         const SPDescription_t *description, UserInput_t *input)
 {
-	std::cout << "certificateDescription : ";
-	std::cout.write((char *) description->description->pDataBuffer, description->description->bufferSize);
-	std::cout << std::endl;
-	std::cout << "serviceName : ";
+	std::cout << "serviceName: ";
 	std::cout.write((char *) description->name->pDataBuffer, description->name->bufferSize);
 	std::cout << std::endl;
-	std::cout << "serviceURL : ";
+	std::cout << "serviceURL:  ";
 	std::cout.write((char *) description->url->pDataBuffer, description->url->bufferSize);
+	std::cout << std::endl;
+	std::cout << "certificateDescription:" << std::endl;
+	std::cout.write((char *) description->description->pDataBuffer, description->description->bufferSize);
 	std::cout << std::endl;
   
     input->chat_selected = description->chat_required;
@@ -447,7 +447,7 @@ int getAuthenticationParams(const char* const cServerName,
   EID_CLIENT_CONNECTION_ERROR connection_status;
   char sz[READ_BUFFER];
 
-  connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, cPath, 0, NULL);
+  connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, 0, NULL);
   if(connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
       /* Send a GET request */
@@ -515,7 +515,7 @@ int getAuthenticationParams(const char* const cServerName,
 
   strResult = "";
   connection = 0x00;
-  connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), urlIDP._path.c_str(), 0, NULL);
+  connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), 0, NULL);
   if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS)
   {
       string request;

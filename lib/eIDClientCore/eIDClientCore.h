@@ -137,8 +137,6 @@ enum PinID {
     PI_PUK,
 }; 
 
-typedef long long chat_t;
-
 typedef struct
 {
     unsigned char *pDataBuffer;

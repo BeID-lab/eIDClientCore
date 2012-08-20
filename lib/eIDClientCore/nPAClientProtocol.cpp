@@ -17,8 +17,7 @@ ePAClientProtocol::~ePAClientProtocol(
 /**
  */
 ECARD_STATUS ePAClientProtocol::PACE(
-        const PaceInput& pace_input,
-        unsigned char& PINCount)
+        const PaceInput& pace_input)
 {
   ECARD_STATUS status_ = ECARD_SUCCESS;
 
@@ -34,7 +33,7 @@ ECARD_STATUS ePAClientProtocol::PACE(
 
   // Run the PACE protocol.
   if (ECARD_SUCCESS != (status_ = ePAPerformPACE(ePA_, pace_input,
-	  car_cvca_, x_Puk_ICC_DH2_, &PINCount)))
+	  car_cvca_, x_Puk_ICC_DH2_)))
     return status_;
 
   // Copy the PACE results for further usage.

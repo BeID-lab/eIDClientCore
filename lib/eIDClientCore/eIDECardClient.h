@@ -38,7 +38,6 @@ public:
        *
        */
       NPACLIENT_ERROR initialize(
-        const CharMap* paraMap,
         IClient* pClient);
 
       /**
@@ -170,9 +169,9 @@ protected:
 							APDUList_t &outAPDUList);
 
 public:
-	void OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs);
-	void OnEndElement(const XML_Char *pszName);
-	void OnCharacterData(const XML_Char *pszData, int nLength);
+	void OnStartElement(const XML_Char *pszName);
+	void OnEndElement(void);
+	void OnCharacterData(const XML_Char *pszData, size_t nLength);
 
 protected:
 	static void StartElementHandler (void *pUserData, const XML_Char *pszName, const XML_Char **papszAttrs);
@@ -194,7 +193,7 @@ private:
 	string	request_post(const string& in);
 	string  request_get_PAOS();
 
-	string getRandomStringID(int nCount);
+	string getRandomStringID(size_t nCount);
 	bool parse_url(const char* str, const char* default_port="80");
 
 	bool doParse(const string &strXML);

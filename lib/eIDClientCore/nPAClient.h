@@ -89,7 +89,6 @@ namespace Bundesdruckerei
        *
        */
       virtual NPACLIENT_ERROR initialize(
-        const CharMap* paraMap,
         IClient* pClient) = 0;
 
       /**
@@ -214,12 +213,6 @@ namespace Bundesdruckerei
         const CharMap* paraMap,
         ECARD_PROTOCOL usedProtocol);
 
-      /*
-       *
-       */
-      bool getCHAT(
-        chat_t &chatFromCertificate);
-
 	  /*
        *
        */
@@ -276,8 +269,7 @@ namespace Bundesdruckerei
       NPACLIENT_ERROR performPACE(
         const nPADataBuffer_t * const password,
         const nPADataBuffer_t * const chatSelectedByUser,
-        const nPADataBuffer_t * const certificateDescription,
-        unsigned char* retryCounter /*unused*/);
+        const nPADataBuffer_t * const certificateDescription);
 
       /*
        *
@@ -294,8 +286,7 @@ namespace Bundesdruckerei
       /*
        *
        */
-      NPACLIENT_ERROR readAttributed(
-        nPADataBuffer_t &samlEncodedAttributes);
+      NPACLIENT_ERROR readAttributed(void);
     }; // class nPAClient
   }
 }

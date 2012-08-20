@@ -121,7 +121,7 @@ std::vector<unsigned char> decryptResponse_AES(
 	
 	if (returnedData[0] == 0x87)
 	{
-		int len = 0;
+		size_t len = 0;
 		int offset = 0;
 		if (0x81 == returnedData[1])
 		{ 
@@ -142,7 +142,7 @@ std::vector<unsigned char> decryptResponse_AES(
 		// Build the IV
 		std::vector<unsigned char> ssc_;
 		
-		for (int i = 0; i < 8; i++)
+		for (size_t i = 0; i < 8; i++)
 			ssc_.push_back(0x00);
 		
 		ssc_.push_back((ssc << 56) & 0xFF);
@@ -176,8 +176,8 @@ std::vector<unsigned char> decryptResponse_AES(
 		AESCBC_decryption.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
 		AESCBC_decryption.ProcessData(&decrypted[0], &returnedData[offset], len - 1);
 		
-		int padOffset = -1;
-		for (int i = decrypted.size() - 1; i > 0; i--)
+		size_t padOffset = 0;
+		for (size_t i = decrypted.size() - 1; i > 0; i--)
 		{
 			if (decrypted[i] == 0x80)
 			{
@@ -188,7 +188,7 @@ std::vector<unsigned char> decryptResponse_AES(
 		
 		// We have to check if padding was found!? If not we have an error while decryption???
 		
-		for (int i = 0; i < padOffset; i++)
+		for (size_t i = 0; i < padOffset; i++)
 			result_.push_back(decrypted[i]);
 	}
 	
@@ -234,8 +234,8 @@ std::string getCAR(
 		return car_;
 	}
 	
-	for (int i = 0; i < CVCertificate->certBody.certAuthRef.size; i++)
-		car_.push_back(CVCertificate->certBody.certAuthRef.buf[i]);
+	for (size_t i = 0; i < CVCertificate->certBody.certAuthRef.size; i++)
+		car_.push_back((char) CVCertificate->certBody.certAuthRef.buf[i]);
 	
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	
@@ -262,7 +262,7 @@ std::string getCHR(
 	}
 	
 	for (int i = 0; i < CVCertificate->certBody.certHolderRef.size; i++)
-		chr_.push_back(CVCertificate->certBody.certHolderRef.buf[i]);
+		chr_.push_back((char) CVCertificate->certBody.certHolderRef.buf[i]);
 	
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	

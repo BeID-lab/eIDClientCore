@@ -218,7 +218,6 @@ void PCSCReader::close (
  *
  */
 vector <unsigned char> PCSCReader::sendAPDU (
-        UINT64 cardID,
         const vector<unsigned char>& cmd)
 {
     BYTE res[RAPDU::RAPDU_EXTENDED_MAX];
@@ -445,8 +444,10 @@ PaceOutput PCSCReader::establishPACEChannel(const PaceInput& input) const
     uint16_t lengthInputData, lengthCertificateDescription;
     BYTE recvbuf[1024];
 
-    length_CHAT = input.get_chat().size();
-    length_PIN = input.get_pin().size();
+	if (input.get_chat().size() > 0xff || input.get_pin().size() > 0xff)
+		throw PACEException();
+    length_CHAT = (uint8_t) input.get_chat().size();
+    length_PIN = (uint8_t) input.get_pin().size();
     //FIXME input.get_certificate_description().size();
     // The certificate description we get is in wrong format
     lengthCertificateDescription = 0;

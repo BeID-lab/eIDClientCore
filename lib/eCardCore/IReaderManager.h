@@ -61,9 +61,9 @@ class IReaderManager
      *
      */
     IReader* getReader (
-      int idx )
+      size_t idx )
     {
-      if ( ( size_t ) idx > m_readerList.size() )
+      if ( idx > m_readerList.size() )
         return 0x0;
 
       return m_readerList[idx];

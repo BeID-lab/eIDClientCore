@@ -33,7 +33,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR(
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x83);
   // Set the size
-  dataPart_.push_back(carCVCA.size());
+  dataPart_.push_back((unsigned char) carCVCA.size());
 
   // Append the CAR
   for (size_t i = 0; i < carCVCA.size() ; i++)
@@ -58,7 +58,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
   const std::vector<unsigned char>& cvcertificate,
   ICard& card_ )
 {
-  int copyOffset = 0;
+  size_t copyOffset = 0;
 
   // Check for certificate header and cut off is needed
   if (cvcertificate[0] == 0x7F && cvcertificate[1] == 0x21)
@@ -111,7 +111,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_C(
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x83);
   // Set the size
-  dataPart_.push_back(carDVCA.size());
+  dataPart_.push_back((unsigned char) carDVCA.size());
 
   // Append the CAR
   for (size_t i = 0; i < carDVCA.size() ; i++)
@@ -150,12 +150,12 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
   dataField.push_back(0x02); dataField.push_back(0x03);  
   
   dataField.push_back(0x83); // keyId
-  dataField.push_back(keyID.size());
+  dataField.push_back((unsigned char) keyID.size());
   for (size_t i = 0; i < keyID.size(); i++)
     dataField.push_back(keyID[i]);
 
   dataField.push_back(0x91); // x(Puk.IFD.CA) -> see chip authentication
-  dataField.push_back(x_Puk_IFD_DH.size());
+  dataField.push_back((unsigned char) x_Puk_IFD_DH.size());
   for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
     dataField.push_back(x_Puk_IFD_DH[i]);
 
@@ -285,10 +285,12 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
     } // Find the PACEDomainParameter ...
   } // for (int i = 0; i < secInfos_->list.count; i++)
 
-  int filler_ = 32 - x_Puk_IFD_DH_CA.size();
+  size_t filler_ = 0;
+  if (x_Puk_IFD_DH_CA.size() <= 32)
+	filler_ = 32- x_Puk_IFD_DH_CA.size();
   // Copy the x part of the public key for chip authentication. This key was created on the server.
   std::vector<unsigned char> x_Puk_IFD_DH_;
-  for (int i = 0; i < filler_; i++)
+  for (size_t i = 0; i < filler_; i++)
     x_Puk_IFD_DH_.push_back(0x00);
   for (size_t i = 0; i < x_Puk_IFD_DH_CA.size(); i++)
     x_Puk_IFD_DH_.push_back(x_Puk_IFD_DH_CA[i]);

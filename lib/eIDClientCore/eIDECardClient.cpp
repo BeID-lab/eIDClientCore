@@ -42,7 +42,7 @@ static const vector<unsigned char> Hex2Byte(const char* str, size_t numBytes)
 	size_t					i;
 	size_t					strLen;
 
-	strLen = strlen(str);
+	strLen = strnlen(str, numBytes);
 
 	vecRet.clear();
 
@@ -168,7 +168,6 @@ bool eIdECardClient::close()
  *
  */
 NPACLIENT_ERROR eIdECardClient::initialize(
-  const CharMap* paraMap,
   IClient* pClient)
 {
   m_pClient = pClient;
@@ -270,11 +269,11 @@ bool eIdECardClient::getTerminalAuthenticationData(
 
     if(!(ephPubKey.size() % 4 == 0)) return false;
 
-    int half = ephPubKey.size() / 4;
-    for (int i = 0; i < half; i++)
+    size_t half = ephPubKey.size() / 4;
+    for (size_t i = 0; i < half; i++)
         x_Puk_IFD_DH_CA_.push_back(myKey[i]);
 
-    for (int i = 0; i < half; i++)
+    for (size_t i = 0; i < half; i++)
         y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
 
     return true;
@@ -367,7 +366,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 
 	if( strPSKKey.length() > 0 )
 	{
-		int pos1, pos2;
+		size_t pos1, pos2;
 		pos1 = strPSKKey.find("<PSK>");
 		pos1 += 5;
 		pos2 = strPSKKey.find("</PSK>");
@@ -376,7 +375,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 		{
 			std::string strPSKKeyTmp = strPSKKey.substr(pos1, pos2 - pos1);
 
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), strPSKKeyTmp.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), strPSKKeyTmp.c_str());
 			if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 			{
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -385,7 +384,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 		}
 		else
 		{
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str());
 			if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 			{
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -395,7 +394,7 @@ bool eIdECardClient::StartConnection(const char* url, const string &strSessionId
 	}
 	else
 	{
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), m_strPath.c_str(), strSessionIdentifier.c_str(), NULL);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), NULL);
 		if(rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 		{
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -427,7 +426,7 @@ string eIdECardClient::request_post(const string& in)
 
 
 //	string	strReceive;
-	int     len = in.length();
+	size_t     len = in.length();
     
 	ostringstream buffer;
     
@@ -464,7 +463,6 @@ string eIdECardClient::request_post(const string& in)
 			content_length = atoi(strLength.c_str());
 		}
 	}
-    int nLengthData = strResult.length();
     
 	strContent = strResult.substr(strResult.length() - content_length);
 
@@ -515,7 +513,6 @@ string eIdECardClient::request_get_PAOS()
 			content_length = atoi(strLength.c_str());
 		}
 	}
-    int nLengthData = strResult.length();
     
 	strContent = strResult.substr(strResult.length() - content_length);
 
@@ -525,13 +522,13 @@ string eIdECardClient::request_get_PAOS()
 void eIdECardClient::StartElementHandler(void *pUserData, const XML_Char *pszName, const XML_Char **papszAttrs)
 {
 	eIdECardClient* pThis = (eIdECardClient*) pUserData;
-	pThis->OnStartElement (pszName, papszAttrs);
+	pThis->OnStartElement (pszName);
 }
 
 void eIdECardClient::EndElementHandler(void *pUserData, const XML_Char *pszName)
 {
 	eIdECardClient* pThis = (eIdECardClient*) pUserData;
-	pThis->OnEndElement (pszName);
+	pThis->OnEndElement ();
 }
 
 void eIdECardClient::CharacterDataHandler(void *pUserData, const XML_Char *pszData, int nLength)
@@ -540,25 +537,25 @@ void eIdECardClient::CharacterDataHandler(void *pUserData, const XML_Char *pszDa
 	pThis->OnCharacterData (pszData, nLength);
 }
 
-void eIdECardClient::OnStartElement (const XML_Char *pszName, const XML_Char **papszAttrs)
+void eIdECardClient::OnStartElement (const XML_Char *pszName)
 {
 	m_strCurrentTag = string(pszName);
 	return;
 }
 
-void eIdECardClient::OnEndElement (const XML_Char *pszName)
+void eIdECardClient::OnEndElement (void)
 {
 	m_strCurrentTag = "";
 	return;
 }
 
-void eIdECardClient::OnCharacterData (const XML_Char *pszData, int nLength)
+void eIdECardClient::OnCharacterData (const XML_Char *pszData, size_t nLength)
 {
 	if( m_strCurrentTag.find("CertificateDescription") != string::npos )
 	{
 		m_strCertificateDescription = string(pszData, nLength);
-    eCardCore_debug(DEBUG_LEVEL_PAOS, "CertificateDescription : %s", m_strCertificateDescription.c_str());
-}
+		eCardCore_debug(DEBUG_LEVEL_PAOS, "CertificateDescription : %s", m_strCertificateDescription.c_str());
+	}
 	else if( m_strCurrentTag.find("RequiredCHAT") != string::npos )
 	{
 		m_strRequiredChat = string(pszData, nLength);
@@ -892,7 +889,7 @@ void eIdECardClient::TransmitResponse(const string &strMessageID,
 	outAPDUList.clear();
 }
 
-string eIdECardClient::getRandomStringID(int nCount)
+string eIdECardClient::getRandomStringID(size_t nCount)
 {
 	string	strRandomStringID;
 

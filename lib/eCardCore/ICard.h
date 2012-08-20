@@ -21,7 +21,6 @@ class ICard
 
   protected:
     IReader *m_subSystem;
-    unsigned long long m_chipID;
 
   public:
     static const unsigned short FID_MF = 0x3F00;
@@ -56,12 +55,6 @@ class ICard
      */
     virtual RAPDU sendAPDU(
       const CAPDU& cmd);
-
-    /*!
-     *
-     */
-    UINT64 getChipId(
-      void);
 
     const IReader *getSubSystem(void) const;
 

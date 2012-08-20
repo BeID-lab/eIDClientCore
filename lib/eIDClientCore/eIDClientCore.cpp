@@ -97,9 +97,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
  */
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   NPACLIENT_HANDLE hClient,
-  chat_t* chatFromCertificate,
-  time_t* certificateValidFrom,
-  time_t* certificateValidTo,
   nPADataBuffer_t* certificateDescription,
   nPADataBuffer_t* serviceName,
   nPADataBuffer_t* serviceURL)
@@ -107,12 +104,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   // Check for the validity of the parameters.
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
-  if (0x00 == chatFromCertificate)
-    return NPACLIENT_ERROR_INVALID_PARAMETER2;
-  if (0x00 == certificateValidFrom)
-    return NPACLIENT_ERROR_INVALID_PARAMETER3;
-  if (0x00 == certificateValidTo)
-    return NPACLIENT_ERROR_INVALID_PARAMETER4;
   if (0x00 == certificateDescription)
     return NPACLIENT_ERROR_INVALID_PARAMETER5;
   if (0x00 == serviceName)
@@ -129,30 +120,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
   // Cast the handle to an pointer to an nPAClient object.
   // I know it's very unsafe :(
   nPAClient* pnPAClient = (nPAClient*) hClient;
-
-  // Query the CHAT date of the terminal certificate. The CHAT 
-  // should be displayed to the user by the UI component.
-  if (!pnPAClient->getCHAT(*chatFromCertificate))
-  {
-    // @TODO: Log event ...
-    return NPACLIENT_ERROR_READ_CHAT; 
-  }
-
-  // Query the start date of the terminal certificate. The date 
-  // should be displayed to the user by the UI component.
-  if (!pnPAClient->getValidFromDate(*certificateValidFrom))
-  { 
-    // @TODO: Log event ...
-    return NPACLIENT_ERROR_READ_VALID_FROM_DATE;
-  }
-
-  // Query the expiration date of the terminal certificate. The date 
-  // should be displayed to the user by the UI component.
-  if (!pnPAClient->getValidToDate(*certificateValidTo))
-  {  
-    // @TODO: Log event ...
-    return NPACLIENT_ERROR_READ_VALID_TO_DATE;
-  }
 
   // Query the certificate description of the requesting service. 
   // The certificate description should be displayed to the user 
@@ -204,12 +171,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos2(
   if (0x00 != chatOptional->pDataBuffer)
     return NPACLIENT_ERROR_INVALID_PARAMETER5;
 
-  chat_t chatFromCertificate2 = 0;
-  time_t certificateValidFrom2 = 0;
-  time_t certificateValidTo2 = 0;
-  nPADataBuffer_t certificateDescription2 = {0x00, 0};
-  NPACLIENT_ERROR ret = nPAQueryPACEInfos(hClient, &chatFromCertificate2, &certificateValidFrom2,
-	  &certificateValidTo2, &certificateDescription2, serviceName, serviceURL);
+  NPACLIENT_ERROR ret = nPAQueryPACEInfos(hClient, certificateDescription, serviceName, serviceURL);
 
   // Cast the handle to an pointer to an nPAClient object.
   // I know it's very unsafe :(
@@ -272,8 +234,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
   NPACLIENT_HANDLE hClient,
   const nPADataBuffer_t *password,
   const nPADataBuffer_t *chatSelectedByUser,
-  const nPADataBuffer_t *certificateDescription,
-  unsigned char* retryCounter /*unused*/)
+  const nPADataBuffer_t *certificateDescription)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 
@@ -285,7 +246,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
   nPAClient* pnPAClient = (nPAClient*) hClient;
 
   try {
-	  error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription, retryCounter);
+	  error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription);
   } catch (...) {
 	  return NPACLIENT_ERROR_PACE_FAILED;
   }
@@ -354,21 +315,18 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
  *
  */
 NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
-  NPACLIENT_HANDLE hClient,
-  nPADataBuffer_t* samlEncodedAttributes)
+  NPACLIENT_HANDLE hClient)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 
   if (0x00 == hClient)
     return NPACLIENT_ERROR_INVALID_PARAMETER1;
-  if (0x00 == samlEncodedAttributes)
-    return NPACLIENT_ERROR_INVALID_PARAMETER2;
 
   // Cast the handle to an pointer to an nPAClient object.
   // I know it's very unsafe :(
   nPAClient* pnPAClient = (nPAClient*) hClient;
  
-  if ((error = pnPAClient->readAttributed(*samlEncodedAttributes)) != NPACLIENT_ERROR_SUCCESS)
+  if ((error = pnPAClient->readAttributed()) != NPACLIENT_ERROR_SUCCESS)
   {
     // @TODO: Log event ...
     return error;
@@ -419,7 +377,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   UserInput_t input = { 0, PI_PIN, NULL, NULL };
 
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
-  NPACLIENT_ERROR errorCallBack = NPACLIENT_ERROR_SUCCESS;
   NPACLIENT_HANDLE hnPAClient = 0x00;
 
   nPADataBuffer_t bufChatFromCertificate = {0x00, 0};
@@ -429,14 +386,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   nPADataBuffer_t certificateDescription = {0x00, 0};
   nPADataBuffer_t serviceName = {0x00, 0};
   nPADataBuffer_t serviceURL = {0x00, 0};
-  nPADataBuffer_t samlEncodedAttributes = {0x00, 0};
 
 //  nPAeIdPACEParams_t paramPACE;
 
-  chat_t chatFromCertificate = 0x0000000000000000;
-  chat_t chatRequired = 0x0000000000000000;
-  chat_t chatOptional = 0x0000000000000000;
-  chat_t userSelectedChat = 0x0000000000000000;
   time_t certificateValidFrom = 0;
   time_t certificateValidTo = 0;
 
@@ -486,10 +438,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
   
   fnUserInteractionCallback(&description, &input);
 
-//  userSelectedChat = paramPACE.userSelectedChat;
-  unsigned char retryCounter = (unsigned char) 0xFF;
-
-  error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescription, &retryCounter);
+  error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescription);
 
   fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
   
@@ -522,8 +471,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
     return error;
   }
 
-  error = nPAReadAttributes(hnPAClient, &samlEncodedAttributes);
-  nPAFreeDataBuffer(&samlEncodedAttributes);
+  error = nPAReadAttributes(hnPAClient);
 
   fnCurrentStateCallback(NPACLIENT_STATE_READ_ATTRIBUTES, error);
 

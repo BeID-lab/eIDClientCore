@@ -104,14 +104,13 @@ NPACLIENT_ERROR nPAClient::initialize(
   ECARD_PROTOCOL usedProtocol)
 {
   NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
-  ECARD_STATUS status = ECARD_SUCCESS;
 
   // Check that we have an valid IdP instance. If not return an error.
   if (0x00 == m_Idp)
     return NPACLIENT_ERROR_IDP_INVALID_CONNECTION;
 
   // Initialize the IdP connection.
-  if ((error = m_Idp->initialize(paraMap, this)) != NPACLIENT_ERROR_SUCCESS)
+  if ((error = m_Idp->initialize(this)) != NPACLIENT_ERROR_SUCCESS)
     return error;
 
   // Connect to the underlying smart card system.
@@ -187,45 +186,6 @@ NPACLIENT_ERROR nPAClient::initialize(
     return NPACLIENT_ERROR_PROTCOL_INITIALIZATION_FAILD;
 
   return NPACLIENT_ERROR_SUCCESS;
-}
-
-/*
- *
- */
-bool nPAClient::getCHAT(
-  chat_t &chatFromCertificate)
-{
-  CVCertificate_t	*CVCertificate = 0x00;
-  if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-    &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK)
-  {
-    eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT - Could not parse terminal certificate.");
-    
-    asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-    return false;
-  }
-
-  std::vector<unsigned char> chatValue(
-          CVCertificate->certBody.certHolderAuthTemplate.chat.buf,
-          CVCertificate->certBody.certHolderAuthTemplate.chat.buf + CVCertificate->certBody.certHolderAuthTemplate.chat.size);
-  chatFromCertificate += (long long) chatValue[0] << 32; 
-  chatFromCertificate += (long long) chatValue[1] << 24;
-  chatFromCertificate += (long long) chatValue[2] << 16; 
-  chatFromCertificate += (long long) chatValue[3] << 8;
-  chatFromCertificate += (long long) chatValue[4];
-
-  // Save the original CHAT value from certificate
-  m_originalCHAT = chatValue;
-
-  // Save the Terminal role from the certificate for further usage.
-  m_terminalRole.resize(CVCertificate->certBody.certHolderAuthTemplate.authTerminalID.size);
-  m_terminalRole.assign(&CVCertificate->certBody.certHolderAuthTemplate.authTerminalID.buf[0], 
-    &CVCertificate->certBody.certHolderAuthTemplate.authTerminalID.buf[
-      CVCertificate->certBody.certHolderAuthTemplate.authTerminalID.size]);
-
-  asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-  
-  return true;
 }
 
 /*
@@ -465,8 +425,7 @@ bool nPAClient::passwordIsRequired(void) const
 NPACLIENT_ERROR nPAClient::performPACE(
   const nPADataBuffer_t * const password,
   const nPADataBuffer_t * const chatSelectedByUser,
-  const nPADataBuffer_t * const certificateDescription,
-  unsigned char* retryCounter /*unused*/)
+  const nPADataBuffer_t * const certificateDescription)
 {
   // Check the state of the protocol. We can only run PACE if the
   // protocol is in the unauthenticated state.
@@ -475,8 +434,6 @@ NPACLIENT_ERROR nPAClient::performPACE(
 
   std::vector<unsigned char> passwordInput;
 
-  if (password)
-    return NPACLIENT_ERROR_INVALID_PARAMETER1;
   if (!chatSelectedByUser)
     return NPACLIENT_ERROR_INVALID_PARAMETER2;
   if (!certificateDescription)
@@ -502,7 +459,7 @@ NPACLIENT_ERROR nPAClient::performPACE(
 
   // Running the protocol
   ECARD_STATUS status = ECARD_SUCCESS; 
-  if ((status = m_clientProtocol->PACE(pace_input, *retryCounter)) != ECARD_SUCCESS)
+  if ((status = m_clientProtocol->PACE(pace_input)) != ECARD_SUCCESS)
   {
     // @TODO: Do logging ...
 
@@ -657,8 +614,7 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
   return NPACLIENT_ERROR_SUCCESS;
 }
 
-NPACLIENT_ERROR nPAClient::readAttributed(
-  nPADataBuffer_t &samlEncodedAttributes)
+NPACLIENT_ERROR nPAClient::readAttributed(void)
 {
   if (Authenticated != m_protocolState)
     return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;

@@ -20,7 +20,6 @@ typedef struct
 {
     char *hostname;
     char *port;
-	char *path;
     int fd;
     int secure;
     void *ssl_tls_driver_data;
@@ -29,7 +28,7 @@ typedef struct
 ssize_t my_recv (const socket_st * const sock, void *buffer, size_t buffer_size);
 ssize_t my_send (const socket_st * const sock, const void *const buffer, size_t buffer_size);
 
-int my_connectsocket (const char *const hostname, const char *const port, const char *const path);
+int my_connectsocket (const char *const hostname, const char *const port);
 int my_closesocket(int s);
 
 
@@ -49,7 +48,8 @@ ssize_t gnutls_send(const void * const driver_data, const void *const buffer, si
 
 
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port, const char *const path, const char *const sid, const char* const pskKey)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port,
+	const char *const sid, const char* const pskKey)
 {
 	socket_st *sock;
 
@@ -70,10 +70,13 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 	// initalize sock
 	sock->hostname = strdup (hostname);
     sock->port = strdup(port);
-    sock->path = strdup(path);
 	sock->fd = 0x00;
 	sock->secure = 0;
 	sock->ssl_tls_driver_data = 0x00;
+	if (!sock->hostname || !sock->port) {
+	  eIDClientConnectionEnd((EIDCLIENT_CONNECTION_HANDLE) sock);
+	  return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+	}
 
     /* TODO integration of user driven configuration to change SSL/TLS driver */
     ssl_tls_driver.recv = gnutls_recv;
@@ -81,7 +84,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
     ssl_tls_driver.connect = gnutls_connect;
     ssl_tls_driver.disconnect = gnutls_disconnect;
 
-    sock->fd = my_connectsocket (sock->hostname, sock->port, sock->path);
+    sock->fd = my_connectsocket (sock->hostname, sock->port);
     if (sock->fd == -1)
 	{
 	  eIDClientConnectionEnd((EIDCLIENT_CONNECTION_HANDLE) sock);
@@ -91,13 +94,6 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
     if (strcmp(sock->port, "80") != 0 && strcmp(sock->port, "8080") != 0) 
 	{
         sock->ssl_tls_driver_data = ssl_tls_driver.connect(sock->fd, (unsigned char *) pskKey, pskKey ? strlen(pskKey) : 0, sid, hostname);
-
-        if (!sock->ssl_tls_driver_data)
-		{
-			eIDClientConnectionEnd((EIDCLIENT_CONNECTION_HANDLE) sock);
-            return EID_CLIENT_CONNECTION_SOCKET_ERROR;
-        }
-
         sock->secure = 1;
     }
 
@@ -121,8 +117,6 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE h
         free(sock->hostname);
     if (sock->port)
         free(sock->port);
-    if (sock->path)
-        free(sock->path);
     
     if (sock->fd != -1)
 	{
@@ -152,7 +146,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 	if(0x00 == sock->secure)
 	{
 	    my_closesocket(sock->fd);
-		sock->fd = my_connectsocket (sock->hostname, sock->port, sock->path);
+		sock->fd = my_connectsocket (sock->hostname, sock->port);
 	}
 ////////////////////////////
 #endif

@@ -43,8 +43,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   Bundesdruckerei::nPA::ePACard& hCard,
   const PaceInput& pace_input,
   std::vector<unsigned char>& car_cvca,
-  std::vector<unsigned char>& x_Puk_ICC_DH2,
-  unsigned char* PINCount);
+  std::vector<unsigned char>& x_Puk_ICC_DH2);
 
 /**
  * @brief Perform the Terminal Authentication protocol. For further information look at

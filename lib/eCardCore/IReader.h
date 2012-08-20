@@ -179,7 +179,6 @@ class IReader
      * @brief
      */
     virtual vector<unsigned char> sendAPDU (
-      UINT64 cardID,
       const vector<unsigned char>& cmd) = 0;
 
     /*!

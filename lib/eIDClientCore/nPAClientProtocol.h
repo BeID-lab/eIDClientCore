@@ -45,8 +45,7 @@ public:
    * @brief Perform the PACE protocol.
    */
   ECARD_STATUS PACE(
-    const PaceInput& pace_input,
-    unsigned char& PINCount);
+    const PaceInput& pace_input);
 
   /**
    * @brief Perform the terminal authentication.

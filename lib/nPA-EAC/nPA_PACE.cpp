@@ -54,7 +54,8 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
       case PaceInput::puk:
           paceH.Update(c_puk, 4);
           break;
-
+		  
+      case PaceInput::undef:
       default:
           eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Unknown PACE secret.");
   }
@@ -105,8 +106,7 @@ std::vector<unsigned char> decryptRNDICC_AES(
 
 
 ECP::Point calculate_PuK_IFD_DH1(
-  const std::vector<unsigned char>& PrK_IFD_DH1,
-  const AlgorithmIdentifier* const PACEDomainParameterInfo)
+  const std::vector<unsigned char>& PrK_IFD_DH1)
 {
     hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DHx in calculate_PuK_IFD_DHx", (void*) &PrK_IFD_DH1[0], PrK_IFD_DH1.size());
 
@@ -151,8 +151,7 @@ ECP::Point calculate_PuK_IFD_DH2(
   const std::vector<unsigned char>& PrK_IFD_DH1,
   const std::vector<unsigned char>& PrK_IFD_DH2,
   const ECP::Point& PuK_ICC_DH1,
-  const std::vector<unsigned char>& rndICC_,
-  const AlgorithmIdentifier* const PACEDomainParameterInfo)
+  const std::vector<unsigned char>& rndICC_)
 {
     hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH1 in calculate_PuK_IFD_DH2", (void*) &PrK_IFD_DH1[0], PrK_IFD_DH1.size());
     hexdump(DEBUG_LEVEL_CRYPTO, "###-> rndICC in calculate_PuK_IFD_DH2", (void*) &rndICC_[0], rndICC_.size());
@@ -200,8 +199,7 @@ ECP::Point calculate_PuK_IFD_DH2(
  */
 ECP::Point calculate_KIFD_ICC( 
   const std::vector<unsigned char>& PrK_IFD_DH2,
-  ECP::Point PuK_ICC_DH2,
-  const AlgorithmIdentifier* PACEDomainParameterInfo)
+  ECP::Point PuK_ICC_DH2)
 {
     Integer k(&PrK_IFD_DH2[0], PrK_IFD_DH2.size());
     Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
@@ -242,9 +240,11 @@ std::vector<unsigned char> calculate_SMKeys(
   tmpx_.resize(KIFD_ICC.x.ByteCount());
   KIFD_ICC.x.Encode(&tmpx_[0], KIFD_ICC.x.ByteCount());
 
-  int filler = 32 - tmpx_.size();
+  size_t filler = 0;
+  if (32 >= tmpx_.size())
+	  filler = 32 - tmpx_.size();
 
-  for (int i = 0; i < filler; i++)
+  for (size_t i = 0; i < filler; i++)
     x_.push_back(0x00);
   for (size_t i = 0; i < tmpx_.size(); i++)
     x_.push_back(tmpx_[i]);
@@ -276,9 +276,7 @@ std::vector<unsigned char> calculate_SMKeys(
  *
  */
 std::vector<unsigned char> generate_PuK_ICC_DH2(
-  const ECP::Point& PuK_ICC_DH2,
-  const std::vector<unsigned char>& rndICC_,
-  const AlgorithmIdentifier* PACEDomainParameterInfo)
+  const ECP::Point& PuK_ICC_DH2)
 {
   std::vector<unsigned char> result_;
 
@@ -292,18 +290,22 @@ std::vector<unsigned char> generate_PuK_ICC_DH2(
 
     std::vector<unsigned char> tempResult_;
 
-    int fillerX_ = 32 - xDH2_.size();
-    int fillerY_ = 32 - yDH2_.size();
+    size_t fillerX_ = 0;
+	if (32 >= xDH2_.size())
+		fillerX_ = 32 - xDH2_.size();
+	size_t fillerY_ = 0;
+	if (32 >= yDH2_.size())
+		fillerY_ = 32 - yDH2_.size();
     // Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-    tempResult_.push_back(0x86); tempResult_.push_back(xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1);
+    tempResult_.push_back(0x86); tempResult_.push_back((unsigned char) (xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1));
     tempResult_.push_back(0x04);
 
-    for (int i = 0; i < fillerX_; i++)
+    for (size_t i = 0; i < fillerX_; i++)
       tempResult_.push_back(0x00);
     for(size_t i = 0; i < xDH2_.size(); i++)
 	    tempResult_.push_back(xDH2_[i]);
 
-    for (int i = 0; i < fillerY_; i++)
+    for (size_t i = 0; i < fillerY_; i++)
       tempResult_.push_back(0x00);
     for(size_t i = 0; i < yDH2_.size(); i++)
 	    tempResult_.push_back(yDH2_[i]);
@@ -312,11 +314,11 @@ std::vector<unsigned char> generate_PuK_ICC_DH2(
 
     if (tempResult_.size() <= 0x80)
     { 
-      result_.push_back(tempResult_.size() + 12); 
+      result_.push_back((unsigned char) tempResult_.size() + 12); 
     } else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF)
     {
       result_.push_back(0x81);
-      result_.push_back(tempResult_.size() + 12);
+      result_.push_back((unsigned char) (tempResult_.size() + 12));
     } else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF)
     {
       result_.push_back(0x82);
@@ -338,9 +340,7 @@ std::vector<unsigned char> generate_PuK_ICC_DH2(
  *
  */
 std::vector<unsigned char> generate_PuK_IFD_DH2(
-  const ECP::Point& PuK_IFD_DH2,
-  const std::vector<unsigned char>& rndICC_,
-  const AlgorithmIdentifier* PACEDomainParameterInfo)
+  const ECP::Point& PuK_IFD_DH2)
 {
   std::vector<unsigned char> result_;
 
@@ -352,22 +352,27 @@ std::vector<unsigned char> generate_PuK_IFD_DH2(
     PuK_IFD_DH2.x.Encode(&xDH2_[0], PuK_IFD_DH2.x.ByteCount());
     PuK_IFD_DH2.y.Encode(&yDH2_[0], PuK_IFD_DH2.y.ByteCount());
 
-    int fillerX_ = 32 - xDH2_.size();
-    int fillerY_ = 32 - yDH2_.size();
+    size_t fillerX_ = 0;
+	if (32 >= xDH2_.size())
+		fillerX_ = 32 - xDH2_.size();
+	size_t fillerY_ = 0;
+	if (32 >= yDH2_.size())
+		fillerY_ = 32 - yDH2_.size();
 
     std::vector<unsigned char> tempResult_;
 
     // Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-    tempResult_.push_back(0x86); tempResult_.push_back(xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1);
+    tempResult_.push_back(0x86);
+	tempResult_.push_back((unsigned char) (xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1));
     tempResult_.push_back(0x04);
 
-    for (int i = 0; i < fillerX_; i++)
+    for (size_t i = 0; i < fillerX_; i++)
       tempResult_.push_back(0x00);
 
     for(size_t i = 0; i < xDH2_.size(); i++)
 	    tempResult_.push_back(xDH2_[i]);
 
-    for (int i = 0; i < fillerY_; i++)
+    for (size_t i = 0; i < fillerY_; i++)
       tempResult_.push_back(0x00);
 
     for(size_t i = 0; i < yDH2_.size(); i++)
@@ -377,11 +382,11 @@ std::vector<unsigned char> generate_PuK_IFD_DH2(
 
     if (tempResult_.size() <= 0x80)
     { 
-      result_.push_back(tempResult_.size() + 12); 
+      result_.push_back((unsigned char) (tempResult_.size() + 12)); 
     } else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF)
     {
       result_.push_back(0x81);
-      result_.push_back(tempResult_.size() + 12);
+      result_.push_back((unsigned char) (tempResult_.size() + 12));
     } else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF)
     {
       result_.push_back(0x82);
@@ -417,7 +422,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 
 	// Append OID
 	data.push_back(0x80);
-	data.push_back(PACE_OID_.size);
+	data.push_back((unsigned char) PACE_OID_.size);
 	data.insert(data.end(), PACE_OID_.buf, PACE_OID_.buf + PACE_OID_.size);
 
 	// Append Key reference
@@ -519,25 +524,29 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
   PuK_IFD_DH1_.x.Encode(&x_[0], PuK_IFD_DH1_.x.ByteCount());
   PuK_IFD_DH1_.y.Encode(&y_[0], PuK_IFD_DH1_.y.ByteCount());
 
-  int fillerX_ = 32 - x_.size();
-  int fillerY_ = 32 - y_.size();
+  size_t fillerX_ = 0;
+  if (32 >= x_.size())
+	fillerX_ = 32 - x_.size();
+  size_t fillerY_ = 0;
+  if (32 >= y_.size())
+	  fillerY_ = 32 - y_.size();
 
   // Build up command data field
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x7C);
   // Set the size
-  dataPart_.push_back(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_);
+  dataPart_.push_back((unsigned char) (0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
   dataPart_.push_back(0x81);
   // Set the size
-  dataPart_.push_back(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_);
+  dataPart_.push_back((unsigned char) (0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
   dataPart_.push_back(0x04);
   // Append X
-  for (int i = 0; i < fillerX_; i++)
+  for (size_t i = 0; i < fillerX_; i++)
     dataPart_.push_back(0x00);
   for (size_t i = 0; i < x_.size(); i++)
     dataPart_.push_back(x_[i]);
   // Append Y 
-  for (int i = 0; i < fillerY_; i++)
+  for (size_t i = 0; i < fillerY_; i++)
     dataPart_.push_back(0x00);
   for (size_t i = 0; i < y_.size(); i++)
     dataPart_.push_back(y_[i]);
@@ -593,25 +602,29 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
   PuK_IFD_DH2_.x.Encode(&x_[0], PuK_IFD_DH2_.x.ByteCount());
   PuK_IFD_DH2_.y.Encode(&y_[0], PuK_IFD_DH2_.y.ByteCount());
 
-  int fillerX_ = 32 - x_.size();
-  int fillerY_ = 32 - y_.size();
+  size_t fillerX_ = 0;
+  if (32 >= x_.size())
+	  fillerX_ = 32 - x_.size();
+  size_t fillerY_ = 0;
+  if (32 >= y_.size())
+	  fillerY_ = 32 - y_.size();
 
   // Build up command data field
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x7C);
   // Set the size
-  dataPart_.push_back(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_);
+  dataPart_.push_back((unsigned char) (0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
   dataPart_.push_back(0x83);
   // Set the size
-  dataPart_.push_back(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_);
+  dataPart_.push_back((unsigned char) (0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
   dataPart_.push_back(0x04);
   // Append X
-  for (int i = 0; i < fillerX_; i++)
+  for (size_t i = 0; i < fillerX_; i++)
     dataPart_.push_back(0x00);
   for (size_t i = 0; i < x_.size(); i++)
     dataPart_.push_back(x_[i]);
   // Append Y 
-  for (int i = 0; i < fillerY_; i++)
+  for (size_t i = 0; i < fillerY_; i++)
     dataPart_.push_back(0x00);
   for (size_t i = 0; i < y_.size(); i++)
     dataPart_.push_back(y_[i]);
@@ -663,10 +676,10 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
   std::vector<unsigned char> dataPart_;
   dataPart_.push_back(0x7C);
   // Set the size
-  dataPart_.push_back(0x02 + macedPuk_ICC_DH2.size());
+  dataPart_.push_back((unsigned char) (0x02 + macedPuk_ICC_DH2.size()));
   dataPart_.push_back(0x85);
   // Set the size
-  dataPart_.push_back(macedPuk_ICC_DH2.size());
+  dataPart_.push_back((unsigned char) macedPuk_ICC_DH2.size());
   // Append maced Data
   for (size_t i = 0; i < macedPuk_ICC_DH2.size(); i++)
     dataPart_.push_back(macedPuk_ICC_DH2[i]);
@@ -683,27 +696,22 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 
   hexdump(DEBUG_LEVEL_CRYPTO, "###-> Last PACE result", &data_[0], data_.size());
 
-  for (int i = 4; i < 12; i++)
+  for (size_t i = 4; i < 12; i++)
   {
     if (macedPuk_IFD_DH2[i-4] != data_[i])
       return ECARD_PACE_STEP_F_VERIFICATION_FAILED;
   }
 
-  // relevant for changing PIN
-  if ( 12 == data_.size() )
-	  return ECARD_SUCCESS;
-
-  if (0x87 == data_[12])
+  if (data_.size() > 12 && 0x87 == data_[12])
   {
-    for (int i = 14; i < 14 + data_[13]; i++)
-      car_cvca.push_back(data_[i]);
+    for (size_t i = 14; i < 14 + data_[13]; i++)
+      car_cvca.push_back((char) data_[i]);
   }
 
   return ECARD_SUCCESS;
 }
 
-std::vector<unsigned char> generate_PrK_IFD_DHx(
-												const AlgorithmIdentifier* PACEDomainParameterInfo_)
+std::vector<unsigned char> generate_PrK_IFD_DHx(void)
 {
 	std::vector<unsigned char> result;
 	result.resize(32);
@@ -719,8 +727,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
   ePACard& ePA_,
   const PaceInput& pace_input,
   std::vector<unsigned char>& car_cvca,
-  std::vector<unsigned char>& x_Puk_ICC_DH2,
-  unsigned char* PINCount)
+  std::vector<unsigned char>& x_Puk_ICC_DH2)
 {
   if (ePA_.getSubSystem()->supportsPACE()) {
       eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
@@ -743,7 +750,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
       OBJECT_IDENTIFIER_t PACE_OID_;
       AlgorithmIdentifier* PACEDomainParameterInfo_ = 0x00;
 
-      for (int i = 0; i < secInfos_->list.count; i++)
+      for (size_t i = 0; i < secInfos_->list.count; i++)
       {
           OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
 
@@ -799,9 +806,9 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           return status;
       }
 
-      std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx(PACEDomainParameterInfo_);
+      std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx();
 
-      ECP::Point PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PrK_IFD_DH1_, PACEDomainParameterInfo_);
+      ECP::Point PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PrK_IFD_DH1_);
 
       ECP::Point PuK_ICC_DH1_;
       if (ECARD_SUCCESS != (status = perform_PACE_Step_D(PuK_IFD_DH1_, ePA_, PuK_ICC_DH1_)))
@@ -811,10 +818,10 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           return status;
       }
 
-      std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx(PACEDomainParameterInfo_);
+      std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx();
 
       ECP::Point PuK_IFD_DH2_ = calculate_PuK_IFD_DH2(PrK_IFD_DH1_, PrK_IFD_DH2_, PuK_ICC_DH1_, 
-              rndICC_, PACEDomainParameterInfo_);
+              rndICC_);
 
       ECP::Point PuK_ICC_DH2_;
       if (ECARD_SUCCESS != (status = perform_PACE_Step_E(PuK_IFD_DH2_, ePA_, PuK_ICC_DH2_)))
@@ -824,7 +831,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           return status;
       }
 
-      ECP::Point KIFD_ICC_ = calculate_KIFD_ICC(PrK_IFD_DH2_, PuK_ICC_DH2_, PACEDomainParameterInfo_);
+      ECP::Point KIFD_ICC_ = calculate_KIFD_ICC(PrK_IFD_DH2_, PuK_ICC_DH2_);
 
       std::vector<unsigned char> kMac_ = calculate_SMKeys(KIFD_ICC_, true);
       std::vector<unsigned char> kEnc_ = calculate_SMKeys(KIFD_ICC_, false);
@@ -844,10 +851,10 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
           y_Puk_ICC_DH2_.insert(y_Puk_ICC_DH2_.begin(), 0x00);
 
       std::vector<unsigned char> toBeMaced_PuK_ICC_DH2_ = generate_PuK_ICC_DH2(
-              PuK_ICC_DH2_, rndICC_, PACEDomainParameterInfo_);
+              PuK_ICC_DH2_);
 
       std::vector<unsigned char> toBeMaced_PuK_IFD_DH2_ = generate_PuK_IFD_DH2(
-              PuK_IFD_DH2_, rndICC_, PACEDomainParameterInfo_);
+              PuK_IFD_DH2_);
 
       std::string car_cvca_;
       if (ECARD_SUCCESS != (status = perform_PACE_Step_F(calculateMAC(toBeMaced_PuK_ICC_DH2_, kMac_),

@@ -286,7 +286,7 @@ SelectFile::SelectFile(unsigned char p1, unsigned char p2, unsigned short fid)
 }
 
 DataUnitAPDU::DataUnitAPDU(unsigned char ins, size_t offset, unsigned char sfid)
-: CAPDU(0x00, ins, sfid|P1_SFID, offset)
+: CAPDU(0x00, ins, sfid|P1_SFID, (unsigned char) offset)
 {
     /* check if the upper two bits are set to 0 */
     if (sfid & 0xC0)

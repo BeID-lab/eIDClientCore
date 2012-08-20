@@ -46,24 +46,28 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
           GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
   authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
-  int fillerX_ = 32 - x_Puk_IFD_DH.size();
-  int fillerY_ = 32 - y_Puk_IFD_DH.size();
+  size_t fillerX_ = 0;
+  if (32 >= x_Puk_IFD_DH.size())
+	   fillerX_ = 32 - x_Puk_IFD_DH.size();;
+  size_t fillerY_ = 0;
+  if (32 >= y_Puk_IFD_DH.size())
+	  fillerY_ = 32 - y_Puk_IFD_DH.size();
 
   std::vector<unsigned char> dataPart_;
   // '7C' || L7C || '80' || L80 || ('04' || x(PuK.IFD.DH) || y(PuK.IFD.DH))
   dataPart_.push_back(0x7C);
-  dataPart_.push_back((x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_) + 3);
+  dataPart_.push_back((unsigned char) (x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_ + 3));
   dataPart_.push_back(0x80);
-  dataPart_.push_back((x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_) + 1);
+  dataPart_.push_back((unsigned char) (x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_ + 1));
   dataPart_.push_back(0x04);
 
-  for (int i = 0; i < fillerX_; i++)
+  for (size_t i = 0; i < fillerX_; i++)
     dataPart_.push_back(0x00);
 
   for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
     dataPart_.push_back(x_Puk_IFD_DH[i]);
 
-  for (int i = 0; i < fillerY_; i++)
+  for (size_t i = 0; i < fillerY_; i++)
     dataPart_.push_back(0x00);
 
   for (size_t i = 0; i < y_Puk_IFD_DH.size(); i++)

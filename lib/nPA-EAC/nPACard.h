@@ -74,13 +74,6 @@ namespace Bundesdruckerei
                 unsigned short getFileSize(
                         unsigned short FID);
 
-                /*!
-                 *
-                 */
-                bool readFile(
-                        size_t size,
-                        vector<unsigned char>& result);
-
                 bool readFile(
                         unsigned char sfid,
                         size_t size,
@@ -94,7 +87,7 @@ namespace Bundesdruckerei
 
                 void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
 
-        }; // class ePACard : public ICard
+        };
 
 
         /**
