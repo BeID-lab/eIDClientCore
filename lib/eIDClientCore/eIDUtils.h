@@ -1,9 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: BDRDate.h 682 2010-02-15 14:09:14Z rfiedler $
-// ---------------------------------------------------------------------------
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
 
 #if !defined(__EIDUTILS__)
 #define __EIDUTILS__

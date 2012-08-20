@@ -1,12 +1,5 @@
-// ----------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: eCardStatus.h 846 2010-08-19 07:58:17Z fiedlrob $
-// ----------------------------------------------------------------------------
-
-/*!
- * @file eCardStatus.h
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
 #if !defined(__ECARDSTATUS_INCLUDED__)

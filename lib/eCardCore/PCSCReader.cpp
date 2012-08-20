@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #include "ICard.h"
 #include "PCSCReader.h"
 #include <debug.h>

@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

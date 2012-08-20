@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__EIDHELPER_INCLUDED__)
 #define __EIDHELPER_INCLUDED__
 

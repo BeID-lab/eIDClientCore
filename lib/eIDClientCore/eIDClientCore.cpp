@@ -1,12 +1,5 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2010 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: nPAClientLib.cpp 717 2010-02-26 09:20:30Z rfiedler $
-// ---------------------------------------------------------------------------
-
-/*!
- * @file nPAClient.cpp
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
 #include "eIDClientCore.h"

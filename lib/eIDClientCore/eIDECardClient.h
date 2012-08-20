@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #ifndef __eIDECardClient_H__
 #define __eIDECardClient_H__
 

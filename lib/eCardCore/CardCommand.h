@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__CARDCOMMAND_INCLUDED__)
 #define __CARDCOMMAND_INCLUDED__
 

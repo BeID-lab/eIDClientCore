@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #define STRSAFE_NO_DEPRECATE
 
 #include "eCardCore/eCardTypes.h"

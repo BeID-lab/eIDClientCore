@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #include "nPAAPI.h"
 #include "nPAStatus.h"
 #include "nPACard.h"

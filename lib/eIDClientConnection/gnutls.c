@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 # ifndef __GNUC__
 typedef long ssize_t;
 # endif

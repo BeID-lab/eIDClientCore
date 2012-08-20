@@ -1,9 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2010 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: nPAClient.cpp 775 2010-06-22 07:37:38Z dietrfra $
-// ---------------------------------------------------------------------------
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
 
 #include "nPAClient.h"
 using namespace Bundesdruckerei::nPA;

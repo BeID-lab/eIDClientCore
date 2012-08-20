@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__IREADERMANAGER_INCLUDED__)
 #define __IREADERMANAGER_INCLUDED__
 

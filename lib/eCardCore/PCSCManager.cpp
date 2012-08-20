@@ -1,14 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2007 Bundesruckerei GmbH
-// All rights reserved.
-//
-// $Id: PCSCManager.cpp 737 2010-03-23 14:24:31Z x_schrom $
-// ---------------------------------------------------------------------------
-
-/*!
- * @file PCSCManager.h
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
  */
-
 #include "PCSCManager.h"
 #include "PCSCReader.h"
 #include <debug.h>

@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #include "nPACard.h"
 #include "nPACommon.h"
 using namespace Bundesdruckerei::nPA;

@@ -1,9 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2010 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: nPAClient.h 682 2010-02-15 14:09:14Z rfiedler $
-// ---------------------------------------------------------------------------
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
 
 #if !defined(__NPACLIENT_INCLUDED__)
 #define __NPACLIENT_INCLUDED__

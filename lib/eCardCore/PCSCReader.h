@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__PCSCREDARE_INCLUDED__)
 #define __PCSCREDARE_INCLUDED__
 

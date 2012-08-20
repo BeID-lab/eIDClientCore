@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__NPACARD_INCLUDED__)
 #define __NPACARD_INCLUDED__
 

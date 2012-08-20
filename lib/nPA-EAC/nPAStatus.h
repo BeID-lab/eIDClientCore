@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__NPASTATUS_INCLUDED__)
 #define _NPASTATUS_INCLUDED__
 

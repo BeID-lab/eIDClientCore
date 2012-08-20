@@ -1,5 +1,6 @@
-// Test_nPAClientLib.cpp : Definiert den Einstiegspunkt für die Konsolenanwendung.
-//
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
 
 #if defined(WIN32)
 #	include <windows.h>

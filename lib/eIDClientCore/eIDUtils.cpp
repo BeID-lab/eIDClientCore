@@ -1,9 +1,6 @@
-// ---------------------------------------------------------------------------
-// Copyright (c) 2009 Bundesdruckerei GmbH
-// All rights reserved.
-//
-// $Id: BDRDate.cpp 731 2010-03-19 12:26:27Z dietrfra $
-// ---------------------------------------------------------------------------
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;

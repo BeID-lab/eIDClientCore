@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #include "eCardCore/eCardStatus.h"
 #include "nPAClientProtocol.h"
 #include <debug.h>

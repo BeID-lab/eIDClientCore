@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
 #if !defined(__EPACLIENTPROTOCOL_INCLUDED__)
 #define __EPACLIENTPROTOCOL_INCLUDED__
 
