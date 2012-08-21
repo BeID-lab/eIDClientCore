@@ -75,25 +75,26 @@ typedef unsigned long NPACLIENT_STATE;
 /**
  *
  */
-typedef struct AuthenticationParams
-{
-  const char* m_serverAddress;
-  const char* m_sessionIdentifier;
-  const char* m_binding;
-  const char* m_pathSecurityProtocol;
-  const char* m_pathSecurityParameters;
-  const char* m_refreshAddress;
-  const char* m_pin;
-  const char* m_userSelectedChat;
-  void*       m_extension; //Global Tester Params for example
+typedef struct AuthenticationParams {
+	const char *m_serverAddress;
+	const char *m_sessionIdentifier;
+	const char *m_binding;
+	const char *m_pathSecurityProtocol;
+	const char *m_pathSecurityParameters;
+	const char *m_refreshAddress;
+	const char *m_pin;
+	const char *m_userSelectedChat;
+	void       *m_extension; //Global Tester Params for example
 
-  /**
-   *
-   */
-  AuthenticationParams(
-    void) : m_serverAddress(0x00), m_sessionIdentifier(0x00), m_binding(0x00),
-    m_pathSecurityProtocol(0x00), m_pathSecurityParameters(0x00), m_refreshAddress(0x00),
-    m_pin(0), m_userSelectedChat(0x00), m_extension(0x00) { /* */ }
+	/**
+	 *
+	 */
+	AuthenticationParams(
+		void) : m_serverAddress(0x00), m_sessionIdentifier(0x00), m_binding(0x00),
+		m_pathSecurityProtocol(0x00), m_pathSecurityParameters(0x00), m_refreshAddress(0x00),
+		m_pin(0), m_userSelectedChat(0x00), m_extension(0x00) {
+		/* */
+	}
 } AuthenticationParams_t;
 
 #if defined(__cplusplus)
@@ -115,66 +116,65 @@ extern "C"
 
 #include <time.h>
 
-typedef void (*nPAeIdProtocolStateCallback_t)(
-  const NPACLIENT_STATE state,
-  const NPACLIENT_ERROR error);
+	typedef void (*nPAeIdProtocolStateCallback_t)(
+		const NPACLIENT_STATE state,
+		const NPACLIENT_ERROR error);
 
-enum DescriptionType {
-    DT_UNDEF = 0,
-    DT_PLAIN = 1,
-    DT_HTML  = 2,
-    DT_PDF   = 3,
-};
+	enum DescriptionType {
+		DT_UNDEF = 0,
+		DT_PLAIN = 1,
+		DT_HTML  = 2,
+		DT_PDF   = 3,
+	};
 
-enum PinID {
-    PI_UNDEF,
-    PI_MRZ,
-    PI_CAN,
-    PI_PIN,
-    PI_PUK,
-}; 
+	enum PinID {
+		PI_UNDEF,
+		PI_MRZ,
+		PI_CAN,
+		PI_PIN,
+		PI_PUK,
+	};
 
-typedef struct
-{
-    unsigned char *pDataBuffer;
-    unsigned long bufferSize;
-} nPADataBuffer_t;
+	typedef struct {
+		unsigned char *pDataBuffer;
+		unsigned long bufferSize;
+	} nPADataBuffer_t;
 
-typedef struct {
-    const enum DescriptionType *description_type;
-    const nPADataBuffer_t *description;
-    const nPADataBuffer_t *name;
-    const nPADataBuffer_t *url;
-    const nPADataBuffer_t *chat_required;
-    const nPADataBuffer_t *chat_optional;
-    const time_t *valid_from;
-    const time_t *valid_to;
-} SPDescription_t;
+	typedef struct {
+		const enum DescriptionType *description_type;
+		const nPADataBuffer_t *description;
+		const nPADataBuffer_t *name;
+		const nPADataBuffer_t *url;
+		const nPADataBuffer_t *chat_required;
+		const nPADataBuffer_t *chat_optional;
+		const time_t *valid_from;
+		const time_t *valid_to;
+	} SPDescription_t;
 
-typedef struct {
-    char pin_required;
-    enum PinID pin_id;
+	typedef struct {
+		char pin_required;
+		enum PinID pin_id;
 
-    const nPADataBuffer_t *chat_selected;
-    const nPADataBuffer_t *pin;
-} UserInput_t;
+		const nPADataBuffer_t *chat_selected;
+		const nPADataBuffer_t *pin;
+	} UserInput_t;
 
-typedef NPACLIENT_ERROR (*nPAeIdUserInteractionCallback_t)
-    (const SPDescription_t *description, UserInput_t *input);
+	typedef NPACLIENT_ERROR(*nPAeIdUserInteractionCallback_t)
+	(const SPDescription_t *description, UserInput_t *input);
 
-NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
-  const char* const IdpAddress,
-  const char* const SessionIdentifier,
-  const char* const PathSecurityParameters,
-  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
+	NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
+		const char *const IdpAddress,
+		const char *const SessionIdentifier,
+		const char *const PathSecurityParameters,
+		const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
+		const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
 
-typedef NPACLIENT_ERROR (*nPAeIdPerformAuthenticationProtocolPcSc_t)(
-  const char* const IdpAddress,
-  const char* const SessionIdentifier,
-  const char* const PathSecurityParameters,
-  const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
-  const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
+	typedef NPACLIENT_ERROR(*nPAeIdPerformAuthenticationProtocolPcSc_t)(
+		const char *const IdpAddress,
+		const char *const SessionIdentifier,
+		const char *const PathSecurityParameters,
+		const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
+		const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
 
 #if defined(__cplusplus)
 }

@@ -11,18 +11,18 @@ class IReader;
 
 class ICardDetector
 {
-  public:
-    /*!
-     *
-     */
-    virtual ~ICardDetector(
-      void) {};
+	public:
+		/*!
+		 *
+		 */
+		virtual ~ICardDetector(
+			void) {};
 
-    /*!
-     *
-     */
-    virtual ICard* getCard (
-      IReader* ) = 0;
+		/*!
+		 *
+		 */
+		virtual ICard *getCard(
+			IReader *) = 0;
 };
 
 

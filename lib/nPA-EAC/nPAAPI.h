@@ -44,10 +44,10 @@
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-  Bundesdruckerei::nPA::ePACard& hCard,
-  const PaceInput& pace_input,
-  std::vector<unsigned char>& car_cvca,
-  std::vector<unsigned char>& x_Puk_ICC_DH2);
+	Bundesdruckerei::nPA::ePACard &hCard,
+	const PaceInput &pace_input,
+	std::vector<unsigned char>& car_cvca,
+	std::vector<unsigned char>& x_Puk_ICC_DH2);
 
 /**
  * @brief Perform the Terminal Authentication protocol. For further information look at
@@ -57,7 +57,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @param car_cvca            [IN] The CAR of the CVCA stored into the chip.
  * @param list_certificates   [IN] The raw list of link certificates and DVCA certificate.
  * @param terminalCertificate [IN] The raw certificate of the terminal.
- * @param x_Puk_ICC_DH_CA     [IN] The x part of PuK.IFD_DH_CA. This data is part of the public key used for the chip 
+ * @param x_Puk_ICC_DH_CA     [IN] The x part of PuK.IFD_DH_CA. This data is part of the public key used for the chip
  *                                 authentication and will be created on the eID server. @see eIDServer.cpp function createChipAuthenticationKey
  * @param toBeSigned          [IN][OUT] The data which will be signed by the eID server.
  *
@@ -66,16 +66,16 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-  Bundesdruckerei::nPA::ePACard& hCard,
-  const std::vector<unsigned char>& car_cvca,
-  const std::vector<std::vector<unsigned char> >& list_certificates,
-  const std::vector<unsigned char>& terminalCertificate,
-  const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
-  const std::vector<unsigned char>& authenticatedAuxiliaryData,
-  std::vector<unsigned char>& toBeSigned);
+	Bundesdruckerei::nPA::ePACard &hCard,
+	const std::vector<unsigned char>& car_cvca,
+	const std::vector<std::vector<unsigned char> >& list_certificates,
+	const std::vector<unsigned char>& terminalCertificate,
+	const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
+	const std::vector<unsigned char>& authenticatedAuxiliaryData,
+	std::vector<unsigned char>& toBeSigned);
 
 /**
- * @brief Send the signature data to the chip. The signature will be created on 
+ * @brief Send the signature data to the chip. The signature will be created on
  *        the eID server @see eIDServer.cpp function createServerSignature.
  *
  * @param hCard     [IN] Handle to an valid nPA card.
@@ -86,8 +86,8 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePASendSignature(
-  ICard& hCard,
-  const std::vector<unsigned char>& signature);
+	ICard &hCard,
+	const std::vector<unsigned char>& signature);
 
 /**
  * @param hCard                       [IN] Handle to an valid nPA card.
@@ -101,13 +101,13 @@ ECARD_STATUS __STDCALL__ ePASendSignature(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
-  ICard& hCard,
-  const std::vector<unsigned char>& x_Puk_IFD_DH,
-  const std::vector<unsigned char>& y_Puk_IFD_DH,
-  std::vector<unsigned char>& GeneralAuthenticationResult);
+	ICard &hCard,
+	const std::vector<unsigned char>& x_Puk_IFD_DH,
+	const std::vector<unsigned char>& y_Puk_IFD_DH,
+	std::vector<unsigned char>& GeneralAuthenticationResult);
 
 ECARD_STATUS __STDCALL__ ePAGetRandom(
-        size_t size, std::vector<unsigned char>& random_bytes);
+	size_t size, std::vector<unsigned char>& random_bytes);
 
 
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

@@ -16,276 +16,278 @@
 
 using namespace Bundesdruckerei::eIDUtils;
 
-struct CmpChar{
-    bool operator()(const char* wc1, const char* wc2) const
-    {
-        return strcmp(wc1, wc2) < 0;
-    }
+struct CmpChar {
+	bool operator()(const char *wc1, const char *wc2) const {
+		return strcmp(wc1, wc2) < 0;
+	}
 };
 
 typedef std::map<char *, char **, CmpChar> CharMap;
 typedef std::map<char *, char **, CmpChar>::iterator CharMapIt;
 typedef std::map<char *, char **, CmpChar>::const_iterator CharMapConstIt;
 
-typedef std::list<std::string>	certificateList_t;
+typedef std::list<std::string>  certificateList_t;
 
 namespace Bundesdruckerei
 {
-  namespace nPA
-  {
-    typedef enum ProtocolState
-    {
-      Unauthenticated,
-      PACE_Running,
-      PACE_Done,
-      TA_Running,
-      TA_Done,
-      CA_Running,
-      Authenticated,
-      Finished
-    } Procolstate_t;
+	namespace nPA
+	{
+		typedef enum ProtocolState {
+			Unauthenticated,
+			PACE_Running,
+			PACE_Done,
+			TA_Running,
+			TA_Done,
+			CA_Running,
+			Authenticated,
+			Finished
+		} Procolstate_t;
 
-	/**
-     *
-     */
-    class IClient
-    {
-    };
+		/**
+		 *
+		 */
+		class IClient
+		{
+		};
 
-    /**
-     *
-     */
-    class IIdP
-    {
-    public:
-      /**
-       *
-       */
-      IIdP(
-        void) { /* Nop */ }
+		/**
+		 *
+		 */
+		class IIdP
+		{
+			public:
+				/**
+				 *
+				 */
+				IIdP(
+					void) {
+					/* Nop */
+				}
 
-      /**
-       *
-       */
-      virtual ~IIdP(
-        void) { /* Nop */ }
+				/**
+				 *
+				 */
+				virtual ~IIdP(
+					void) {
+					/* Nop */
+				}
 
-      /**
-       *
-       */
-      virtual bool open(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual bool open(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual bool close(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual bool close(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual NPACLIENT_ERROR initialize(
-        IClient* pClient) = 0;
+				/**
+				 *
+				 */
+				virtual NPACLIENT_ERROR initialize(
+					IClient *pClient) = 0;
 
-      /**
-       *
-       */
-      virtual std::vector<unsigned char> getTerminalCertificate(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getTerminalCertificate(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual std::vector<unsigned char> getRequiredChat(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getRequiredChat(
+					void) = 0;
 
-	  /**
-       *
-       */
-      virtual std::vector<unsigned char> getOptionalChat(
-        void) = 0;
- 
-      /**
-       *
-       */
-      virtual std::vector<unsigned char> getDVCACertificate(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getOptionalChat(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual std::vector<unsigned char> getAuthenticatedAuxiliaryData(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getDVCACertificate(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual std::vector<unsigned char> getCertificateDescription(
-        void) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getAuthenticatedAuxiliaryData(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual bool getTerminalAuthenticationData(
-        const std::vector<unsigned char>& efCardAccess,
-        const std::vector<unsigned char>& chat,
-        const std::string& cvCACHAR,
-        const std::vector<unsigned char>& idPICC,
-        std::vector<std::vector<unsigned char> >& list_certificates,
-        std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-        std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
+				/**
+				 *
+				 */
+				virtual std::vector<unsigned char> getCertificateDescription(
+					void) = 0;
 
-      /**
-       *
-       */
-      virtual bool createSignature(
-        std::vector<unsigned char> toBeSigned,
-        std::vector<unsigned char>& signature) = 0;
+				/**
+				 *
+				 */
+				virtual bool getTerminalAuthenticationData(
+					const std::vector<unsigned char>& efCardAccess,
+					const std::vector<unsigned char>& chat,
+					const std::string &cvCACHAR,
+					const std::vector<unsigned char>& idPICC,
+					std::vector<std::vector<unsigned char> >& list_certificates,
+					std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
+					std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
 
-      /**
-       *
-       */
-      virtual bool finalizeAuthentication(
-        std::vector<unsigned char> efCardSecurity,
-        std::vector<unsigned char> GAResult,
-        std::vector<CAPDU>& apdus) = 0;
+				/**
+				 *
+				 */
+				virtual bool createSignature(
+					std::vector<unsigned char> toBeSigned,
+					std::vector<unsigned char>& signature) = 0;
 
-      /**
-       *
-       */
-      virtual bool readAttributes(
-        std::vector<RAPDU>& apdus) = 0;
-     }; // class IIdP
+				/**
+				 *
+				 */
+				virtual bool finalizeAuthentication(
+					std::vector<unsigned char> efCardSecurity,
+					std::vector<unsigned char> GAResult,
+					std::vector<CAPDU>& apdus) = 0;
 
-	 /**
-     *
-     */
-    class nPAClient : public IClient
-    {
-    private:
-      IIdP*               m_Idp;
-      IReaderManager*     m_hSystem;
-      ICard*              m_hCard;
-      ePAClientProtocol*  m_clientProtocol;
-      static nPAClient*   m_instance;
+				/**
+				 *
+				 */
+				virtual bool readAttributes(
+					std::vector<RAPDU>& apdus) = 0;
+		}; // class IIdP
 
-      std::vector<unsigned char>  m_terminalRole;
-      std::vector<unsigned char>  m_originalCHAT;
-      std::vector<unsigned char>  m_requiredCHAT;
-      std::vector<unsigned char>  m_optionalCHAT;
-      Procolstate_t               m_protocolState;
-      std::vector<unsigned char>  m_x_Puk_IFD_DH_CA_;
-      std::vector<unsigned char>  m_y_Puk_IFD_DH_CA_;
-      std::vector<unsigned char>  m_chatUsed;
-      std::vector<CAPDU>  m_capdus;
-      std::vector<RAPDU>  m_rapdus;
+		/**
+		*
+		*/
+		class nPAClient : public IClient
+		{
+			private:
+				IIdP               *m_Idp;
+				IReaderManager     *m_hSystem;
+				ICard              *m_hCard;
+				ePAClientProtocol  *m_clientProtocol;
+				static nPAClient   *m_instance;
 
-      nPAClient(
-        void);
+				std::vector<unsigned char>  m_terminalRole;
+				std::vector<unsigned char>  m_originalCHAT;
+				std::vector<unsigned char>  m_requiredCHAT;
+				std::vector<unsigned char>  m_optionalCHAT;
+				Procolstate_t               m_protocolState;
+				std::vector<unsigned char>  m_x_Puk_IFD_DH_CA_;
+				std::vector<unsigned char>  m_y_Puk_IFD_DH_CA_;
+				std::vector<unsigned char>  m_chatUsed;
+				std::vector<CAPDU>  m_capdus;
+				std::vector<RAPDU>  m_rapdus;
 
-      nPAClient& operator=(
-        const nPAClient&);
+				nPAClient(
+					void);
 
-      /**
-       *
-       */
-      nPAClient(
-        IIdP* pIdP);
+				nPAClient &operator=(
+					const nPAClient &);
 
-    public:
-      static nPAClient* createInstance(
-        IIdP* pIdP);
+				/**
+				 *
+				 */
+				nPAClient(
+					IIdP *pIdP);
 
-      /**
-       *
-       */
-      ~nPAClient(
-        void);
+			public:
+				static nPAClient *createInstance(
+					IIdP *pIdP);
 
-      /**
-       *
-       */
-      NPACLIENT_ERROR initialize(
-        const CharMap* paraMap,
-        ECARD_PROTOCOL usedProtocol);
+				/**
+				 *
+				 */
+				~nPAClient(
+					void);
 
-	  /*
-       *
-       */
-      bool getCHAT(
-        nPADataBuffer_t &chatFromCertificate);
+				/**
+				 *
+				 */
+				NPACLIENT_ERROR initialize(
+					const CharMap *paraMap,
+					ECARD_PROTOCOL usedProtocol);
 
-	  /*
-       *
-       */
-      bool getRequiredCHAT(
-        nPADataBuffer_t &requiredChat);
+				/*
+				 *
+				 */
+				bool getCHAT(
+					nPADataBuffer_t &chatFromCertificate);
 
-	  /*
-       *
-       */
-      bool getOptionalCHAT(
-        nPADataBuffer_t &optionalChat);
+				/*
+				 *
+				 */
+				bool getRequiredCHAT(
+					nPADataBuffer_t &requiredChat);
 
-      /*
-       *
-       */
-      bool getValidFromDate(
-        time_t &certificateValidFrom);
+				/*
+				 *
+				 */
+				bool getOptionalCHAT(
+					nPADataBuffer_t &optionalChat);
 
-      /*
-       *
-       */
-      bool getValidToDate(
-        time_t &certificateValidTo);
+				/*
+				 *
+				 */
+				bool getValidFromDate(
+					time_t &certificateValidFrom);
 
-      /*
-       *
-       */
-      bool getCertificateDescription(
-        nPADataBuffer_t &certificateDescription);
+				/*
+				 *
+				 */
+				bool getValidToDate(
+					time_t &certificateValidTo);
 
-      /*
-       *
-       */
-      bool getServiceName(
-        nPADataBuffer_t &serviceName);
+				/*
+				 *
+				 */
+				bool getCertificateDescription(
+					nPADataBuffer_t &certificateDescription);
 
-      /*
-       *
-       */
-      bool getServiceURL(
-        nPADataBuffer_t &serviceURL);
+				/*
+				 *
+				 */
+				bool getServiceName(
+					nPADataBuffer_t &serviceName);
 
-      bool passwordIsRequired(void) const;
+				/*
+				 *
+				 */
+				bool getServiceURL(
+					nPADataBuffer_t &serviceURL);
 
-      /*
-       *
-       */
-      NPACLIENT_ERROR performPACE(
-        const nPADataBuffer_t * const password,
-        const nPADataBuffer_t * const chatSelectedByUser,
-        const nPADataBuffer_t * const certificateDescription);
+				bool passwordIsRequired(void) const;
 
-      /*
-       *
-       */
-      NPACLIENT_ERROR performTerminalAuthentication(
-        void);
+				/*
+				 *
+				 */
+				NPACLIENT_ERROR performPACE(
+					const nPADataBuffer_t *const password,
+					const nPADataBuffer_t *const chatSelectedByUser,
+					const nPADataBuffer_t *const certificateDescription);
 
-      /*
-       *
-       */
-      NPACLIENT_ERROR performChipAuthentication(
-        void);
+				/*
+				 *
+				 */
+				NPACLIENT_ERROR performTerminalAuthentication(
+					void);
 
-      /*
-       *
-       */
-      NPACLIENT_ERROR readAttributed(void);
-    }; // class nPAClient
-  }
+				/*
+				 *
+				 */
+				NPACLIENT_ERROR performChipAuthentication(
+					void);
+
+				/*
+				 *
+				 */
+				NPACLIENT_ERROR readAttributed(void);
+		}; // class nPAClient
+	}
 }
 
 #endif

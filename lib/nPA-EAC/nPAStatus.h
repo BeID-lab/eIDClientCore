@@ -44,6 +44,6 @@
 #define ECARD_VERIFY_RESPONSE_FAILED              ECARD_MAKE_USER_ERROR(0x01D)
 
 // PIN Management related errors
-#define ECARD_CHANGE_PIN_FAILED		              ECARD_MAKE_USER_ERROR(0x020)
+#define ECARD_CHANGE_PIN_FAILED                   ECARD_MAKE_USER_ERROR(0x020)
 
 #endif

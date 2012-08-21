@@ -33,34 +33,34 @@ USING_NAMESPACE(CryptoPP)
 /**
  * Verifies the MAC of an secure messaging RAPDU.
  */
-bool verifyResponse_AES( 
-  const std::vector<unsigned char>& kMac, 
-  const std::vector<unsigned char>& dataPart,
-  unsigned long long &ssc);
+bool verifyResponse_AES(
+	const std::vector<unsigned char>& kMac,
+	const std::vector<unsigned char>& dataPart,
+	unsigned long long &ssc);
 
 /**
  */
 std::vector<unsigned char> decryptResponse_AES(
-  std::vector<unsigned char>& kEnc,
-  const std::vector<unsigned char>& returnedData,
-  unsigned long long ssc);
+	std::vector<unsigned char>& kEnc,
+	const std::vector<unsigned char>& returnedData,
+	unsigned long long ssc);
 
 /**
  */
 std::vector<unsigned char> calculateMAC(
-  const std::vector<unsigned char>& toBeMaced,
-  const std::vector<unsigned char>& kMac);
+	const std::vector<unsigned char>& toBeMaced,
+	const std::vector<unsigned char>& kMac);
 
 /**
  *
  */
 std::string getCAR(
-  const std::vector<unsigned char>& certificate);
+	const std::vector<unsigned char>& certificate);
 
 /**
  *
  */
 std::string getCHR(
-  const std::vector<unsigned char>& certificate);
+	const std::vector<unsigned char>& certificate);
 
 #endif

@@ -12,23 +12,23 @@
 
 namespace Bundesdruckerei
 {
-  namespace eIDUtils
-  {
+	namespace eIDUtils
+	{
 
-    /*
-    * @class BDRDate
-    *
-    */
-    class BDRDate
-    {
-    public:
-      static std::string fromBCD(
-        const std::vector<unsigned char>&);
+		/*
+		* @class BDRDate
+		*
+		*/
+		class BDRDate
+		{
+			public:
+				static std::string fromBCD(
+					const std::vector<unsigned char>&);
 
-      static time_t timeFromBCD(
-        const std::vector<unsigned char>&);
-    };
-  }
+				static time_t timeFromBCD(
+					const std::vector<unsigned char>&);
+		};
+	}
 }
 
 #endif // __EIDUTILS__

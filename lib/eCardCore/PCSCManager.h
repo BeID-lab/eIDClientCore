@@ -12,39 +12,38 @@
  */
 class PCSCManager : public IReaderManager
 {
-  private:
-    /*!
-     *
-     */
-    void findReaders (
-      void );
+	private:
+		/*!
+		 *
+		 */
+		void findReaders(
+			void);
 
-  public:
-    /*!
-     *
-     */
-    PCSCManager (
-      void );    
+	public:
+		/*!
+		 *
+		 */
+		PCSCManager(
+			void);
 
-    /*!
-     *
-     */
-    ~PCSCManager (
-      void );
+		/*!
+		 *
+		 */
+		~PCSCManager(
+			void);
 
-    /*!
-     *
-     */
-    vector<IReader*> getReaders (
-      void );
+		/*!
+		 *
+		 */
+		vector<IReader *> getReaders(
+			void);
 
-    /*!
-     *
-     */
-    ECARD_PROTOCOL getProtocol()
-    {
-      return PROTOCOL_PCSC;
-    };
+		/*!
+		 *
+		 */
+		ECARD_PROTOCOL getProtocol() {
+			return PROTOCOL_PCSC;
+		};
 };
 
 #endif

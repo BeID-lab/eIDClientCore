@@ -16,61 +16,61 @@
  */
 class ICard
 {
-  private:
-    ICard(
-      const ICard&);
+	private:
+		ICard(
+			const ICard &);
 
-    ICard& operator=(
-      const ICard&);
+		ICard &operator=(
+			const ICard &);
 
-  protected:
-    IReader *m_subSystem;
+	protected:
+		IReader *m_subSystem;
 
-  public:
-    static const unsigned short FID_MF = 0x3F00;
+	public:
+		static const unsigned short FID_MF = 0x3F00;
 
-    /*!
-     *
-     */
-    ICard (
-      IReader* subSystem );
+		/*!
+		 *
+		 */
+		ICard(
+			IReader *subSystem);
 
-    /*!
-     *
-     */
-    virtual ~ICard (
-      void );
+		/*!
+		 *
+		 */
+		virtual ~ICard(
+			void);
 
-	bool selectEF(
+		bool selectEF(
 			unsigned short FID);
 
-	bool selectEF(
+		bool selectEF(
 			unsigned short FID,
 			vector<unsigned char>& fcp);
 
-	bool selectDF(
+		bool selectDF(
 			unsigned short FID);
 
-    bool selectMF(
-            void);
+		bool selectMF(
+			void);
 
-    /*!
-     *
-     */
-    virtual RAPDU sendAPDU(
-      const CAPDU& cmd);
+		/*!
+		 *
+		 */
+		virtual RAPDU sendAPDU(
+			const CAPDU &cmd);
 
-    const IReader *getSubSystem(void) const;
+		const IReader *getSubSystem(void) const;
 
-    // -------------------------------------------------------------------------
-    // Pure virtuals
-    // -------------------------------------------------------------------------
+		// -------------------------------------------------------------------------
+		// Pure virtuals
+		// -------------------------------------------------------------------------
 
-    /*!
-     *
-     */
-    virtual string getCardDescription (
-      void ) = 0;
+		/*!
+		 *
+		 */
+		virtual string getCardDescription(
+			void) = 0;
 
 }; // class ICard
 
