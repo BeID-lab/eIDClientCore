@@ -54,11 +54,11 @@ class ICard
 		bool selectMF(
 			void);
 
-		/*!
-		 *
-		 */
 		virtual RAPDU sendAPDU(
 			const CAPDU &cmd);
+
+		virtual std::vector<RAPDU> sendAPDUs(
+			const std::vector<CAPDU> &cmds);
 
 		const IReader *getSubSystem(void) const;
 

@@ -185,29 +185,20 @@ class IReader
 		// Pure virtuals
 		// -------------------------------------------------------------------------
 
-		/*!
-		 * @brief
-		 */
 		virtual bool open(
 			void) = 0;
 
-		/*!
-		 * @brief
-		 */
 		virtual void close(
 			void) = 0;
 
-		/*!
-		 * @brief
-		 */
 		virtual ICard *getCard(
 			void) = 0;
 
-		/*!
-		 * @brief
-		 */
 		virtual vector<unsigned char> sendAPDU(
 			const vector<unsigned char>& cmd) = 0;
+
+		virtual vector<vector<unsigned char> > sendAPDUs(
+			const vector<vector<unsigned char> > &cmds) = 0;
 
 		/*!
 		 *
