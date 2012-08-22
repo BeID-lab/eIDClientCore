@@ -1,0 +1,531 @@
+2012-08-22  morgnfra
+
+	* [r159] README: added todo list
+
+	* [r158] lib/eCardCore/ICard.cpp, lib/eCardCore/ICard.h,
+	  lib/eCardCore/IReader.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eCardCore/PCSCReader.h, lib/nPA-EAC/nPACommon.cpp: added
+	  logic for transmitting batches of apdus
+
+2012-08-21  morgnfra
+
+	* [r157] bin/Test_nPAClientLib/Test_nPAClientLib.cpp, lib/debug.h,
+	  lib/eCardCore/CardCommand.cpp, lib/eCardCore/CardCommand.h,
+	  lib/eCardCore/ICard.cpp, lib/eCardCore/ICard.h,
+	  lib/eCardCore/ICardDetector.h, lib/eCardCore/IReader.h,
+	  lib/eCardCore/IReaderManager.h, lib/eCardCore/PCSCManager.cpp,
+	  lib/eCardCore/PCSCManager.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eCardCore/PCSCReader.h, lib/eCardCore/eCardTypes.h,
+	  lib/eIDClientConnection/eIDClientConnection.c,
+	  lib/eIDClientConnection/eIDClientConnection.h,
+	  lib/eIDClientConnection/gnutls.c,
+	  lib/eIDClientConnection/socket.c,
+	  lib/eIDClientCore/eIDClientCore.cpp,
+	  lib/eIDClientCore/eIDClientCore.h,
+	  lib/eIDClientCore/eIDECardClient.cpp,
+	  lib/eIDClientCore/eIDECardClient.h,
+	  lib/eIDClientCore/eIDUtils.cpp, lib/eIDClientCore/eIDUtils.h,
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h,
+	  lib/eIDClientCore/nPAClientProtocol.cpp,
+	  lib/eIDClientCore/nPAClientProtocol.h, lib/eidasn1/eIDHelper.h,
+	  lib/nPA-EAC/nPAAPI.h, lib/nPA-EAC/nPACard.cpp,
+	  lib/nPA-EAC/nPACard.h, lib/nPA-EAC/nPACommon.cpp,
+	  lib/nPA-EAC/nPACommon.h, lib/nPA-EAC/nPAStatus.h,
+	  lib/nPA-EAC/nPA_CA.cpp, lib/nPA-EAC/nPA_PACE.cpp,
+	  lib/nPA-EAC/nPA_TA.cpp: astyle --indent-classes --indent-switches
+	  --indent-cases --indent-brackets --indent-blocks
+	  --indent-namespaces --indent-labels --indent-preprocessor
+	  --indent-col1-comments --break-blocks --break-blocks=all
+	  --pad-oper --pad-header --unpad-paren --delete-empty-lines
+	  --convert-tabs --indent=spaces=4 --indent=tab=4
+	  --indent=force-tab=4 -A8 --align-pointer=name --lineend=windows
+
+2012-08-20  morgnfra
+
+	* [r149] AUTHORS, bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/debug.h, lib/eCardCore/CardCommand.cpp,
+	  lib/eCardCore/CardCommand.h, lib/eCardCore/ICard.cpp,
+	  lib/eCardCore/ICard.h, lib/eCardCore/ICardDetector.h,
+	  lib/eCardCore/IReader.h, lib/eCardCore/IReaderManager.h,
+	  lib/eCardCore/PCSCManager.cpp, lib/eCardCore/PCSCManager.h,
+	  lib/eCardCore/PCSCReader.cpp, lib/eCardCore/PCSCReader.h,
+	  lib/eCardCore/eCardStatus.h, lib/eCardCore/eCardTypes.h,
+	  lib/eIDClientConnection/eIDClientConnection.c,
+	  lib/eIDClientConnection/eIDClientConnection.h,
+	  lib/eIDClientConnection/gnutls.c,
+	  lib/eIDClientConnection/socket.c,
+	  lib/eIDClientCore/eIDClientCore.cpp,
+	  lib/eIDClientCore/eIDClientCore.h,
+	  lib/eIDClientCore/eIDECardClient.cpp,
+	  lib/eIDClientCore/eIDECardClient.h,
+	  lib/eIDClientCore/eIDUtils.cpp, lib/eIDClientCore/eIDUtils.h,
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h,
+	  lib/eIDClientCore/nPAClientProtocol.cpp,
+	  lib/eIDClientCore/nPAClientProtocol.h, lib/eidasn1/eIDHelper.h,
+	  lib/eidasn1/eIDOID.h, lib/nPA-EAC/nPAAPI.h,
+	  lib/nPA-EAC/nPACard.cpp, lib/nPA-EAC/nPACard.h,
+	  lib/nPA-EAC/nPACommon.cpp, lib/nPA-EAC/nPACommon.h,
+	  lib/nPA-EAC/nPAStatus.h, lib/nPA-EAC/nPA_CA.cpp,
+	  lib/nPA-EAC/nPA_PACE.cpp, lib/nPA-EAC/nPA_TA.cpp: added copyright
+	  notice
+
+	* [r148] lib/eIDClientCore/eIDClientCore.cpp,
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h: -
+	  removed unused function - catching some exceptions and returning
+	  error codes instead
+
+	* [r147] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eCardCore/CardCommand.cpp, lib/eCardCore/ICard.cpp,
+	  lib/eCardCore/ICard.h, lib/eCardCore/IReader.h,
+	  lib/eCardCore/IReaderManager.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eCardCore/PCSCReader.h,
+	  lib/eIDClientConnection/eIDClientConnection.c,
+	  lib/eIDClientConnection/eIDClientConnection.h,
+	  lib/eIDClientConnection/socket.c,
+	  lib/eIDClientCore/eIDClientCore.cpp,
+	  lib/eIDClientCore/eIDClientCore.h,
+	  lib/eIDClientCore/eIDECardClient.cpp,
+	  lib/eIDClientCore/eIDECardClient.h,
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h,
+	  lib/eIDClientCore/nPAClientProtocol.cpp,
+	  lib/eIDClientCore/nPAClientProtocol.h, lib/nPA-EAC/nPAAPI.h,
+	  lib/nPA-EAC/nPACard.cpp, lib/nPA-EAC/nPACard.h,
+	  lib/nPA-EAC/nPACommon.cpp, lib/nPA-EAC/nPA_CA.cpp,
+	  lib/nPA-EAC/nPA_PACE.cpp, lib/nPA-EAC/nPA_TA.cpp: - fixed many
+	  compiler warnings - removed some unused variables and parameters
+	  - added some checks on variables to avoid segmentation faults -
+	  using size_t instead of int where appropriate
+
+2012-08-14  morgnfra
+
+	* [r144] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eCardCore/IReader.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eIDClientCore/eIDClientCore.cpp,
+	  lib/eIDClientCore/eIDClientCore.h,
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h,
+	  lib/nPA-EAC/nPA_PACE.cpp: extended user input call back
+	  
+	  Service provider information now contains: - certificate
+	  description - name - url - chat - validity perod
+	  
+	  User input now contains: - pin and type of pin - information if a
+	  pin input is required via the client application - approved chat
+	  
+	  client application can now actually recognize the pace
+	  capabilities of a reader
+
+2012-08-13  morgnfra
+
+	* [r143] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eIDClientCore/Makefile.am,
+	  lib/eIDClientCore/eIDClientCore.cpp[CPY],
+	  lib/eIDClientCore/eIDClientCore.def[CPY],
+	  lib/eIDClientCore/eIDClientCore.h[CPY],
+	  lib/eIDClientCore/eIDClientCored.def[CPY],
+	  lib/eIDClientCore/eIDECardClient.cpp[CPY],
+	  lib/eIDClientCore/eIDECardClient.h[CPY],
+	  lib/eIDClientCore/eIDUtils.cpp[CPY],
+	  lib/eIDClientCore/eIDUtils.h[CPY],
+	  lib/eIDClientCore/eIdClientCore.def[DEL],
+	  lib/eIDClientCore/eIdClientCoreLib.cpp[DEL],
+	  lib/eIDClientCore/eIdClientCoreLib.h[DEL],
+	  lib/eIDClientCore/eIdClientCored.def[DEL],
+	  lib/eIDClientCore/eIdECardClient.cpp[DEL],
+	  lib/eIDClientCore/eIdECardClient.h[DEL],
+	  lib/eIDClientCore/eIdUtils.cpp[DEL],
+	  lib/eIDClientCore/eIdUtils.h[DEL],
+	  lib/eIDClientCore/ePAClientProtocol.cpp[DEL],
+	  lib/eIDClientCore/ePAClientProtocol.h[DEL],
+	  lib/eIDClientCore/nPAClient.cpp, lib/eIDClientCore/nPAClient.h,
+	  lib/eIDClientCore/nPAClientProtocol.cpp[CPY],
+	  lib/eIDClientCore/nPAClientProtocol.h[CPY], lib/nPA-EAC/nPAAPI.h,
+	  lib/nPA-EAC/nPACommon.cpp, lib/nPA-EAC/nPA_PACE.cpp: - renamed
+	  files - implemented ePAGetRandom in nPA-EAC, which is used in
+	  eIDClientCore instead of rand()
+
+2012-08-10  morgnfra
+
+	* [r142] lib/eIDClientCore/eIdECardClient.cpp,
+	  lib/eIDClientCore/nPAClient.cpp, lib/nPA-EAC/nPA_PACE.cpp,
+	  lib/nPA-EAC/nPA_TA.cpp: remove assert where possible
+
+	* [r141] lib/eIDClientCore/eIdClientCoreLib.cpp,
+	  lib/eIDClientCore/eIdClientCoreLib.h, lib/nPA-EAC/nPA_PACE.cpp:
+	  using NPACLIENT_HANDLE only internally
+
+	* [r140] bin/Test_nPAClientLib/Test_nPAClientLib.cpp: fixed problem
+	  when opening with visual studio 2010 express
+
+	* [r139] bin/Test_nPAClientLib/Makefile.am, configure.ac,
+	  lib/eIDClientCore/Makefile.am,
+	  lib/eIDClientCore/ePAClientProtocol.h,
+	  lib/eIDClientCore/nPAClient.h, lib/nPA-EAC/Makefile.am,
+	  lib/nPA-EAC/nPAAPI.cpp[DEL]: - deleted nPAAPI.cpp - fixed
+	  Makefile.am's after renaming eCard-API back to eIDClientCore
+
+	* [r138] configure.ac, lib/Makefile.am, lib/eCard-API[DEL],
+	  lib/eIDClientCore[CPY], lib/eIDClientCore/Makefile.am,
+	  lib/eIDClientCore/ePAClientProtocol.cpp[CPY],
+	  lib/eIDClientCore/ePAClientProtocol.h[CPY],
+	  lib/eIDClientCore/nPAClient.cpp[CPY],
+	  lib/eIDClientCore/nPAClient.h, lib/nPA-EAC/nPACard.cpp: renamed
+	  eCard-API to eIDClientCore
+
+2012-08-09  morgnfra
+
+	* [r136] lib/nPA-EAC/nPACard.cpp:
+
+	* [r135] lib/eCard-API/ePAClientProtocol.cpp,
+	  lib/eCard-API/ePAClientProtocol.h, lib/eCard-API/nPAClient.cpp,
+	  lib/eCardCore/PCSCReader.cpp, lib/nPA-EAC/nPAAPI.cpp,
+	  lib/nPA-EAC/nPAAPI.h, lib/nPA-EAC/nPACard.cpp,
+	  lib/nPA-EAC/nPACard.h, lib/nPA-EAC/nPA_PACE.cpp,
+	  lib/nPA-EAC/nPA_TA.cpp: - fixed SM when Le of plain APDU is 3
+	  bytes long - removed C interface of nPA-EAC
+
+2012-08-08  morgnfra
+
+	* [r131] lib/eCard-API/ePAClientProtocol.cpp, lib/nPA-EAC/nPAAPI.h,
+	  lib/nPA-EAC/nPA_CA.cpp, lib/nPA-EAC/nPA_TA.cpp: using ICard
+	  references instead of pointers where possible
+
+	* [r130] lib/eCard-API/ePAClientProtocol.cpp,
+	  lib/eCard-API/ePAClientProtocol.h, lib/eCard-API/nPAClient.cpp,
+	  lib/nPA-EAC/nPAAPI.h, lib/nPA-EAC/nPA_PACE.cpp: removed type
+	  KEY_REFERENCE in favor of PaceInput
+
+2012-08-08  x_schrom
+
+	* [r129] lib/nPA-EAC/nPACommon.h:
+
+2012-08-07  morgnfra
+
+	* [r128] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eCard-API/Makefile.am, lib/eCard-API/eIdClientCoreLib.cpp,
+	  lib/eCard-API/eIdClientCoreLib.h,
+	  lib/eCard-API/eIdECardClient.cpp, lib/eCard-API/eIdECardClient.h,
+	  lib/eCard-API/eIdUtils.h, lib/eCard-API/ePAClientProtocol.cpp,
+	  lib/eCard-API/ePAClientProtocol.h, lib/eCard-API/nPAClient.cpp,
+	  lib/eCard-API/nPAClient.h, lib/eCardCore/CardCommand.h,
+	  lib/eCardCore/Makefile.am, lib/eCardCore/PCSCManager.h,
+	  lib/eCardCore/PCSCReader.h, lib/eCardCore/eCardCore.h[DEL],
+	  lib/eCardCore/eCardTypes.h, lib/nPA-EAC/Makefile.am,
+	  lib/nPA-EAC/nPAAPI.cpp, lib/nPA-EAC/nPAAPI.h,
+	  lib/nPA-EAC/nPACard.cpp, lib/nPA-EAC/nPACard.h,
+	  lib/nPA-EAC/nPACommon.cpp, lib/nPA-EAC/nPACommon.h,
+	  lib/nPA-EAC/nPAStatus.h, lib/nPA-EAC/nPA_CA.cpp,
+	  lib/nPA-EAC/nPA_PACE.cpp, lib/nPA-EAC/nPA_TA.cpp: fixed includes
+
+	* [r126] lib/nPA-EAC/nPACard.cpp, lib/nPA-EAC/nPACommon.cpp,
+	  lib/nPA-EAC/nPACommon.h: moved sm related functions to nPACard
+
+	* [r125] lib/eIDClientConnection/Makefile.am,
+	  lib/eIDClientConnection/eIDClientConnection.c[CPY],
+	  lib/eIDClientConnection/eIDClientConnection.cpp[DEL],
+	  lib/eIDClientConnection/gnutls.c,
+	  lib/eIDClientConnection/socket.c: building eIDClientConnection as
+	  c library
+
+	* [r123] bin/Test_nPAClientLib/Makefile.am, configure.ac,
+	  lib/Makefile.am, lib/eCard-API[CPY], lib/eCard-API/Makefile.am,
+	  lib/eCard-API/eIdECardClient.cpp,
+	  lib/eCard-API/ePAClientProtocol.cpp,
+	  lib/eCard-API/ePAClientProtocol.h, lib/eCard-API/nPAClient.cpp,
+	  lib/epa-api[DEL], lib/nPA-EAC[CPY], lib/nPA-EAC/Makefile.am,
+	  lib/nPA-EAC/ePAAPI.cpp[DEL], lib/nPA-EAC/ePAAPI.h[DEL],
+	  lib/nPA-EAC/ePACard.cpp[DEL], lib/nPA-EAC/ePACard.h[DEL],
+	  lib/nPA-EAC/ePACommon.cpp[DEL], lib/nPA-EAC/ePACommon.h[DEL],
+	  lib/nPA-EAC/ePAStatus.h[DEL], lib/nPA-EAC/ePA_CA.cpp[DEL],
+	  lib/nPA-EAC/ePA_PACE.cpp[DEL], lib/nPA-EAC/ePA_TA.cpp[DEL],
+	  lib/nPA-EAC/nPAAPI.cpp[CPY], lib/nPA-EAC/nPAAPI.h[CPY],
+	  lib/nPA-EAC/nPACard.cpp[CPY], lib/nPA-EAC/nPACard.h[CPY],
+	  lib/nPA-EAC/nPACommon.cpp[CPY], lib/nPA-EAC/nPACommon.h[CPY],
+	  lib/nPA-EAC/nPAStatus.h[CPY], lib/nPA-EAC/nPA_CA.cpp[CPY],
+	  lib/nPA-EAC/nPA_PACE.cpp[CPY], lib/nPA-EAC/nPA_TA.cpp[CPY],
+	  lib/nPAClientECardLib[DEL]: renamed files
+
+2012-08-06  morgnfra
+
+	* [r121] lib/eCardCore/ICard.cpp, lib/eCardCore/ICard.h,
+	  lib/eCardCore/Makefile.am, lib/eCardCore/PCSCManager.cpp,
+	  lib/eCardCore/PCSCReader.cpp, lib/eCardCore/eCardCore.cpp[DEL],
+	  lib/eCardCore/eCardCore.h, lib/epa-api/ePACard.cpp,
+	  lib/epa-api/ePACard.h, lib/epa-api/ePA_PACE.cpp,
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp,
+	  lib/nPAClientECardLib/eIdClientCoreLib.h,
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.h,
+	  lib/nPAClientECardLib/nPAClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.h: removed c interface from
+	  ecardcore
+
+	* [r120] bin/Test_nPAClientLib/Test_nPAClientLib.cpp:
+
+2012-08-03  morgnfra
+
+	* [r119] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eCardCore/ICard.cpp, lib/eCardCore/ICard.h,
+	  lib/eCardCore/IReader.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eCardCore/PCSCReader.h, lib/epa-api/ePACard.cpp,
+	  lib/epa-api/ePACard.h, lib/epa-api/ePA_PACE.cpp,
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp:
+
+2012-08-02  morgnfra
+
+	* [r114] lib/epa-api/ePACommon.cpp, lib/epa-api/ePACommon.h,
+	  lib/epa-api/ePA_PACE.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.cpp:
+
+	* [r113] lib/eCardCore/eCardCore.cpp, lib/eCardCore/eCardCore.h,
+	  lib/epa-api/ePAAPI.cpp, lib/epa-api/ePAAPI.h,
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp,
+	  lib/nPAClientECardLib/nPAClient.cpp: - moved ePASendAPDU to
+	  eCardCore and renamed it to eCardSendAPDU - fixed compiler
+	  warnings
+
+	* [r109] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/Makefile.am, lib/debug.h[ADD],
+	  lib/eCardCore/CardCommand.cpp[ADD], lib/eCardCore/CardCommand.h,
+	  lib/eCardCore/ICard.cpp, lib/eCardCore/ICard.h,
+	  lib/eCardCore/ICardDetector.h, lib/eCardCore/IReader.h,
+	  lib/eCardCore/IReaderManager.h, lib/eCardCore/Makefile.am,
+	  lib/eCardCore/PCSCManager.cpp, lib/eCardCore/PCSCManager.h,
+	  lib/eCardCore/PCSCReader.cpp, lib/eCardCore/PCSCReader.h,
+	  lib/eCardCore/eCardCore.cpp, lib/eCardCore/eCardCore.h,
+	  lib/eCardCore/eCardCore_intern.h[DEL],
+	  lib/eCardCore/eCardTypes.h, lib/epa-api/Makefile.am,
+	  lib/epa-api/ePAAPI.cpp, lib/epa-api/ePAAPI.h,
+	  lib/epa-api/ePAAPI_internal.h[DEL], lib/epa-api/ePACard.cpp,
+	  lib/epa-api/ePACard.h, lib/epa-api/ePACommon.cpp,
+	  lib/epa-api/ePACommon.h, lib/epa-api/ePA_CA.cpp,
+	  lib/epa-api/ePA_PACE.cpp, lib/epa-api/ePA_TA.cpp,
+	  lib/nPAClientECardLib/Makefile.am,
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp,
+	  lib/nPAClientECardLib/eIdClientCoreLib.h,
+	  lib/nPAClientECardLib/eIdECardClient.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.h,
+	  lib/nPAClientECardLib/eIdUtils.cpp,
+	  lib/nPAClientECardLib/eIdUtils.h,
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.h,
+	  lib/nPAClientECardLib/nPAClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.h: - rewrite of eCardCore,
+	  introduces classes for RAPDU and various types of APDUs, which
+	  can be magically encoded - SM is transperently done by the card's
+	  sendAPDU. ePA implements a generic encoding for every possible
+	  APDU. - rewrite of hexdump to avoid licensing problems - replaced
+	  $(ProjectDir) with relative directory - major code clean up -
+	  added debug.h which introduces different debug levels. removed
+	  the various types of other debug implementations. - removed
+	  ECARD_KEYBLOB in favor of using vectors - enabled support for
+	  PACE enabled readers
+
+2012-07-04  dietrfra
+
+	* [r104] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.h:
+
+2012-07-03  morgnfra
+
+	* [r103] lib/eCardCore/PCSCReader.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp:
+
+2012-07-03  dietrfra
+
+	* [r102] bin/Test_nPAClientLib/Test_nPAClientLib.cpp:
+
+2012-07-03  morgnfra
+
+	* [r101] lib/nPAClientECardLib/eIdClientCore.def[ADD],
+	  lib/nPAClientECardLib/eIdClientCoreLib.def[DEL],
+	  lib/nPAClientECardLib/eIdClientCoreLibd.def[DEL],
+	  lib/nPAClientECardLib/eIdClientCored.def[ADD]:
+
+2012-07-02  morgnfra
+
+	* [r98] bin/Test_nPAClientLib/Test_nPAClientLib.cpp: added minimal
+	  error handling in test client
+
+	* [r97] lib/eCardCore/PCSCReader.cpp: fixed integer underflow
+
+	* [r95] lib/eCardCore/PCSCReader.cpp, lib/eCardCore/eCardTypes.h:
+	  added export library for gnutls
+
+	* [r90] bin/Test_nPAClientLib/Test_nPAClientLib.cpp: resolved
+	  inconveniently overloaded parameter type of tolower
+
+	* [r89] lib/eidasn1/GeneralizedTime-putenv.c[ADD]: added missing
+	  file
+
+2012-06-29  morgnfra
+
+	* [r87] lib/eCardCore/PCSCReader.cpp, lib/eCardCore/eCardCore.cpp,
+	  lib/eCardCore/eCardTypes.h,
+	  lib/eIDClientConnection/eIDClientConnection.cpp,
+	  lib/epa-api/ePACommon.cpp, lib/epa-api/ePA_CA.cpp,
+	  lib/epa-api/ePA_PACE.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.cpp: fixed some problems reported
+	  by VC
+
+2012-06-29  dietrfra
+
+	* [r86] bin/Test_nPAClientLib/Test_nPAClientLib.cpp:
+
+2012-06-29  morgnfra
+
+	* [r85] lib/epa-api/ePA_PACE.cpp: minor improvements
+
+2012-06-29  dietrfra
+
+	* [r84] lib/eCardCore/eCardCore.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp:
+
+	* [r83] bin/Test_nPAClientLib/Test_nPAClientLib.cpp:
+
+2012-06-28  morgnfra
+
+	* [r82] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp: fixed clang
+	  warnings
+
+	* [r81] lib/eCardCore/PCSCReader.cpp, lib/eCardCore/eCardCore.cpp:
+	  use fixed length types for PCSC data
+
+	* [r80] lib/eCardCore/PCSCReader.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp: fixed problems
+	  reported by VC
+
+	* [r79] lib/eCardCore/PCSCReader.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.cpp,
+	  lib/eIDClientConnection/socket.c: fixed problems reported by
+	  mingw-64
+
+	* [r78] lib/eCardCore/PCSCReader.cpp: added define for enabling
+	  pace
+
+	* [r77] bin/Test_nPAClientLib/Test_nPAClientLib.cpp,
+	  lib/eCardCore/PCSCReader.cpp, lib/eCardCore/eCardTypes.h,
+	  lib/epa-api/ePAAPI.cpp, lib/epa-api/ePAAPI.h,
+	  lib/epa-api/ePACommon.cpp, lib/epa-api/ePACommon.h,
+	  lib/epa-api/ePA_CA.cpp, lib/epa-api/ePA_PACE.cpp,
+	  lib/epa-api/ePA_TA.cpp, lib/nPAClientECardLib/eIdECardClient.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.h,
+	  lib/nPAClientECardLib/eIdUtils.cpp,
+	  lib/nPAClientECardLib/eIdUtils.h,
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.h,
+	  lib/nPAClientECardLib/nPAClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.h: - removed ByteData,
+	  BYTE_INPUT_DATA, BYTE_OUTPUT_DATA in favor of
+	  std::vector<unsigned char> - unified TA_Step_A,B,C,D in
+	  perform_TA_Step_Set_CAR and perform_TA_Step_Verify_Certificate.
+	  Note that step E could also merged here (TODO)...
+
+2012-06-19  morgnfra
+
+	* [r63] lib/epa-api/ePAAPI.h, lib/epa-api/ePA_TA.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.h,
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.h,
+	  lib/nPAClientECardLib/nPAClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.h: added support for link
+	  certificates (untested)
+
+2012-06-18  morgnfra
+
+	* [r60] lib/eCardCore/IReader.h, lib/eCardCore/PCSCReader.cpp,
+	  lib/eCardCore/PCSCReader.h, lib/eidasn1/Makefile.am,
+	  lib/epa-api/ePAAPI.h, lib/epa-api/ePACard.h,
+	  lib/epa-api/ePA_PACE.cpp,
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp,
+	  lib/nPAClientECardLib/ePAClientProtocol.h,
+	  lib/nPAClientECardLib/nPAClient.cpp,
+	  lib/nPAClientECardLib/nPAClient.h: added support for CAT-S and
+	  CAT-K (untested)
+
+	* [r58] lib/eIDClientConnection/eIDClientConnection.cpp: fixed
+	  signature of my_recv
+
+2012-06-08  morgnfra
+
+	* [r48] lib/eIDClientConnection/eIDClientConnection.cpp,
+	  lib/eIDClientConnection/eIDClientConnection.h,
+	  lib/eIDClientConnection/gnutls.c,
+	  lib/eIDClientConnection/socket.c: added 'const *void const' magic
+	  (... or hell, depending on the point of view)
+
+2012-06-07  morgnfra
+
+	* [r47] AUTHORS[CPY], COPYING[CPY], ChangeLog[CPY],
+	  Makefile.am[ADD], NEWS[CPY], README[CPY], bin/Makefile.am[ADD],
+	  bin/Test_nPAClientLib/Makefile.am[ADD],
+	  bin/Test_nPAClientLib/Test_nPAClientLib.cpp, configure.ac[ADD],
+	  lib/Makefile.am[ADD], lib/eCardCore/CardCommand.h,
+	  lib/eCardCore/Makefile.am[ADD], lib/eCardCore/PCSCManager.cpp,
+	  lib/eCardCore/PCSCReader.h, lib/eCardCore/eCardCore.cpp,
+	  lib/eCardCore/eCardCore.h, lib/eCardCore/eCardTypes.h,
+	  lib/eIDClientConnection/Makefile.am[ADD],
+	  lib/eIDClientConnection/eIDClientConnection.cpp,
+	  lib/eIDClientConnection/gnutls-2.10.2_add_rsa_psk.patch[CPY],
+	  lib/eIDClientConnection/gnutls.c[CPY],
+	  lib/eIDClientConnection/socket.c[CPY],
+	  lib/eidasn1/Makefile.am[ADD], lib/epa-api/Makefile.am[ADD],
+	  lib/epa-api/ePACommon.cpp, lib/epa-api/ePACommon.h,
+	  lib/nPAClientECardLib/Makefile.am[ADD],
+	  lib/nPAClientECardLib/eIdECardClient.cpp,
+	  lib/nPAClientECardLib/eIdECardClient.h,
+	  lib/nPAClientECardLib/eIdUtils.cpp,
+	  lib/nPAClientECardLib/eIdUtils.h,
+	  lib/nPAClientECardLib/nPAClient.h, m4[CPY]: Merged branches
+	  eIDClientCore_GNU_Build_System into trunk
+
+2012-05-16  dietrfra
+
+	* [r35] .[ADD], bin[ADD], bin/Test_nPAClientLib[ADD],
+	  bin/Test_nPAClientLib/Test_nPAClientLib.cpp[ADD], lib[ADD],
+	  lib/eCardCore[ADD], lib/eCardCore/CardCommand.h[ADD],
+	  lib/eCardCore/ICard.cpp[ADD], lib/eCardCore/ICard.h[ADD],
+	  lib/eCardCore/ICardDetector.h[ADD], lib/eCardCore/IReader.h[ADD],
+	  lib/eCardCore/IReaderManager.h[ADD],
+	  lib/eCardCore/PCSCManager.cpp[ADD],
+	  lib/eCardCore/PCSCManager.h[ADD],
+	  lib/eCardCore/PCSCReader.cpp[ADD],
+	  lib/eCardCore/PCSCReader.h[ADD],
+	  lib/eCardCore/eCardCore.cpp[ADD], lib/eCardCore/eCardCore.h[ADD],
+	  lib/eCardCore/eCardCore_intern.h[ADD],
+	  lib/eCardCore/eCardStatus.h[ADD],
+	  lib/eCardCore/eCardTypes.h[ADD], lib/eIDClientConnection[ADD],
+	  lib/eIDClientConnection/eIDClientConnection.cpp[ADD],
+	  lib/eIDClientConnection/eIDClientConnection.def[ADD],
+	  lib/eIDClientConnection/eIDClientConnection.h[ADD],
+	  lib/eIDClientConnection/eIDClientConnectiond.def[ADD],
+	  lib/eidasn1[ADD], lib/eidasn1/definitions[ADD],
+	  lib/eidasn1/definitions/CertificateDesription.asn1[ADD],
+	  lib/eidasn1/definitions/TerminalCertificate.asn1[ADD],
+	  lib/eidasn1/definitions/eIDApplication.asn1[ADD],
+	  lib/eidasn1/definitions/efCardAccess.asn1[ADD],
+	  lib/eidasn1/eIDHelper.h[ADD], lib/eidasn1/eIDOID.h[ADD],
+	  lib/eidasn1/generated[ADD], lib/epa-api[ADD],
+	  lib/epa-api/ePAAPI.cpp[ADD], lib/epa-api/ePAAPI.h[ADD],
+	  lib/epa-api/ePAAPI_internal.h[ADD], lib/epa-api/ePACard.cpp[ADD],
+	  lib/epa-api/ePACard.h[ADD], lib/epa-api/ePACommon.cpp[ADD],
+	  lib/epa-api/ePACommon.h[ADD], lib/epa-api/ePAStatus.h[ADD],
+	  lib/epa-api/ePA_CA.cpp[ADD], lib/epa-api/ePA_PACE.cpp[ADD],
+	  lib/epa-api/ePA_TA.cpp[ADD], lib/nPAClientECardLib[ADD],
+	  lib/nPAClientECardLib/eIdClientCoreLib.cpp[ADD],
+	  lib/nPAClientECardLib/eIdClientCoreLib.def[ADD],
+	  lib/nPAClientECardLib/eIdClientCoreLib.h[ADD],
+	  lib/nPAClientECardLib/eIdClientCoreLibd.def[ADD],
+	  lib/nPAClientECardLib/eIdECardClient.cpp[ADD],
+	  lib/nPAClientECardLib/eIdECardClient.h[ADD],
+	  lib/nPAClientECardLib/eIdUtils.cpp[ADD],
+	  lib/nPAClientECardLib/eIdUtils.h[ADD],
+	  lib/nPAClientECardLib/ePAClientProtocol.cpp[ADD],
+	  lib/nPAClientECardLib/ePAClientProtocol.h[ADD],
+	  lib/nPAClientECardLib/nPAClient.cpp[ADD],
+	  lib/nPAClientECardLib/nPAClient.h[ADD]:
+
