@@ -178,12 +178,12 @@ void CAPDU::appendData(unsigned char b)
 	m_data.push_back(b);
 }
 
-void CAPDU::appendData(const vector<unsigned char> data)
+void CAPDU::appendData(vector<unsigned char>::const_iterator first, vector<unsigned char>::const_iterator last)
 {
-	if (m_data.size() + data.size() > DATA_EXTENDED_MAX)
-		throw(BufferTooLong(m_data.size() + data.size() - DATA_EXTENDED_MAX));
+	if (m_data.size() + distance(first, last) > DATA_EXTENDED_MAX)
+        throw (BufferTooLong(m_data.size() + distance(first, last) - DATA_EXTENDED_MAX));
 
-	m_data.insert(m_data.end(), data.begin(), data.end());
+    m_data.insert(m_data.end(), first, last);
 }
 
 bool CAPDU::isExtended(void) const

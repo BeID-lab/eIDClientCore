@@ -78,8 +78,9 @@ class CAPDU
 		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2, vector<unsigned char> data, size_t ne);
 		CAPDU(const vector<unsigned char> capdu);
 
-		void appendData(unsigned char b);
-		void appendData(const vector<unsigned char> data);
+        void appendData(unsigned char b);
+		//Copies of the elements in the range [first,last) are appended
+		void appendData(vector<unsigned char>::const_iterator first, vector<unsigned char>::const_iterator last);
 
 		bool isExtended(void) const;
 		bool isSecure(void) const;
