@@ -40,6 +40,9 @@ gnutls_disconnect(const void *const driver_data)
 	ssize_t ret;
 	data = (struct gnutls_data *) driver_data;
 
+	if (!data)
+		GNUTLS_CHECK(GNUTLS_E_INTERNAL_ERROR);
+
 	do {
 		ret = gnutls_bye(data->session, GNUTLS_SHUT_RDWR);
 	} while (ret < 0 && gnutls_error_is_fatal(ret) == 0);
@@ -51,6 +54,8 @@ gnutls_disconnect(const void *const driver_data)
 		gnutls_certificate_free_credentials(data->certificate_credentials);
 
 	gnutls_deinit(data->session);
+
+err:
 	gnutls_global_deinit();
 }
 

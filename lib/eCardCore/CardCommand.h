@@ -234,6 +234,14 @@ class ExternalAuthenticate : public SecurityCAPDU
 		ExternalAuthenticate(unsigned char p1, unsigned char p2);
 };
 
+class Verify : public SecurityCAPDU
+{
+	public:
+		static const unsigned char INS_VERIFY = 0x20;
+
+		Verify(unsigned char p1, unsigned char p2);
+};
+
 class RAPDU
 {
 	private:

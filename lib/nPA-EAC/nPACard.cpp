@@ -22,15 +22,18 @@ static std::vector<unsigned char> buildDO8E_AES(
 	const std::vector<unsigned char>& do97,
 	unsigned long long &ssc);
 
-/*
- *
- */
 ePACard::ePACard(
 	IReader *hSubSystem) : ICard(hSubSystem)
 {
 	if (!selectMF()
 		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
 		throw WrongHandle();
+}
+
+ePACard::ePACard(
+	IReader *hSubSystem, const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
+{
+    m_ef_cardaccess = ef_cardaccess;
 }
 
 /*
@@ -356,6 +359,11 @@ void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)
 	m_kEnc = kEnc;
 	m_kMac = kMac;
 	m_ssc = 0;
+}
+
+void ePACard::setSSC(unsigned long long ssc)
+{
+	m_ssc = ssc;
 }
 
 ICard *ePACardDetector::getCard(IReader *reader)

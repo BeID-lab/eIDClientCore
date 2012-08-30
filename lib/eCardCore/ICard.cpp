@@ -11,7 +11,8 @@ ICard::ICard(
 
 ICard::~ICard()
 {
-	m_subSystem->close();
+	if (m_subSystem)
+		m_subSystem->close();
 }
 
 RAPDU ICard::sendAPDU(const CAPDU &cmd)

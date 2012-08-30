@@ -93,7 +93,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 		return EID_CLIENT_CONNECTION_SOCKET_ERROR;
 	}
 
-	if (strcmp(sock->port, "80") != 0 && strcmp(sock->port, "8080") != 0) {
+	if (sock->port && strcmp(sock->port, "80") != 0 && strcmp(sock->port, "8080") != 0) {
 		sock->ssl_tls_driver_data = ssl_tls_driver.connect(sock->fd, (unsigned char *) pskKey, pskKey ? strlen(pskKey) : 0, sid, hostname);
 		sock->secure = 1;
 	}
@@ -136,20 +136,18 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 	if (!sock)
 		return EID_CLIENT_CONNECTION_INVALID_HANDLE;
 
-#ifdef _WIN32
-
-	////////////////////////////
-	// this hack is nesassary in case of unsecured connections to apache httpd due to error WSAECONNABORTED (10053) occured
-	//
-	// TCP/IP scenario: A connection will timeout if the local system doesn't receive an (ACK)nowledgement for data sent.
-	// It would also timeout if a (FIN)ish TCP packet is not ACK'd (and even if the FIN is ACK'd, it will eventually timeout if a FIN is not returned).
+    /* HTTP requires sockets to be closed after each successfull transmit. So
+     * we have to reconnect here. */
 	if (0x00 == sock->secure) {
 		my_closesocket(sock->fd);
 		sock->fd = my_connectsocket(sock->hostname, sock->port);
+
+        if (sock->fd == -1) {
+            eIDClientConnectionEnd((EIDCLIENT_CONNECTION_HANDLE) sock);
+            return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+        }
 	}
 
-	////////////////////////////
-#endif
 	memset(bufResult, 0x00, nBufResultLength);
 	ret = my_send(sock, data, strlen(data));
 	ret = my_recv(sock, bufResult, nBufResultLength);

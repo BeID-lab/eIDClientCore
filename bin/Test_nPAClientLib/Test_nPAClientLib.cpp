@@ -170,13 +170,17 @@ class URL
 {
 	public:
 		URL(const char *url) {
-			parse_url(url);
+			if (!parse_url(url))
+				_valid = false;
+			else
+				_valid = true;
 		}
 
 		string  _scheme;
 		string  _hostname;
 		string  _port;
 		string  _path;
+		bool _valid;
 
 		bool parse_url(const char *str, const char *default_port = "80") {
 			if (!str || !*str)
@@ -265,14 +269,15 @@ getSamlResponseThread(void *lpParam)
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += sz;
-			strResult = strResult.substr(strResult.find("<html"));
-
+			size_t found = strResult.find("<html");
+			if (found != string::npos)
+				strResult.substr(found);
 		} else {
-			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+			//std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		}
 
 	} else {
-		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		//std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 	}
 
 	connection_status = eIDClientConnectionEnd(connection);
@@ -366,7 +371,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 	}
 }
 
-static string p("123456");
+static string p("111111");
 static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
@@ -458,13 +463,16 @@ int getAuthenticationParams(const char *const cServerName,
 
 	CeIdObject      eIdObject;
 	eIdObject.GetParams(strResult);
-	cout << "Action is\t" << eIdObject.m_strAction.c_str() << endl;
-	cout << "Method is\t" << eIdObject.m_strMethod.c_str() << endl;
-	cout << "SAMLRequest is\t" << eIdObject.m_strSAMLRequest.c_str() << endl;
-	cout << "SigAlg is\t" << eIdObject.m_strSigAlg.c_str() << endl;
-	cout << "Signature is\t" << eIdObject.m_strSignature.c_str() << endl;
-	cout << "RelayState is\t" << eIdObject.m_strRelayState.c_str() << endl;
+	cout << "Action\t\t" << eIdObject.m_strAction.c_str() << endl;
+	cout << "Method\t\t" << eIdObject.m_strMethod.c_str() << endl;
+	cout << "SAMLRequest\t" << eIdObject.m_strSAMLRequest.c_str() << endl;
+	cout << "SigAlg\t" << eIdObject.m_strSigAlg.c_str() << endl;
+	cout << "Signature\t" << eIdObject.m_strSignature.c_str() << endl;
+	cout << "RelayState\t" << eIdObject.m_strRelayState.c_str() << endl;
 	URL urlIDP(eIdObject.m_strAction.c_str());
+	if (!urlIDP._valid)
+		return 0;
+
 	string strContentType = "Content-Type: application/x-www-form-urlencoded";
 	string strData = "SAMLRequest=";
 	strData += eIdObject.m_strSAMLRequest;
@@ -532,16 +540,17 @@ int getAuthenticationParams(const char *const cServerName,
 	string response2 = strResult;
 	response2 = str_replace("<PSK>", "", response2);
 	response2 = str_replace("</PSK>", "", response2);
-	response2 = str_replace("&uuml;", "�", response2);
-	response2 = str_replace("&ouml;", "�", response2);
+	response2 = str_replace("&uuml;", "ü", response2);
+	response2 = str_replace("&ouml;", "ö", response2);
 	eIdObject.GetParams(response2);
 	strIdpAddress = eIdObject.m_strServerAddress;
 	strSessionIdentifier = eIdObject.m_strSessionID;
 	strPathSecurityParameters = eIdObject.m_strPSK;
-	cout << "IdpAddress is\t" + strIdpAddress << std::endl;
-	cout << "SessionIdentifier is\t" + strSessionIdentifier << std::endl;
-	cout << "PathSecurityParameters is\t" + strPathSecurityParameters << std::endl;
 	strRefresh = eIdObject.m_strRefreshAddress;
+	cout << "IdpAddress\t" + strIdpAddress << std::endl;
+	cout << "SessionID\t" + strSessionIdentifier << std::endl;
+	cout << "PSK\t\t" + strPathSecurityParameters << std::endl;
+	cout << "RefreshAddress\t" + strRefresh << std::endl;
 	return 0;
 }
 
@@ -560,11 +569,10 @@ int main(int argc, char **argv)
 		string strSessionIdentifier("");
 		string strPathSecurityParameters("");
 		string strRef("");
-		//getAuthenticationParams("172.20.112.109", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+        getAuthenticationParams("172.20.112.114", "80", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+		//getAuthenticationParams("localhost", "80", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		//getAuthenticationParams("eid.innovation.bdr", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		//  getAuthenticationParams("elanpa:bibuha86@elanpa.fokus.fraunhofer.de", "443", "/wahl/register", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		//  getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+        //getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);

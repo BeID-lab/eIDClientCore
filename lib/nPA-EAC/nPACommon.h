@@ -63,4 +63,11 @@ std::string getCAR(
 std::string getCHR(
 	const std::vector<unsigned char>& certificate);
 
+std::vector<unsigned char> generate_PrK_IFD_DHx(void);
+
+ECP::Point calculate_PuK_IFD_DH1(
+	const std::vector<unsigned char>& PrK_IFD_DH1);
+
+std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, bool generateMac);
+
 #endif

@@ -548,7 +548,6 @@ void eIdECardClient::WritePAOS_Response(::stringstream &oss, stringstream &ss, c
 	oss << "</S:Header>";
 	oss << "<S:Body>" << ss.str() << "</S:Body>";
 	oss << "</S:Envelope>";
-	string strTest = oss.str();
 }
 
 void eIdECardClient::WriteStartPaos(::stringstream &oss, const string &strSessionID)

@@ -359,6 +359,10 @@ ExternalAuthenticate::ExternalAuthenticate(unsigned char p1, unsigned char p2)
 	: SecurityCAPDU(INS_EXTERNAL_AUTHENTICATE, p1, p2)
 { }
 
+Verify::Verify(unsigned char p1, unsigned char p2)
+	: SecurityCAPDU(INS_VERIFY, p1, p2)
+{ }
+
 RAPDU::RAPDU(const vector<unsigned char> rapdu)
 {
 	if (rapdu.size() < 2) {
