@@ -593,7 +593,10 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 		return ECARD_PACE_STEP_F_FAILED;
 
 	std::vector<unsigned char> data_ = rapdu.getData();
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> Last PACE result", &data_[0], data_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> Last PACE result", data_.data(), data_.size());
+
+    if (data_.size() < 14 || data_.size() < 14 + data_[13])
+		return ECARD_PACE_STEP_F_FAILED;
 
 	for (size_t i = 4; i < 12; i++) {
 		if (macedPuk_IFD_DH2[i - 4] != data_[i])
