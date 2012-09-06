@@ -155,155 +155,6 @@ ECP::Point calculate_KIFD_ICC(
 	return kifd_icc_;
 }
 
-std::vector<unsigned char> generate_PuK_ICC_DH2(
-	const ECP::Point &PuK_ICC_DH2)
-{
-	std::vector<unsigned char> result_;
-	std::vector<unsigned char> xDH2_;
-	xDH2_.resize(PuK_ICC_DH2.x.ByteCount());
-	std::vector<unsigned char> yDH2_;
-	yDH2_.resize(PuK_ICC_DH2.y.ByteCount());
-	PuK_ICC_DH2.x.Encode(&xDH2_[0], PuK_ICC_DH2.x.ByteCount());
-	PuK_ICC_DH2.y.Encode(&yDH2_[0], PuK_ICC_DH2.y.ByteCount());
-	std::vector<unsigned char> tempResult_;
-	size_t fillerX_ = 0;
-
-	if (32 >= xDH2_.size())
-		fillerX_ = 32 - xDH2_.size();
-
-	size_t fillerY_ = 0;
-
-	if (32 >= yDH2_.size())
-		fillerY_ = 32 - yDH2_.size();
-
-	// Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-	tempResult_.push_back(0x86);
-	tempResult_.push_back((unsigned char)(xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1));
-	tempResult_.push_back(0x04);
-
-	for (size_t i = 0; i < fillerX_; i++)
-		tempResult_.push_back(0x00);
-
-	for (size_t i = 0; i < xDH2_.size(); i++)
-		tempResult_.push_back(xDH2_[i]);
-
-	for (size_t i = 0; i < fillerY_; i++)
-		tempResult_.push_back(0x00);
-
-	for (size_t i = 0; i < yDH2_.size(); i++)
-		tempResult_.push_back(yDH2_[i]);
-
-	result_.push_back(0x7f);
-	result_.push_back(0x49);
-
-	if (tempResult_.size() <= 0x80) {
-		result_.push_back((unsigned char) tempResult_.size() + 12);
-
-	} else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF) {
-		result_.push_back(0x81);
-		result_.push_back((unsigned char)(tempResult_.size() + 12));
-
-	} else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF) {
-		result_.push_back(0x82);
-		result_.push_back((tempResult_.size() + 12 & 0xFF00) >> 8);
-		result_.push_back(tempResult_.size() + 12 & 0xFF);
-	}
-
-	result_.push_back(0x06);
-	result_.push_back(0x0a);
-	result_.push_back(0x04);
-	result_.push_back(0x00);
-	result_.push_back(0x7f);
-	result_.push_back(0x00);
-	result_.push_back(0x07);
-	result_.push_back(0x02);
-	result_.push_back(0x02);
-	result_.push_back(0x04);
-	result_.push_back(0x02);
-	result_.push_back(0x02);
-
-	for (size_t i = 0; i < tempResult_.size(); i++)
-		result_.push_back(tempResult_[i]);
-
-	return result_;
-}
-
-/*
- *
- */
-std::vector<unsigned char> generate_PuK_IFD_DH2(
-	const ECP::Point &PuK_IFD_DH2)
-{
-	std::vector<unsigned char> result_;
-	std::vector<unsigned char> xDH2_;
-	xDH2_.resize(PuK_IFD_DH2.x.ByteCount());
-	std::vector<unsigned char> yDH2_;
-	yDH2_.resize(PuK_IFD_DH2.y.ByteCount());
-	PuK_IFD_DH2.x.Encode(&xDH2_[0], PuK_IFD_DH2.x.ByteCount());
-	PuK_IFD_DH2.y.Encode(&yDH2_[0], PuK_IFD_DH2.y.ByteCount());
-	size_t fillerX_ = 0;
-
-	if (32 >= xDH2_.size())
-		fillerX_ = 32 - xDH2_.size();
-
-	size_t fillerY_ = 0;
-
-	if (32 >= yDH2_.size())
-		fillerY_ = 32 - yDH2_.size();
-
-	std::vector<unsigned char> tempResult_;
-	// Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-	tempResult_.push_back(0x86);
-	tempResult_.push_back((unsigned char)(xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1));
-	tempResult_.push_back(0x04);
-
-	for (size_t i = 0; i < fillerX_; i++)
-		tempResult_.push_back(0x00);
-
-	for (size_t i = 0; i < xDH2_.size(); i++)
-		tempResult_.push_back(xDH2_[i]);
-
-	for (size_t i = 0; i < fillerY_; i++)
-		tempResult_.push_back(0x00);
-
-	for (size_t i = 0; i < yDH2_.size(); i++)
-		tempResult_.push_back(yDH2_[i]);
-
-	result_.push_back(0x7f);
-	result_.push_back(0x49);
-
-	if (tempResult_.size() <= 0x80) {
-		result_.push_back((unsigned char)(tempResult_.size() + 12));
-
-	} else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF) {
-		result_.push_back(0x81);
-		result_.push_back((unsigned char)(tempResult_.size() + 12));
-
-	} else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF) {
-		result_.push_back(0x82);
-		result_.push_back((tempResult_.size() + 12 & 0xFF00) >> 8);
-		result_.push_back(tempResult_.size() + 12 & 0xFF);
-	}
-
-	result_.push_back(0x06);
-	result_.push_back(0x0a);
-	result_.push_back(0x04);
-	result_.push_back(0x00);
-	result_.push_back(0x7f);
-	result_.push_back(0x00);
-	result_.push_back(0x07);
-	result_.push_back(0x02);
-	result_.push_back(0x02);
-	result_.push_back(0x04);
-	result_.push_back(0x02);
-	result_.push_back(0x02);
-
-	for (size_t i = 0; i < tempResult_.size(); i++)
-		result_.push_back(tempResult_[i]);
-
-	return result_;
-}
-
 /*
  * This function performs step B of the PACE protocol
  */
@@ -739,9 +590,9 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		if (y_Puk_ICC_DH2_.size() != 0x20)
 			y_Puk_ICC_DH2_.insert(y_Puk_ICC_DH2_.begin(), 0x00);
 
-		std::vector<unsigned char> toBeMaced_PuK_ICC_DH2_ = generate_PuK_ICC_DH2(
+		std::vector<unsigned char> toBeMaced_PuK_ICC_DH2_ = generate_compressed_PuK(
 					PuK_ICC_DH2_);
-		std::vector<unsigned char> toBeMaced_PuK_IFD_DH2_ = generate_PuK_IFD_DH2(
+		std::vector<unsigned char> toBeMaced_PuK_IFD_DH2_ = generate_compressed_PuK(
 					PuK_IFD_DH2_);
 		std::string car_cvca_;
 

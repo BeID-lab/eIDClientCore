@@ -31,21 +31,6 @@
 USING_NAMESPACE(CryptoPP)
 
 /**
- * Verifies the MAC of an secure messaging RAPDU.
- */
-bool verifyResponse_AES(
-	const std::vector<unsigned char>& kMac,
-	const std::vector<unsigned char>& dataPart,
-	unsigned long long &ssc);
-
-/**
- */
-std::vector<unsigned char> decryptResponse_AES(
-	std::vector<unsigned char>& kEnc,
-	const std::vector<unsigned char>& returnedData,
-	unsigned long long ssc);
-
-/**
  */
 std::vector<unsigned char> calculateMAC(
 	const std::vector<unsigned char>& toBeMaced,
@@ -69,5 +54,7 @@ ECP::Point calculate_PuK_IFD_DH1(
 	const std::vector<unsigned char>& PrK_IFD_DH1);
 
 std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, bool generateMac);
+
+std::vector<unsigned char> generate_compressed_PuK(const ECP::Point &PuK_IFD_DH2);
 
 #endif

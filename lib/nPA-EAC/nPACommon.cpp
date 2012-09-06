@@ -22,173 +22,8 @@
 #endif
 
 
-/*
- * Verify the response of an Secure Messaging APDU according to
- * PKI for Machine Readable Travel Documents offering ICC read-only access
- * Release : 1.1
- * Date : October 01, 2004
- */
-bool verifyResponse_AES(
-	const std::vector<unsigned char>& kMac,
-	const std::vector<unsigned char>& dataPart,
-	unsigned long long &ssc)
-{
-	if (0x00 == dataPart.size())
-		return false;
-
-	// Store the SSC as vector.
-	std::vector<unsigned char> ssc_;
-
-	for (size_t i = 0; i < kMac.size() - 8; i++)
-		ssc_.push_back(0x00);
-
-	ssc_.push_back((ssc << 56) & 0xFF);
-	ssc_.push_back((ssc << 48) & 0xFF);
-	ssc_.push_back((ssc << 40) & 0xFF);
-	ssc_.push_back((ssc << 32) & 0xFF);
-	ssc_.push_back((ssc << 24) & 0xFF);
-	ssc_.push_back((ssc << 16) & 0xFF);
-	ssc_.push_back((ssc << 8) & 0xFF);
-	ssc_.push_back(ssc & 0xFF);
-	// Increment the SSC
-	Integer issc(&ssc_[0], kMac.size());
-	issc += 1;
-	// The data buffer for the computations.
-	std::vector<unsigned char> vssc;
-	vssc.resize(kMac.size());
-	issc.Encode(&vssc[0], kMac.size());
-	// Set the SSC to the new value.
-	// {
-	issc.Encode(&ssc_[0], kMac.size()); // Encode the incremented value to ssc_
-	ssc = 0;                  // Clear the old value.
-	// Shift the new value to ssc.
-	ssc += (unsigned long long) ssc_[8] << 56;
-	ssc += (unsigned long long) ssc_[9] << 48;
-	ssc += (unsigned long long) ssc_[10] << 40;
-	ssc += (unsigned long long) ssc_[11] << 32;
-	ssc += (unsigned long long) ssc_[12] << 24;
-	ssc += (unsigned long long) ssc_[13] << 16;
-	ssc += (unsigned long long) ssc_[14] << 8;
-	ssc += (unsigned long long) ssc_[15];
-	// }
-
-	// Check for the right types of data
-	if (dataPart[0] != 0x99 && dataPart[0] != 0x87) {
-#if defined(WIN32) && !defined(_WIN32_WCE)
-		OutputDebugStringA("Verify MAC failed! Invalid data format!");
-#endif
-		return false;
-	}
-
-	// ?? Should we check here for the ISO padding byte if dataPart[0] == 0x87 ??
-
-	// Copy all excluding the MAC value
-	for (size_t i = 0; i < dataPart.size() - 10; i++)
-		vssc.push_back(dataPart[i]);
-
-	// Append padding
-	vssc.push_back(0x80);
-
-	while (vssc.size() % kMac.size())
-		vssc.push_back(0x00);
-
-	std::vector<unsigned char> kMac_;
-
-	for (size_t i = 0; i < kMac.size(); i++)
-		kMac_.push_back(kMac[i]);
-
-	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);
-
-	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
-	if (memcmp(&dataPart[dataPart.size() - 8], &calculatedMAC_[0], 8)) {
-		return false; // Hmmm ... That should not happen
-	}
-
-	return true;
-}
 
 
-/**
- * @brief Decrypt the response.
- */
-std::vector<unsigned char> decryptResponse_AES(
-	std::vector<unsigned char>& kEnc,
-	const std::vector<unsigned char>& returnedData,
-	unsigned long long ssc)
-{
-	std::vector<unsigned char> result_;
-
-	if (returnedData[0] == 0x87) {
-		size_t len = 0;
-		int offset = 0;
-
-		if (0x81 == returnedData[1]) {
-			len = returnedData[2];
-			offset = 4;
-
-		} else if (0x82 == returnedData[1]) {
-			len = returnedData[2] << 8;
-			len += returnedData[3];
-			offset = 5;
-
-		} else {
-			len = returnedData[1];
-			offset = 3;
-		}
-
-		// Build the IV
-		std::vector<unsigned char> ssc_;
-
-		for (size_t i = 0; i < 8; i++)
-			ssc_.push_back(0x00);
-
-		ssc_.push_back((ssc << 56) & 0xFF);
-		ssc_.push_back((ssc << 48) & 0xFF);
-		ssc_.push_back((ssc << 40) & 0xFF);
-		ssc_.push_back((ssc << 32) & 0xFF);
-		ssc_.push_back((ssc << 24) & 0xFF);
-		ssc_.push_back((ssc << 16) & 0xFF);
-		ssc_.push_back((ssc << 8) & 0xFF);
-		ssc_.push_back(ssc & 0xFF);
-		std::vector<unsigned char> calculatedIV_;
-		CBC_Mode<AES>::Encryption AESCBC_encryption;
-
-		if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
-			return calculatedIV_; // Wen can return here because the resulting vector is empty.
-
-		// This will be checked by the caller.
-		unsigned char iv_[] = {
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-		};
-		calculatedIV_.resize(kEnc.size());
-		AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
-		AESCBC_encryption.ProcessData(&calculatedIV_[0], &ssc_[0], ssc_.size());
-		CBC_Mode<AES>::Decryption AESCBC_decryption;
-		std::vector<unsigned char> decrypted;
-		decrypted.resize(len - 1);
-		AESCBC_decryption.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
-		AESCBC_decryption.ProcessData(&decrypted[0], &returnedData[offset], len - 1);
-		size_t padOffset = 0;
-
-		for (size_t i = decrypted.size() - 1; i > 0; i--) {
-			if (decrypted[i] == 0x80) {
-				padOffset = i;
-				break;
-			}
-		}
-
-		// We have to check if padding was found!? If not we have an error while decryption???
-
-		for (size_t i = 0; i < padOffset; i++)
-			result_.push_back(decrypted[i]);
-	}
-
-	return result_;
-}
-
-/**
- */
 std::vector<unsigned char> calculateMAC(
 	const std::vector<unsigned char>& toBeMaced,
 	const std::vector<unsigned char>& kMac)
@@ -203,9 +38,6 @@ std::vector<unsigned char> calculateMAC(
 	return result_;
 }
 
-/*
- *
- */
 std::string getCAR(
 	const std::vector<unsigned char>& certificate)
 {
@@ -228,9 +60,6 @@ std::string getCAR(
 	return car_;
 }
 
-/*
- *
- */
 std::string getCHR(
 	const std::vector<unsigned char>& certificate)
 {
@@ -326,4 +155,78 @@ std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, b
   result.resize(16);  
 
   return result;
+}
+
+std::vector<unsigned char> generate_compressed_PuK(
+	const ECP::Point &PuK_IFD_DH2)
+{
+	std::vector<unsigned char> result_;
+	std::vector<unsigned char> xDH2_;
+	xDH2_.resize(PuK_IFD_DH2.x.ByteCount());
+	std::vector<unsigned char> yDH2_;
+	yDH2_.resize(PuK_IFD_DH2.y.ByteCount());
+	PuK_IFD_DH2.x.Encode(&xDH2_[0], PuK_IFD_DH2.x.ByteCount());
+	PuK_IFD_DH2.y.Encode(&yDH2_[0], PuK_IFD_DH2.y.ByteCount());
+	size_t fillerX_ = 0;
+
+	if (32 >= xDH2_.size())
+		fillerX_ = 32 - xDH2_.size();
+
+	size_t fillerY_ = 0;
+
+	if (32 >= yDH2_.size())
+		fillerY_ = 32 - yDH2_.size();
+
+	std::vector<unsigned char> tempResult_;
+	// Build 86||L||04||x(G')||y(G') (G' == temporary base point)
+	tempResult_.push_back(0x86);
+	tempResult_.push_back((unsigned char)(xDH2_.size() + fillerX_ + yDH2_.size() + fillerY_ + 1));
+	tempResult_.push_back(0x04);
+
+	for (size_t i = 0; i < fillerX_; i++)
+		tempResult_.push_back(0x00);
+
+	for (size_t i = 0; i < xDH2_.size(); i++)
+		tempResult_.push_back(xDH2_[i]);
+
+	for (size_t i = 0; i < fillerY_; i++)
+		tempResult_.push_back(0x00);
+
+	for (size_t i = 0; i < yDH2_.size(); i++)
+		tempResult_.push_back(yDH2_[i]);
+
+	result_.push_back(0x7f);
+	result_.push_back(0x49);
+
+	if (tempResult_.size() <= 0x80) {
+		result_.push_back((unsigned char)(tempResult_.size() + 12));
+
+	} else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF) {
+		result_.push_back(0x81);
+		result_.push_back((unsigned char)(tempResult_.size() + 12));
+
+	} else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF) {
+		result_.push_back(0x82);
+		result_.push_back((tempResult_.size() + 12 & 0xFF00) >> 8);
+		result_.push_back(tempResult_.size() + 12 & 0xFF);
+	}
+
+	// FIXME make the OID an input parameter to be usable for CA
+	result_.push_back(0x06);
+	result_.push_back(0x0a);
+	result_.push_back(0x04);
+	result_.push_back(0x00);
+	result_.push_back(0x7f);
+	result_.push_back(0x00);
+	result_.push_back(0x07);
+	result_.push_back(0x02);
+	result_.push_back(0x02);
+	result_.push_back(0x04);
+	result_.push_back(0x02);
+	result_.push_back(0x02);
+
+	for (size_t i = 0; i < tempResult_.size(); i++)
+		result_.push_back(tempResult_[i]);
+
+	return result_;
 }
