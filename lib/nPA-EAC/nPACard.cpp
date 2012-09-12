@@ -224,7 +224,7 @@ static std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> mac;
 	mac.resize(8);
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
-	// Do padding on data
+	// Do padding on APDU header
 	data_.push_back(0x80);
 
 	while (data_.size() % kMac.size())
@@ -237,6 +237,14 @@ static std::vector<unsigned char> buildDO8E_AES(
 	// Append the DO97 data
 	for (size_t u = 0; u < do97.size(); u++)
 		data_.push_back(do97[u]);
+
+	// Append padding to data part
+	if (!do97.empty() || !do87.empty()) {
+		data_.push_back(0x80);
+
+		while (data_.size() % kMac.size())
+			data_.push_back(0x00);
+	}
 
 	std::vector<unsigned char> ssc_;
 
@@ -268,11 +276,6 @@ static std::vector<unsigned char> buildDO8E_AES(
 
 	for (size_t t = 0; t < data_.size(); t++)
 		vssc.push_back(data_[t]);
-
-	vssc.push_back(0x80);
-
-	while (vssc.size() % kMac.size())
-		vssc.push_back(0x00);
 
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
