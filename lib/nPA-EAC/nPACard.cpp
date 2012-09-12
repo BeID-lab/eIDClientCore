@@ -227,7 +227,7 @@ static std::vector<unsigned char> buildDO8E_AES(
 	// Do padding on APDU header
 	data_.push_back(0x80);
 
-	while (data_.size() % kMac.size())
+	while (data_.size() % AES::BLOCKSIZE)
 		data_.push_back(0x00);
 
 	// Append the DO87 data
@@ -242,7 +242,7 @@ static std::vector<unsigned char> buildDO8E_AES(
 	if (!do97.empty() || !do87.empty()) {
 		data_.push_back(0x80);
 
-		while (data_.size() % kMac.size())
+		while (data_.size() % AES::BLOCKSIZE)
 			data_.push_back(0x00);
 	}
 
@@ -259,11 +259,11 @@ static std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(&ssc_[0], kMac.size());
+	Integer issc(&ssc_[0], AES::BLOCKSIZE);
 	std::vector<unsigned char> vssc;
-	vssc.resize(kMac.size());
-	issc.Encode(&vssc[0], kMac.size());
-	issc.Encode(&ssc_[0], kMac.size());
+	vssc.resize(AES::BLOCKSIZE);
+	issc.Encode(&vssc[0], AES::BLOCKSIZE);
+	issc.Encode(&ssc_[0], AES::BLOCKSIZE);
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
@@ -305,7 +305,7 @@ bool verifyResponse_AES(
 	// Store the SSC as vector.
 	std::vector<unsigned char> ssc_;
 
-	for (size_t i = 0; i < kMac.size() - 8; i++)
+	for (size_t i = 0; i < AES::BLOCKSIZE - 8; i++)
 		ssc_.push_back(0x00);
 
 	ssc_.push_back((ssc << 56) & 0xFF);
@@ -317,14 +317,14 @@ bool verifyResponse_AES(
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
 	// Increment the SSC
-	Integer issc(&ssc_[0], kMac.size());
+	Integer issc(&ssc_[0], AES::BLOCKSIZE);
 	// The data buffer for the computations.
 	std::vector<unsigned char> vssc;
-	vssc.resize(kMac.size());
-	issc.Encode(&vssc[0], kMac.size());
+	vssc.resize(AES::BLOCKSIZE);
+	issc.Encode(&vssc[0], AES::BLOCKSIZE);
 	// Set the SSC to the new value.
 	// {
-	issc.Encode(&ssc_[0], kMac.size()); // Encode the incremented value to ssc_
+	issc.Encode(&ssc_[0], AES::BLOCKSIZE); // Encode the incremented value to ssc_
 	ssc = 0;                  // Clear the old value.
 	// Shift the new value to ssc.
 	ssc += (unsigned long long) ssc_[8] << 56;
@@ -351,12 +351,12 @@ bool verifyResponse_AES(
 	// Append padding
 	vssc.push_back(0x80);
 
-	while (vssc.size() % kMac.size())
+	while (vssc.size() % AES::BLOCKSIZE)
 		vssc.push_back(0x00);
 
 	std::vector<unsigned char> kMac_;
 
-	for (size_t i = 0; i < kMac.size(); i++)
+	for (size_t i = 0; i < AES::BLOCKSIZE; i++)
 		kMac_.push_back(kMac[i]);
 
 	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);
