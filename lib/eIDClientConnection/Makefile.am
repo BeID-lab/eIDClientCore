@@ -44,7 +44,7 @@ $(GNUTLS_DIR)/lib/auth_rsa_psk.c: $(GNUTLS_DIR)/configure.ac
 
 $(GNUTLS): $(GNUTLS_DIR)/lib/auth_rsa_psk.c
 	cd $(GNUTLS_DIR)/lib && $(AUTORECONF)
-	cd $(GNUTLS_DIR)/lib && ./configure --enable-static --with-pic
+	cd $(GNUTLS_DIR)/lib && ./configure --enable-static --with-pic --without-zlib
 	$(MAKE) -C $(GNUTLS_DIR)/lib
 
 # building libgnutls also generates gnutls/gnutls.h
