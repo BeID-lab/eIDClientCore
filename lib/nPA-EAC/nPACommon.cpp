@@ -141,7 +141,6 @@ std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, b
 
   SHA1 H;
 
-  // Hash the full password
   H.Update(&input[0], input.size());
 
   if (true == generateMac)

@@ -6,15 +6,11 @@
 #include "nPACommon.h"
 using namespace Bundesdruckerei::nPA;
 
-/**
- */
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,
 	const std::vector<unsigned char>& data,
 	unsigned long long ssc);
 
-/**
- */
 static std::vector<unsigned char> buildDO8E_AES(
 	const std::vector<unsigned char>& kMac,
 	const std::vector<unsigned char>& data,
@@ -46,9 +42,6 @@ ePACard::ePACard(
     m_ef_cardaccess = ef_cardaccess;
 }
 
-/*
- *
- */
 string ePACard::getCardDescription(
 	void)
 {
@@ -77,9 +70,6 @@ bool ePACard::selectMF(
 	return response.isOK();
 }
 
-/*
- *
- */
 bool ePACard::selectEF(
 	unsigned short FID)
 {
@@ -99,9 +89,6 @@ bool ePACard::selectEF(
 	return response.isOK();
 }
 
-/*
- *
- */
 bool ePACard::selectDF(
 	unsigned short FID)
 {
@@ -110,9 +97,6 @@ bool ePACard::selectDF(
 	return response.isOK();
 }
 
-/*
- *
- */
 bool ePACard::readFile(
 	unsigned char sfid,
 	size_t size,
@@ -151,7 +135,6 @@ static std::vector<unsigned char> buildDO87_AES(
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
-	// Build the IV
 	std::vector<unsigned char> ssc_;
 
 	for (int i = 0; i < 8; i++)
@@ -173,9 +156,8 @@ static std::vector<unsigned char> buildDO87_AES(
 	CBC_Mode<AES>::Encryption AESCBC_encryption;
 
 	if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
-		return calculatedIV_; // Wen can return here because the resulting vector is empty.
+		return calculatedIV_;
 
-	// This will be checked by the caller.
 	calculatedIV_.resize(kEnc.size());
 	AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
 	AESCBC_encryption.ProcessData(&calculatedIV_[0], &vssc[0], vssc.size());
@@ -185,7 +167,7 @@ static std::vector<unsigned char> buildDO87_AES(
 	AESCBC_encryption1.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
 	AESCBC_encryption1.ProcessData(&encryptedData_[0], &data_[0], data_.size());
 	do87.push_back(0x87);
-	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of 0x01 before content see below "do87.push_back(0x01);"
+	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of padding content indicator
 
 	if (encryptedSize <= 0x80) {
 		do87.push_back((unsigned char) encryptedSize);
@@ -208,12 +190,7 @@ static std::vector<unsigned char> buildDO87_AES(
 
 	return do87;
 }
-/*
- * Build up the DO8E Part of an Secure Messaging APDU according to
- * PKI for Machine Readable Travel Documents offering ICC read-only access
- * Release : 1.1
- * Date : October 01, 2004
- */
+
 static std::vector<unsigned char> buildDO8E_AES(
 	const std::vector<unsigned char>& kMac,
 	const std::vector<unsigned char>& data,
@@ -224,9 +201,9 @@ static std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> mac;
 	mac.resize(8);
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
+
 	// Do padding on APDU header
 	data_.push_back(0x80);
-
 	while (data_.size() % AES::BLOCKSIZE)
 		data_.push_back(0x00);
 
@@ -302,7 +279,6 @@ bool verifyResponse_AES(
 	if (0x00 == dataPart.size())
 		return false;
 
-	// Store the SSC as vector.
 	std::vector<unsigned char> ssc_;
 
 	for (size_t i = 0; i < AES::BLOCKSIZE - 8; i++)
@@ -316,17 +292,13 @@ bool verifyResponse_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	// Increment the SSC
 	Integer issc(&ssc_[0], AES::BLOCKSIZE);
 	// The data buffer for the computations.
 	std::vector<unsigned char> vssc;
 	vssc.resize(AES::BLOCKSIZE);
 	issc.Encode(&vssc[0], AES::BLOCKSIZE);
-	// Set the SSC to the new value.
-	// {
-	issc.Encode(&ssc_[0], AES::BLOCKSIZE); // Encode the incremented value to ssc_
-	ssc = 0;                  // Clear the old value.
-	// Shift the new value to ssc.
+	issc.Encode(&ssc_[0], AES::BLOCKSIZE);
+	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
 	ssc += (unsigned long long) ssc_[10] << 40;
@@ -335,14 +307,11 @@ bool verifyResponse_AES(
 	ssc += (unsigned long long) ssc_[13] << 16;
 	ssc += (unsigned long long) ssc_[14] << 8;
 	ssc += (unsigned long long) ssc_[15];
-	// }
 
 	// Check for the right types of data
 	if (dataPart[0] != 0x99 && dataPart[0] != 0x87) {
 		return false;
 	}
-
-	// ?? Should we check here for the ISO padding byte if dataPart[0] == 0x87 ??
 
 	// Copy all excluding the MAC value
 	for (size_t i = 0; i < dataPart.size() - 10; i++)
@@ -350,7 +319,6 @@ bool verifyResponse_AES(
 
 	// Append padding
 	vssc.push_back(0x80);
-
 	while (vssc.size() % AES::BLOCKSIZE)
 		vssc.push_back(0x00);
 
@@ -363,7 +331,7 @@ bool verifyResponse_AES(
 
 	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
 	if (memcmp(&dataPart[dataPart.size() - 8], &calculatedMAC_[0], 8)) {
-		return false; // Hmmm ... That should not happen
+		return false;
 	}
 
 	return true;
@@ -412,9 +380,7 @@ std::vector<unsigned char> decryptResponse_AES(
 		CBC_Mode<AES>::Encryption AESCBC_encryption;
 
 		if (false == AESCBC_encryption.IsValidKeyLength(kEnc.size()))
-			return calculatedIV_; // Wen can return here because the resulting vector is empty.
-
-		// This will be checked by the caller.
+			return calculatedIV_;
 		unsigned char iv_[] = {
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -435,8 +401,6 @@ std::vector<unsigned char> decryptResponse_AES(
 				break;
 			}
 		}
-
-		// We have to check if padding was found!? If not we have an error while decryption???
 
 		for (size_t i = 0; i < padOffset; i++)
 			result_.push_back(decrypted[i]);
@@ -490,7 +454,7 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 {
 	std::vector<unsigned char> response;
 	std::vector<unsigned char> sm_rdata;
-	// Get returned data.
+
 	sm_rdata = sm_rapdu.getData();
 
 	m_ssc++;

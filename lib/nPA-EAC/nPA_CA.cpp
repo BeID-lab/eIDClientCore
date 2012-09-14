@@ -10,8 +10,6 @@ using namespace Bundesdruckerei::nPA;
 
 #include "nPACommon.h"
 
-/**
- */
 ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 	ICard &ePA_)
 {
@@ -41,8 +39,6 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 	return ECARD_SUCCESS;
 }
 
-/**
- */
 ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 	ICard &ePA_,
 	const std::vector<unsigned char>& x_Puk_IFD_DH,
@@ -84,20 +80,16 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 
 	authenticate.setData(dataPart_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
-	// Do the dirty work.
 	RAPDU GenralAuthenticate_Result_ = ePA_.sendAPDU(authenticate);
 
 	if (GenralAuthenticate_Result_.getSW() != 0x9000)
 		return ECARD_CA_STEP_B_FAILED;
 
-	// Get returned data.
 	std::vector<unsigned char> result = GenralAuthenticate_Result_.getData();
 	GeneralAuthenticationResult = result;
 	return ECARD_SUCCESS;
 }
 
-/**
- */
 ECARD_STATUS __STDCALL__ ePAPerformCA(
 	ICard &hCard,
 	const std::vector<unsigned char>& x_Puk_IFD_DH,

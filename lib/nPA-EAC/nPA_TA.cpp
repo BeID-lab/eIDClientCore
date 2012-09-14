@@ -20,22 +20,13 @@ USING_NAMESPACE(CryptoPP)
 #include <cstdio>
 #include <fstream>
 
-// ---------------------------------------------------------------------------
-// Start implementation
-// ---------------------------------------------------------------------------
-
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR(
 	std::vector<unsigned char> &carCVCA,
 	ICard &card_)
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_DST);
-	// Build up command data field
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x83);
-	// Set the size
 	dataPart_.push_back((unsigned char) carCVCA.size());
 
 	// Append the CAR
@@ -44,18 +35,14 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Set_CAR(
 
 	mse.setData(dataPart_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set CAR for PuK.CVCA.xy.n");
-	// Do the dirty work.
 	RAPDU rapdu = card_.sendAPDU(mse);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_TA_STEP_A_FAILED;
 
-	return ECARD_SUCCESS; // We are happy :)
+	return ECARD_SUCCESS;
 }
 
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
 	const std::vector<unsigned char>& cvcertificate,
 	ICard &card_)
@@ -90,27 +77,21 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
 	PSO verify = PSO(0x00, PSO::TAG_VERIFY_CERTIFICATE);
 	verify.setData(cvcertificate_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send VERIFY CERTIFICATE.");
-	// Do the dirty work.
 	RAPDU rapdu = card_.sendAPDU(verify);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_TA_STEP_B_FAILED;
 
-	return ECARD_SUCCESS; // We are happy :)
+	return ECARD_SUCCESS;
 }
 
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_C(
 	std::vector<unsigned char> &carDVCA,
 	ICard &card_)
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_DST);
-	// Build up command data field
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x83);
-	// Set the size
 	dataPart_.push_back((unsigned char) carDVCA.size());
 
 	// Append the CAR
@@ -118,19 +99,15 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_C(
 		dataPart_.push_back(carDVCA[i]);
 
 	mse.setData(dataPart_);
-	// Do the dirty work.
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set CAR for PuK.DV");
 	RAPDU rapdu = card_.sendAPDU(mse);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_TA_STEP_C_FAILED;
 
-	return ECARD_SUCCESS; // We are happy :)
+	return ECARD_SUCCESS;
 }
 
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 	const std::vector<unsigned char>& keyID,
 	const std::vector<unsigned char>& x_Puk_IFD_DH,
@@ -138,7 +115,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 	ICard &card_)
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_AT);
-	// @TODO Get the right oid for TA from ???. At the moment we use only id_TA_ECDSA_SHA_1!!
+	// @TODO Get the right oid for TA
 	std::vector<unsigned char> dataField;
 	dataField.push_back(0x80); // OID for algorithm id_TA_ECDSA_SHA_1
 	dataField.push_back(0x0A);
@@ -158,7 +135,7 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 	for (size_t i = 0; i < keyID.size(); i++)
 		dataField.push_back(keyID[i]);
 
-	dataField.push_back(0x91); // x(Puk.IFD.CA) -> see chip authentication
+	dataField.push_back(0x91); // x(Puk.IFD.CA)
 	dataField.push_back((unsigned char) x_Puk_IFD_DH.size());
 
 	for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
@@ -169,7 +146,6 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 
 	mse.setData(dataField);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send SET MSE AT for authentication.");
-	// Do the dirty work.
 	RAPDU rapdu = card_.sendAPDU(mse);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
@@ -179,9 +155,6 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 }
 
 #define TA_LENGTH_NONCE 8
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_F(
 	std::vector<unsigned char>& RND_ICC,
 	ICard &card_)
@@ -189,7 +162,6 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_F(
 	GetChallenge get(GetChallenge::P1_NO_INFO);
 	get.setNe(TA_LENGTH_NONCE);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GET CHALLENGE to get encrypted nonce.");
-	// Do the dirty work.
 	RAPDU rapdu = card_.sendAPDU(get);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
@@ -199,9 +171,6 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_F(
 	return ECARD_SUCCESS;
 }
 
-/*
- *
- */
 ECARD_STATUS __STDCALL__ perform_TA_Step_G(
 	const std::vector<unsigned char>& signature,
 	ICard &card_)
@@ -209,23 +178,14 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_G(
 	ExternalAuthenticate authenticate(ExternalAuthenticate::P1_NO_INFO, ExternalAuthenticate::P2_NO_INFO);
 	authenticate.setData(signature);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "EXTERNAL AUTHENTICATE for signature verification.");
-	// Do the dirty work.
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
-	// Caution! getSW() only checks the last 2 Bytes -> We only check the correctnes of Secure Messaging and not of the Command
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_TA_STEP_G_FAILED;
 
 	return ECARD_SUCCESS;
 }
 
-// ---------------------------------------------------------------------------
-// Exported functions
-// ---------------------------------------------------------------------------
-
-/**
- *
- */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
 	ePACard &hCard,
 	const std::vector<unsigned char>& carCVCA,
@@ -276,11 +236,11 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 					asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 					return ECARD_EFCARDACCESS_PARSER_ERROR;
 				}
-			} // if (OID(id_PACE_ECDH) == oid)
+			}
 
 			asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &oidCheck, 1);
-		} // Find the PACEDomainParameter ...
-	} // for (int i = 0; i < secInfos_->list.count; i++)
+		}
+	}
 
 	size_t filler_ = 0;
 
@@ -347,9 +307,6 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	return ECARD_SUCCESS;
 }
 
-/*!
- *
- */
 ECARD_STATUS __STDCALL__ ePASendSignature(
 	ICard &hCard,
 	const std::vector<unsigned char>& signature)

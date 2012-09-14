@@ -19,9 +19,6 @@ using namespace Bundesdruckerei::nPA;
 
 #include <cstdio>
 
-/*
- * Calculate the SK.PACE.xyz
- */
 std::vector<unsigned char> generateSKPACE_FromPassword(
 	const std::vector<unsigned char>& password,
 	PaceInput::PinID keyReference)
@@ -62,13 +59,6 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
 	return result;
 }
 
-/*
-* Decrypt the RND.ICC response according to EAC 2.01 Section 4.2.1
-* using AES algorithm.
-*
-* @TODO: Think about separation of this function to common code module.
-* @TODO: Implement this function.
-*/
 std::vector<unsigned char> decryptRNDICC_AES(
 	const vector<unsigned char>&  encryptedRNDICC,
 	const vector<unsigned char>& skPACE)
@@ -92,9 +82,6 @@ std::vector<unsigned char> decryptRNDICC_AES(
 	return result_;
 }
 
-/*
-* 1. H = PrK.IFD.DH1 * PuK.ICC.DH1
-*/
 ECP::Point calculate_PuK_IFD_DH2(
 	const std::vector<unsigned char>& PrK_IFD_DH1,
 	const std::vector<unsigned char>& PrK_IFD_DH2,
@@ -130,9 +117,6 @@ ECP::Point calculate_PuK_IFD_DH2(
 	return result;
 }
 
-/**
- *
- */
 ECP::Point calculate_KIFD_ICC(
 	const std::vector<unsigned char>& PrK_IFD_DH2,
 	ECP::Point PuK_ICC_DH2)
@@ -155,9 +139,6 @@ ECP::Point calculate_KIFD_ICC(
 	return kifd_icc_;
 }
 
-/*
- * This function performs step B of the PACE protocol
- */
 ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	const OBJECT_IDENTIFIER_t &PACE_OID_,
 	PaceInput::PinID keyReference,
@@ -177,17 +158,18 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	data.push_back(0x83);
 	data.push_back(0x01);
 
+	if (PaceInput::can == keyReference) data.push_back(0x01);
+
 	if (PaceInput::can == keyReference) data.push_back(0x02);
 
 	if (PaceInput::pin == keyReference) data.push_back(0x03);
 
 	if (PaceInput::puk == keyReference) data.push_back(0x04);
 
-	// @TODO: MRZ not handled!! Different preparation function if needed.
 	// Append CHAT
 	data.insert(data.end(), &chat[0], &chat[0] + chat.size());
 	mse.setData(data);
-	// Do the dirty work.
+
 	RAPDU rapdu = card_.sendAPDU(mse);
 
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL) {
@@ -275,27 +257,22 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	if (32 >= y_.size())
 		fillerY_ = 32 - y_.size();
 
-	// Build up command data field
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x7C);
-	// Set the size
 	dataPart_.push_back((unsigned char)(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
 	dataPart_.push_back(0x81);
-	// Set the size
 	dataPart_.push_back((unsigned char)(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
 	dataPart_.push_back(0x04);
 
 	// Append X
 	for (size_t i = 0; i < fillerX_; i++)
 		dataPart_.push_back(0x00);
-
 	for (size_t i = 0; i < x_.size(); i++)
 		dataPart_.push_back(x_[i]);
 
 	// Append Y
 	for (size_t i = 0; i < fillerY_; i++)
 		dataPart_.push_back(0x00);
-
 	for (size_t i = 0; i < y_.size(); i++)
 		dataPart_.push_back(y_[i]);
 
@@ -331,9 +308,6 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	return ECARD_SUCCESS;
 }
 
-/*
-* This function performs step E of the PACE protocol
-*/
 ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	ECP::Point PuK_IFD_DH2_,
 	ICard &card_,
@@ -358,27 +332,22 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	if (32 >= y_.size())
 		fillerY_ = 32 - y_.size();
 
-	// Build up command data field
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x7C);
-	// Set the size
 	dataPart_.push_back((unsigned char)(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
 	dataPart_.push_back(0x83);
-	// Set the size
 	dataPart_.push_back((unsigned char)(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
 	dataPart_.push_back(0x04);
 
 	// Append X
 	for (size_t i = 0; i < fillerX_; i++)
 		dataPart_.push_back(0x00);
-
 	for (size_t i = 0; i < x_.size(); i++)
 		dataPart_.push_back(x_[i]);
 
 	// Append Y
 	for (size_t i = 0; i < fillerY_; i++)
 		dataPart_.push_back(0x00);
-
 	for (size_t i = 0; i < y_.size(); i++)
 		dataPart_.push_back(y_[i]);
 
@@ -423,13 +392,10 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	// Build up command data field
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x7C);
-	// Set the size
 	dataPart_.push_back((unsigned char)(0x02 + macedPuk_ICC_DH2.size()));
 	dataPart_.push_back(0x85);
-	// Set the size
 	dataPart_.push_back((unsigned char) macedPuk_ICC_DH2.size());
 
 	// Append maced Data
