@@ -64,7 +64,6 @@ ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
 
 	// Try to get ePA card
 	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
-	// Do work
 	return ePAPerformTA(ePA_, carCVCA_, list_certificates, terminalCertificate,
 						x_PuK_IFD_DH_CA, authenticatedAuxiliaryData, toBeSigned);
 }

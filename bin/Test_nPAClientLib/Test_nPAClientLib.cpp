@@ -570,9 +570,6 @@ int main(int argc, char **argv)
 		string strPathSecurityParameters("");
 		string strRef("");
         getAuthenticationParams("172.20.112.114", "80", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		//getAuthenticationParams("localhost", "80", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		//getAuthenticationParams("eid.innovation.bdr", "8080", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-        //getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);

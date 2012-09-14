@@ -70,8 +70,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
 	if (0x00 == hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 	// Delete the object.
 	delete pnPAClient;
@@ -120,8 +118,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	if (!serviceURL || serviceURL->pDataBuffer)
 		return NPACLIENT_ERROR_INVALID_PARAMETER9;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	// Query the certificate description of the requesting service.
@@ -195,8 +191,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 	if (0x00 == hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	try {
@@ -220,8 +214,6 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
 	if (0x00 == hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	try {
@@ -245,8 +237,6 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformChipAuthentication(
 	if (0x00 == hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	try {
@@ -270,8 +260,6 @@ NPACLIENT_ERROR __STDCALL__ nPAReadAttributes(
 	if (0x00 == hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	// Cast the handle to an pointer to an nPAClient object.
-	// I know it's very unsafe :(
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	try {

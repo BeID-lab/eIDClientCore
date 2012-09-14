@@ -84,7 +84,7 @@ typedef struct AuthenticationParams {
 	const char *m_refreshAddress;
 	const char *m_pin;
 	const char *m_userSelectedChat;
-	void       *m_extension; //Global Tester Params for example
+	void       *m_extension; 
 
 	/**
 	 *
