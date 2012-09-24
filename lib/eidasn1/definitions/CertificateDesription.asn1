@@ -1,0 +1,35 @@
+/*
+ * Copyright (C) 2012 Bundesdruckerei GmbH
+ */
+
+EACCertDesription DEFINITIONS ::=
+
+BEGIN
+
+bsi-de		OBJECT IDENTIFIER ::= { itu-t(0) identified-organization(4) etsi(reserved(127) etsi-identified-organization(0) 7 }
+
+id-extensions	OBJECT IDENTIFIER ::= { bsi-de applications(3) mrtd(1) 3 }
+
+id-description	OBJECT IDENTIFIER ::= { id-extensions 1 }
+
+id-plainFormat OBJECT IDENTIFIER ::= {id-description 1}
+PlainTermsOfUsage ::= UTF8String
+
+id-htmlFormat OBJECT IDENTIFIER ::= {id-description 2}
+HtmlTermsOfUsage ::= IA5String
+
+id-pdfFormat OBJECT IDENTIFIER ::= {id-description 3}
+PdfTermsOfUsage ::= OCTET STRING
+
+CertificateDescription ::= SEQUENCE {
+	descriptionType		OBJECT IDENTIFIER,
+	issuerName			[1]	UTF8String,
+	issuerURL			[2]	PrintableString OPTIONAL,
+	subjectName			[3]	UTF8String,
+	subjectURL			[4]	PrintableString OPTIONAL,
+	termsOfUsage		[5]	ANY DEFINED BY descriptionType,
+	redirectURL			[6]	PrintableString OPTIONAL,
+	commCertificates	[7] ANY OPTIONAL
+}
+
+END
