@@ -22,9 +22,6 @@ $(EXPORTS): $(DEFS)
 
 
 if BUILD_GNUTLS
-PATCH ?= $(shell [ -x /bin/gpatch ] && echo /bin/gpatch || echo patch)
-
-
 GNUTLS_VERSION = 2.10.2
 GNUTLS_TAR_BZ2 = $(abs_builddir)/gnutls-$(GNUTLS_VERSION).tar.bz2
 GNUTLS_DIR = $(abs_builddir)/gnutls-$(GNUTLS_VERSION)
@@ -35,15 +32,29 @@ GNUTLS = $(GNUTLS_LIB_DIR)/.libs/libgnutls.a
 $(GNUTLS_TAR_BZ2):
 	$(WGET) ftp://ftp.gnu.org/gnu/gnutls/`basename $(GNUTLS_TAR_BZ2)`
 
-$(GNUTLS_LIB_DIR)/configure.ac: $(GNUTLS_TAR_BZ2)
+$(GNUTLS_LIB_DIR)/Makefile: $(GNUTLS_TAR_BZ2)
 	tar xjf $(GNUTLS_TAR_BZ2)
-	touch $(GNUTLS_LIB_DIR)/configure.ac
+	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2_add_rsa_psk.patch
+	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2-fix-autoreconf-with-automake-1.12.patch
+	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2-fix-compile-with-glibc-2.16.patch
+	( \
+		cd $(GNUTLS_DIR)/lib && \
+		autoreconf && \
+		./configure  \
+			--disable-openssl-compatibility \
+			--disable-srp-authentication \
+			--disable-openpgp-authentication \
+			--disable-camellia \
+			--disable-nls \
+			--disable-cxx \
+			--disable-shared \
+			--enable-static \
+			--with-pic \
+			--without-zlib \
+			--with-included-libtasn1 \
+	)
 
-$(GNUTLS_LIB_DIR)/auth_rsa_psk.c: $(GNUTLS_LIB_DIR)/configure.ac
-	$(PATCH) -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2_add_rsa_psk.patch
-
-$(GNUTLS): $(GNUTLS_LIB_DIR)/auth_rsa_psk.c
-	cd $(GNUTLS_LIB_DIR) && ./configure --enable-static --with-pic --without-zlib --with-included-libtasn1
+$(GNUTLS): $(GNUTLS_LIB_DIR)/Makefile
 	$(MAKE) -C $(GNUTLS_LIB_DIR)
 
 # building libgnutls also generates gnutls/gnutls.h
