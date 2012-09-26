@@ -68,12 +68,12 @@ namespace Bundesdruckerei
 				static const unsigned char  SFID_DG13 = 0x0D;
 				static const unsigned char  SFID_DG14 = 0x0E;
 				static const unsigned char  SFID_DG15 = 0x0F;
-				static const unsigned char  SFID_DG16 = 0x11;
-				static const unsigned char  SFID_DG17 = 0x12;
-				static const unsigned char  SFID_DG18 = 0x13;
-				static const unsigned char  SFID_DG19 = 0x14;
-				static const unsigned char  SFID_DG20 = 0x15;
-				static const unsigned char  SFID_DG21 = 0x16;
+				static const unsigned char  SFID_DG16 = 0x10;
+				static const unsigned char  SFID_DG17 = 0x11;
+				static const unsigned char  SFID_DG18 = 0x12;
+				static const unsigned char  SFID_DG19 = 0x13;
+				static const unsigned char  SFID_DG20 = 0x14;
+				static const unsigned char  SFID_DG21 = 0x15;
 
 				ePACard(
 					IReader *);
