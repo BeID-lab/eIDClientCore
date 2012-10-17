@@ -1,6 +1,6 @@
 # Welcome
 
-All relevant information about the eIDCoreClient can be found at:
+All relevant information about the eIDClientCore can be found at:
 http://sar.informatik.hu-berlin.de/BeID-lab/eIDClientCore
 
 Warning: This is just proof-of-concept code and should _NOT_ be used in
