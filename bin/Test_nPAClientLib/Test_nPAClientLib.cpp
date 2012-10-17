@@ -273,11 +273,11 @@ getSamlResponseThread(void *lpParam)
 			if (found != string::npos)
 				strResult.substr(found);
 		} else {
-			//std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		}
 
 	} else {
-		//std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 	}
 
 	connection_status = eIDClientConnectionEnd(connection);
@@ -371,7 +371,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 	}
 }
 
-static string p("111111");
+static string p("123456");
 static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
@@ -570,6 +570,7 @@ int main(int argc, char **argv)
 		string strPathSecurityParameters("");
 		string strRef("");
         //getAuthenticationParams("172.20.112.114", "80", "/login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+        //getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
         getAuthenticationParams("172.20.112.140", "1443", "/ExampleSP/show/saml/Login", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));

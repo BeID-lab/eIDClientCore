@@ -1,137 +1,139 @@
-OpenSource-Lizenz der 
-                         Humboldt-Universität zu Berlin 
-                        für die Software „eIDClientCore“
+
+                             OpenSource-Lizenz der
+                         Humboldt-UniversitÃ¤t zu Berlin
+                        fÃ¼r die Software â€eIDClientCoreâ€œ
 
 
 
-Präambel
+PrÃ¤ambel
 
-Die Humboldt-Universität zu Berlin, Unter den Linden 6, 10099 Berlin, im
-Folgenden als Humboldt-Universität bezeichnet, stellt für die Anwendung im
+Die Humboldt-UniversitÃ¤t zu Berlin, Unter den Linden 6, 10099 Berlin, im
+Folgenden als Humboldt-UniversitÃ¤t bezeichnet, stellt fÃ¼r die Anwendung im
 Zusammenhang mit deutschen hoheitlichen Dokumenten, wie beispielsweise den
 neuen Personalausweis und den elektronischen Aufenthaltstitel, eine
 clientseitige eID-Basis-Software zum Bereitstellen der sogenannten
-eID-Funktionalität, d.h. Ermöglichen eines elektronischen Identitätsnachweises,
+eID-FunktionalitÃ¤t, d.h. ErmÃ¶glichen eines elektronischen IdentitÃ¤tsnachweises,
 die sich an den Richtlinien des BSI TR-03110, TR-03112, TR-03130 orientiert,
 bereit, und zwar in dem Entwicklungszustand, in dem sie sich zum Zeitpunkt der
 Bereitstellung befindet. Diese Software, die im Folgenden als eIDClientCore
-bezeichnet wird, hat die Humboldt-Universität von der Bundesdruckerei GmbH,
-Oranienstraße 91, 10969 zur Verwendung in Lehre und Forschung sowie zur
-Bereitstellung an die Öffentlichkeit („Hosten") für die allgemeine Prüfung und
-Verwendung durch jedermann erhalten. 
+bezeichnet wird, hat die Humboldt-UniversitÃ¤t von der Bundesdruckerei GmbH,
+OranienstraÃŸe 91, 10969 Berlin zur Verwendung in Lehre und Forschung sowie zur
+Bereitstellung an die Ã–ffentlichkeit (â€Hosten") fÃ¼r die allgemeine PrÃ¼fung und
+Verwendung durch jedermann erhalten.
 
 
 1. Zustandekommen der Lizenz
 
-Die Humboldt-Universität räumt mit diesen Nutzungsbedingungen jedermann
-unentgeltlich ein einfaches Nutzungsrecht (§ 32 Abs. 3 Satz 3 UrhG) ein. Sie
-erklärt daher gegenüber jedermann ein Angebot zum Abschluss eines
-entsprechenden Lizenzvertrages für die Einräumung von Nutzungsrechten nach der
-Maßgabe dieser Nutzungsbedingungen. Eine ausdrückliche Annahmeerklärung durch
-die Humboldt-Universität muss dem Nutzer nicht zugehen (§ 151 BGB). Mit anderen
-Worten erhält der Nutzer die Nutzungsrechte automatisch mit Herunterladen der
+Die Humboldt-UniversitÃ¤t rÃ¤umt mit diesen Nutzungsbedingungen jedermann
+unentgeltlich ein einfaches Nutzungsrecht (Â§ 32 Abs. 3 Satz 3 UrhG) ein. Sie
+erklÃ¤rt daher gegenÃ¼ber jedermann ein Angebot zum Abschluss eines
+entsprechenden Lizenzvertrages fÃ¼r die EinrÃ¤umung von Nutzungsrechten nach der
+MaÃŸgabe dieser Nutzungsbedingungen. Eine ausdrÃ¼ckliche AnnahmeerklÃ¤rung durch
+die Humboldt-UniversitÃ¤t muss dem Nutzer nicht zugehen (Â§ 151 BGB). Mit anderen
+Worten erhÃ¤lt der Nutzer die Nutzungsrechte automatisch mit Herunterladen der
 Software.
 
 Die vorgenannte Regelung bedeutet, dass der Nutzer die Nutzungsrechte, die er
-nach diesen Nutzungsbedingungen erwirbt, nicht etwa an Dritte übertragen kann,
-sondern jeder Dritte wiederum von der Humboldt-Universität direkt die Rechte
-erwirbt. 
+nach diesen Nutzungsbedingungen erwirbt, nicht etwa an Dritte Ã¼bertragen kann,
+sondern jeder Dritte wiederum von der Humboldt-UniversitÃ¤t direkt die Rechte
+erwirbt.
 
 
 2. Umfang der Nutzungsrechte
 
-Die Humboldt-Universität räumt dem Nutzer mit diesen Nutzungsbedingungen
-unentgeltlich ein einfaches, räumlich und zeitlich unbeschränktes Nutzungsrecht
-ein, den eIDClientCore nach Maßgabe der folgenden Bestimmungen zu nutzen, und
-zwar beschränkt auf eIDClientCore Software für clientseitige Anwendungen, die
-einen elektronischen Identitätsnachweis mittels eines deutschen hoheitlichen
-Dokuments ermöglichen 
+Die Humboldt-UniversitÃ¤t rÃ¤umt dem Nutzer mit diesen Nutzungsbedingungen
+unentgeltlich ein einfaches, rÃ¤umlich und zeitlich unbeschrÃ¤nktes Nutzungsrecht
+ein, den eIDClientCore nach MaÃŸgabe der folgenden Bestimmungen zu nutzen, und
+zwar beschrÃ¤nkt auf eIDClientCore Software fÃ¼r clientseitige Anwendungen, die
+einen elektronischen IdentitÃ¤tsnachweis mittels eines deutschen hoheitlichen
+Dokuments ermÃ¶glichen
 
 a)  Der Nutzer ist berechtigt, den Quelltext des eIDClientCore zu
-    vervielfältigen, zu verbreiten und / oder öffentlich wiederzugeben.
+    vervielfÃ¤ltigen, zu verbreiten und / oder Ã¶ffentlich wiederzugeben.
 
-b)  Darüber hinaus darf der Nutzer den Quelltext des eIDClientCore übersetzen,
+b)  DarÃ¼ber hinaus darf der Nutzer den Quelltext des eIDClientCore Ã¼bersetzen,
     bearbeiten, arrangieren oder anders umarbeiten und die so gewonnenen
     Ergebnisse wiederum nach Ziff. 2.a) verwerten.
 
-c)  Schließlich darf der Nutzer den Text dieser Lizenzbedingungen entsprechend
+c)  SchlieÃŸlich darf der Nutzer den Text dieser Lizenzbedingungen entsprechend
     Ziff. 2.a) verwerten.
 
 d)  Die Nutzungsrechte nach Ziff. 2.a) und b) beziehen sich auch auf den
-    eIDClientCore in seiner Objektcode- oder ausführbaren Form und berechtigen
-    den Nutzer auch, das eIDClientCore mit anderen Computerprogrammen für
+    eIDClientCore in seiner Objektcode- oder ausfÃ¼hrbaren Form und berechtigen
+    den Nutzer auch, das eIDClientCore mit anderen Computerprogrammen fÃ¼r
     Anwendungen wie in Ziff. 2 beschrieben zu verbinden, wobei diese
-    Nutzungsbedingungen sich in einem solchen Fall ausschließlich auf den Teil
+    Nutzungsbedingungen sich in einem solchen Fall ausschlieÃŸlich auf den Teil
     des so geschaffenen neuen Computerprogramms beziehen, der der eIDClientCore
     ist, soweit die Verbindung nicht zu einer Umarbeitung nach Ziff. 2.b)
-    führt. Im letzteren Fall gelten diese Nutzungsbedingungen für das gesamte
-    so neu geschaffene Computerprogramm. 
+    fÃ¼hrt. Im letzteren Fall gelten diese Nutzungsbedingungen fÃ¼r das gesamte
+    so neu geschaffene Computerprogramm.
 
 
 3. Pflichten des Nutzers
 
-Der Nutzer ist verpflichtet, 
+Der Nutzer ist verpflichtet,
 
-a)  bei Vervielfältigung des eIDClientCore nach Ziff. 2.a) an dem
-    Vervielfältigungsstück, mindestens jedoch im entsprechenden Quelltext
-    selbst, den folgenden Urhebervermerk anzubringen oder beizubehalten: 
+a)  bei VervielfÃ¤ltigung des eIDClientCore nach Ziff. 2.a) an dem
+    VervielfÃ¤ltigungsstÃ¼ck, mindestens jedoch im entsprechenden Quelltext
+    selbst, den folgenden Urhebervermerk anzubringen oder beizubehalten:
 
-        „Copyright (C) 2012 Bundesdruckerei GmbH"
+        â€Copyright (C) 2012 Bundesdruckerei GmbHâ€œ
 
-    sowie eine Kopie dieser Nutzungsbedingungen beizufügen; im Fall der
-    öffentlichen Wiedergabe müssen diese Nutzungsbedingungen beim Angebot der
-    öffentlichen Wiedergabe ebenfalls wiedergeben werden; 
+    sowie eine Kopie dieser Nutzungsbedingungen beizufÃ¼gen; im Fall der
+    Ã¶ffentlichen Wiedergabe mÃ¼ssen diese Nutzungsbedingungen beim Angebot der
+    Ã¶ffentlichen Wiedergabe ebenfalls wiedergeben werden;
 
 b)  die Hinweise im Quelltext und an sonstigen Stellen auf die Inhaber der
     Nutzungsrechte und diese Nutzungsbedingungen nicht zu entfernen und / oder
-    zu verändern;
+    zu verÃ¤ndern;
 
-c)  für den Fall, dass der Nutzer Umarbeitungen nach Ziff. 2.b) an dem
+c)  fÃ¼r den Fall, dass der Nutzer Umarbeitungen nach Ziff. 2.b) an dem
     eIDClientCore vornimmt und damit ein eigenes Urheberrecht erwirbt, die so
-    geschaffene Umarbeitung ausschließlich nach den Regelungen dieser
+    geschaffene Umarbeitung ausschlieÃŸlich nach den Regelungen dieser
     Nutzungsbedingungen Dritten zur Nutzung und / oder Bearbeitung anzubieten;
-    zusätzlich hat der Nutzer derartige Umarbeitungen deutlich im Quelltext
+    zusÃ¤tzlich hat der Nutzer derartige Umarbeitungen deutlich im Quelltext
     kenntlich zu machen, vorzugsweise in der Form
 
-        „<Datum> <Änderungen> <Name>";
+        â€<Datum> <Ã„nderungen> <Name>â€œ;
 
-d)  für den Fall, dass der Nutzer den eIDClientCore in Objektcode-Form oder in
-    ausführbarer Form nutzt, gleichzeitig den vollständigen maschinenlesbaren
-    Quelltext des eIDClientCore auf einem Datenträger beizufügen und/oder über
-    das Internet der Öffentlichkeit anzubieten; für den Fall, dass der Nutzer
+d)  fÃ¼r den Fall, dass der Nutzer den eIDClientCore in Objektcode-Form oder in
+    ausfÃ¼hrbarer Form nutzt, gleichzeitig den vollstÃ¤ndigen maschinenlesbaren
+    Quelltext des eIDClientCore auf einem DatentrÃ¤ger beizufÃ¼gen und/oder Ã¼ber
+    das Internet der Ã–ffentlichkeit anzubieten; fÃ¼r den Fall, dass der Nutzer
     den eIDClientCore nach Ziff. 2 d) nach einem anderen Computerprogramm
     verbindet, bei einem Angebot desselben deutlich kenntlich zu machen, dass
     in diesem Gesamtprogramm auch der eIDClientCore enthalten ist und dieser
-    ausschließlich nach den Regelungen dieser Nutzungsbedingungen genutzt
+    ausschlieÃŸlich nach den Regelungen dieser Nutzungsbedingungen genutzt
     werden darf.
 
 
 4. Folgen einer Verletzung der vorgenannten Pflichten
 
 Sollte der Nutzer gegen einzelne der in Ziff. 3 genannten Pflichten schuldhaft
-verstoßen, erlöschen die nach diesen Nutzungsbedingungen eingeräumten
-Nutzungsrechte automatisch, auch mit Wirkung für die Vergangenheit.
+verstoÃŸen, erlÃ¶schen die nach diesen Nutzungsbedingungen eingerÃ¤umten
+Nutzungsrechte automatisch, auch mit Wirkung fÃ¼r die Vergangenheit.
 
 
-5. Beschränkte Haftung
+5. BeschrÃ¤nkte Haftung
 
-Die Humboldt-Universität haftet nur für Vorsatz und grobe Fahrlässigkeit auch
-ihrer gesetzlichen Vertreter und leitendem Lehrpersonal und im Übrigen nach den
-gesetzlichen Bestimmungen. 
+Die Humboldt-UniversitÃ¤t haftet nur fÃ¼r Vorsatz und grobe FahrlÃ¤ssigkeit auch
+ihrer gesetzlichen Vertreter und leitendem Lehrpersonal und im Ãœbrigen nach den
+gesetzlichen Bestimmungen.
 
 
 6. Schlussbestimmungen
 
-a)  Mündliche Nebenabreden wurden nicht getroffen und haben keine Gültigkeit.
-    Ergänzungen und Änderungen dieser Vereinbarung bedürfen zu ihrer
-    Wirksamkeit der Schriftform. Dies gilt auch für die Änderung dieser
+a)  MÃ¼ndliche Nebenabreden wurden nicht getroffen und haben keine GÃ¼ltigkeit.
+    ErgÃ¤nzungen und Ã„nderungen dieser Vereinbarung bedÃ¼rfen zu ihrer
+    Wirksamkeit der Schriftform. Dies gilt auch fÃ¼r die Ã„nderung dieser
     Schriftformklausel.
 
 b)  Sollte eine der Bestimmungen dieser Vereinbarung unwirksam oder nichtig
-    sein oder werden, wird die Vereinbarung im Übrigen hiervon nicht berührt. 
+    sein oder werden, wird die Vereinbarung im Ãœbrigen hiervon nicht berÃ¼hrt.
 
 c)  Sofern der Nutzer Kaufmann ist, ist Gerichtsstand Berlin.
 
-d)  Auf diese Vereinbarung und ihre Auslegung findet ausschließlich deutsches
-    Recht unter ausdrücklichem Ausschluss des einheitlichen UN-Kaufrechts
+d)  Auf diese Vereinbarung und ihre Auslegung findet ausschlieÃŸlich deutsches
+    Recht unter ausdrÃ¼cklichem Ausschluss des einheitlichen UN-Kaufrechts
     Anwendung.
+

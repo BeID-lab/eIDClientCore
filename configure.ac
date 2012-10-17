@@ -25,7 +25,6 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PATH_PROG(ASN1C, asn1c, false // Could not find asn1c //)
 AC_PATH_PROG(WGET, wget, false // Could not find wget //)
-AC_PATH_PROG(AUTORECONF, autoreconf, false // Could not find autoreconf //)
 
 # If you need to see the details, just run make V=1.
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -33,7 +32,9 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 # Checks for libraries.
 PKG_CHECK_EXISTS([libcrypto++],
                  [PKG_CHECK_MODULES([CRYPTOPP], [libcrypto++])],
-                 [AC_MSG_WARN([libcrypto++ >= 0.12.1 not found by pkg-config])])
+                 [PKG_CHECK_EXISTS([cryptopp],
+                                   [PKG_CHECK_MODULES([CRYPTOPP], [cryptopp])],
+                                   [AC_MSG_WARN([libcrypto++ >= 0.12.1 not found by pkg-config])])])
 PKG_CHECK_EXISTS([expat],
                  [PKG_CHECK_MODULES([EXPAT], [expat])],
                  [AC_MSG_WARN([expat not found by pkg-config])])
@@ -45,14 +46,21 @@ fi
 PKG_CHECK_EXISTS([libpcsclite],
                  [PKG_CHECK_MODULES([PCSC], [libpcsclite])],
                  [AC_MSG_WARN([libpcsclite not found by pkg-config])])
-PKG_CHECK_EXISTS([gnutls],
-                 [PKG_CHECK_MODULES([GNUTLS], [gnutls])],
-                 [AC_MSG_WARN([gnutls not found by pkg-config])])
-if test -z "${GNUTLS_LIBS}"
+
+AC_ARG_WITH(
+    [static-gnutls],
+    [AS_HELP_STRING([--without-static-gnutls],[build and statically link against a patched version of GnuTLS])],
+    ,
+    [with_static_gnutls="yes"]
+)
+if test "${with_static_gnutls}" = yes
 then
     BUILD_GNUTLS=yes
 else
     BUILD_GNUTLS=no
+    PKG_CHECK_EXISTS([gnutls],
+                     [PKG_CHECK_MODULES([GNUTLS], [gnutls])],
+                     [AC_MSG_WARN([gnutls not found by pkg-config])])
 fi
 
 

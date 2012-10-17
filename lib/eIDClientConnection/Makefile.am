@@ -1,7 +1,7 @@
 DEFS = eIDClientConnection.def
 EXPORTS = eIDClientConnection.exports
 
-EXTRA_DIST  = $(DEFS)
+EXTRA_DIST  = $(DEFS) gnutls-2.10.2_add_rsa_psk.patch
 
 lib_LTLIBRARIES = libeIDClientConnection.la
 
@@ -25,7 +25,8 @@ if BUILD_GNUTLS
 GNUTLS_VERSION = 2.10.2
 GNUTLS_TAR_BZ2 = $(abs_builddir)/gnutls-$(GNUTLS_VERSION).tar.bz2
 GNUTLS_DIR = $(abs_builddir)/gnutls-$(GNUTLS_VERSION)
-GNUTLS = $(GNUTLS_DIR)/lib/.libs/libgnutls.a
+GNUTLS_LIB_DIR = $(GNUTLS_DIR)/lib
+GNUTLS = $(GNUTLS_LIB_DIR)/.libs/libgnutls.a
 
 
 $(GNUTLS_TAR_BZ2):
@@ -60,9 +61,9 @@ $(GNUTLS): $(GNUTLS_LIB_DIR)/Makefile
 eIDClientConnection.c: $(GNUTLS)
 
 libeIDClientConnection_la_LIBADD += $(GNUTLS) -lgcrypt
-libeIDClientConnection_la_CFLAGS += -I$(GNUTLS_DIR)/lib/includes -I$(GNUTLS_DIR)/libextra/includes
+libeIDClientConnection_la_CFLAGS += -I$(GNUTLS_LIB_DIR)/includes -I$(GNUTLS_LIB_DIR)/includes
 libeIDClientConnection_la_DEPENDENCIES += $(GNUTLS)
 
 #install-exec-local:
-#$(MAKE) -C $(GNUTLS_DIR)/lib install
+#$(MAKE) -C $(GNUTLS_LIB_DIR) install
 endif
