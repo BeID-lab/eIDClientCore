@@ -158,7 +158,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	data.push_back(0x83);
 	data.push_back(0x01);
 
-	if (PaceInput::can == keyReference) data.push_back(0x01);
+	if (PaceInput::mrz == keyReference) data.push_back(0x01);
 
 	if (PaceInput::can == keyReference) data.push_back(0x02);
 
