@@ -12,29 +12,18 @@
 
 eIdECardClient *eIdECardClient::m_instance = 0x00;
 
-#define STRING_BUFFER_SIZE      10000
-
-static const char hexdigits[] = "0123456789ABCDEF";
-
 static string Byte2Hex(const unsigned char *bytes, size_t numBytes)
 {
-	char        buf[STRING_BUFFER_SIZE];
+	static const char hexdigits[] = "0123456789ABCDEF";
 	size_t      i;
 	string      strReturn("");
 
-	if (numBytes > (STRING_BUFFER_SIZE - 1)) {
-		return strReturn;
-	}
-
-	memset(&buf[0], 0x00, STRING_BUFFER_SIZE);
-
 	for (i = 0; i < numBytes; i++) {
 		const unsigned char c = bytes[i];
-		buf[(2 * i)] = hexdigits[(c >> 4) & 0x0F];
-		buf[(2 * i) + 1] = hexdigits[(c) & 0x0F];
+		strReturn.push_back(hexdigits[(c >> 4) & 0x0F]);
+		strReturn.push_back(hexdigits[(c) & 0x0F]);
 	}
 
-	strReturn.assign(&buf[0]);
 	return strReturn;
 }
 
