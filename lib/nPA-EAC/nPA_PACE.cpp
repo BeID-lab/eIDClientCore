@@ -207,7 +207,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 	// Now compute the SK.PACE.xyz key from the given password.
 	// SK.PACE is used to decrypt the RND.ICC value from the
 	std::vector<unsigned char> skPACE_ = generateSKPACE_FromPassword(password, keyReference);
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC     = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
@@ -412,7 +412,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 	std::vector<unsigned char> data_ = rapdu.getData();
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> Last PACE result", data_.data(), data_.size());
 
-    if (data_.size() < 14 || data_.size() < 14 + data_[13])
+	if (data_.size() < 14 || data_.size() < 14 + data_[13])
 		return ECARD_PACE_STEP_F_FAILED;
 
 	for (size_t i = 4; i < 12; i++) {
@@ -451,47 +451,20 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		}
 
 		OBJECT_IDENTIFIER_t PACE_OID_;
-		AlgorithmIdentifier *PACEDomainParameterInfo_ = 0x00;
 
+		// Find the algorithm for PACE ...
+		OBJECT_IDENTIFIER_t PACE_ECDH = makeOID(id_PACE_ECDH);
 		for (size_t i = 0; i < secInfos_->list.count; i++) {
 			OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
-			{
-				// Find the algorithm for PACE ...
-				OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC     = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-				OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-				OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-				OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
 
-				if (PACE_ECDH_3DES_CBC_CBC == oid || PACE_ECDH_AES_CBC_CMAC_128 == oid ||
-					PACE_ECDH_AES_CBC_CMAC_192 == oid || PACE_ECDH_AES_CBC_CMAC_256 == oid)
-					PACE_OID_ = oid;
-
-				asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-				asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-				asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-				asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-			}
-			{
-				OBJECT_IDENTIFIER_t oidCheck = makeOID(id_PACE_ECDH);
-
-				// Find the PACEDomainParameter
-				if (oidCheck == oid) {
-					if (ber_decode(0, &asn_DEF_AlgorithmIdentifier, (void **)&PACEDomainParameterInfo_,
-								   secInfos_->list.array[i]->requiredData.buf, secInfos_->list.array[i]->requiredData.size).code != RC_OK) {
-						asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
-						asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-						return ECARD_EFCARDACCESS_PARSER_ERROR;
-					}
-				}
-
-				asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &oidCheck, 1);
-			}
+			if (PACE_ECDH < oid)
+				PACE_OID_ = oid;
 		}
+		asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH, 1);
 
 		ECARD_STATUS status = ECARD_SUCCESS;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat(), ePA_))) {
-			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
@@ -499,7 +472,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		std::vector<unsigned char> rndICC_;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_C(PACE_OID_, pace_input.get_pin(), pace_input.get_pin_id(), ePA_, rndICC_))) {
-			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
@@ -509,7 +481,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		ECP::Point PuK_ICC_DH1_;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_D(PuK_IFD_DH1_, ePA_, PuK_ICC_DH1_))) {
-			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
@@ -520,26 +491,25 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		ECP::Point PuK_ICC_DH2_;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_E(PuK_IFD_DH2_, ePA_, PuK_ICC_DH2_))) {
-			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
 
 		ECP::Point KIFD_ICC_ = calculate_KIFD_ICC(PrK_IFD_DH2_, PuK_ICC_DH2_);
-        std::vector<unsigned char> x_;
-        std::vector<unsigned char> tmpx_;
-        tmpx_.resize(KIFD_ICC_.x.ByteCount());
-        KIFD_ICC_.x.Encode(&tmpx_[0], KIFD_ICC_.x.ByteCount());
-        size_t filler = 0;
+		std::vector<unsigned char> x_;
+		std::vector<unsigned char> tmpx_;
+		tmpx_.resize(KIFD_ICC_.x.ByteCount());
+		KIFD_ICC_.x.Encode(&tmpx_[0], KIFD_ICC_.x.ByteCount());
+		size_t filler = 0;
 
-        if (32 >= tmpx_.size())
-            filler = 32 - tmpx_.size();
+		if (32 >= tmpx_.size())
+			filler = 32 - tmpx_.size();
 
-        for (size_t i = 0; i < filler; i++)
-            x_.push_back(0x00);
+		for (size_t i = 0; i < filler; i++)
+			x_.push_back(0x00);
 
-        for (size_t i = 0; i < tmpx_.size(); i++)
-            x_.push_back(tmpx_[i]);
+		for (size_t i = 0; i < tmpx_.size(); i++)
+			x_.push_back(tmpx_[i]);
 		std::vector<unsigned char> kMac_ = calculate_SMKeys(x_, true);
 		std::vector<unsigned char> kEnc_ = calculate_SMKeys(x_, false);
 
@@ -564,7 +534,6 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_F(calculateMAC(toBeMaced_PuK_ICC_DH2_, kMac_),
 									   calculateMAC(toBeMaced_PuK_IFD_DH2_, kMac_), ePA_, car_cvca_))) {
-			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
@@ -572,7 +541,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		ePA_.setKeys(kEnc_, kMac_);
 		car_cvca = std::vector<unsigned char> (car_cvca_.begin(), car_cvca_.end());
 		x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
-		asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
+
 		asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 	}
 
