@@ -5,18 +5,36 @@
 #if !defined(__EIDHELPER_INCLUDED__)
 #define __EIDHELPER_INCLUDED__
 
-/**
- */
-inline bool operator==(OBJECT_IDENTIFIER_t a, OBJECT_IDENTIFIER_t b)
+inline bool operator==(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
 {
-	if (a.size != b.size)
-		return false;
-
-	return (0 == memcmp(a.buf, b.buf, b.size));
+	return a.size == b.size && 0 == memcmp(a.buf, b.buf, b.size);
 }
 
-/**
- */
+inline bool operator!=(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
+{
+	return !(a == b);
+}
+
+inline bool operator<(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
+{
+	return a.size < b.size && 0 == memcmp(a.buf, b.buf, a.size);
+}
+
+inline bool operator>(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
+{
+	return !(a < b) && a != b;
+}
+
+inline bool operator>=(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
+{
+	return a > b || a == b;
+}
+
+inline bool operator<=(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
+{
+	return a < b || a == b;
+}
+
 inline OBJECT_IDENTIFIER_t makeOID(const char *oidValue)
 {
 	long tempArcs[1];
