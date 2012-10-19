@@ -255,7 +255,7 @@ vector<BYTE> PCSCReader::getATRForPresentCard()
 	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, 0x00, &atrSize);
 	atr.reserve(atrSize);
 	atr.resize(atrSize);
-	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, &atr[0], &atrSize);
+	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, atr.data(), &atrSize);
 #else
 	unsigned char atr_[512];
 	uint32_t len = sizeof(atr_);

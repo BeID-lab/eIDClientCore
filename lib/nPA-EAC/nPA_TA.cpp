@@ -261,7 +261,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
 	for (size_t i = 0; i < list_certificates.size(); i++) {
 		std::string current_car;
-		hexdump(DEBUG_LEVEL_CRYPTO, "CAR", &_current_car[0], _current_car.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "CAR", _current_car.data(), _current_car.size());
 
 		if (ECARD_SUCCESS != (status = perform_TA_Step_Set_CAR(_current_car, hCard))) {
 			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
@@ -271,7 +271,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
 		std::vector<unsigned char> cert;
 		cert = list_certificates[i];
-		hexdump(DEBUG_LEVEL_CRYPTO, "certificate", &cert[0], cert.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "certificate", cert.data(), cert.size());
 
 		if (ECARD_SUCCESS != (status = perform_TA_Step_Verify_Certificate(cert, hCard))) {
 			asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);
@@ -284,7 +284,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	}
 
 	std::string chrTerm_ = getCHR(terminalCertificate);
-	hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", &chrTerm_[0], chrTerm_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", chrTerm_.data(), chrTerm_.size());
 
 	if (ECARD_SUCCESS != (status = perform_TA_Step_E(_current_car, x_Puk_IFD_DH_, authenticatedAuxiliaryData, hCard))) {
 		asn_DEF_AlgorithmIdentifier.free_struct(&asn_DEF_AlgorithmIdentifier, PACEDomainParameterInfo_, 0);

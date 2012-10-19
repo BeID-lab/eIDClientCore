@@ -148,10 +148,10 @@ static std::vector<unsigned char> buildDO87_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(&ssc_[0], kEnc.size());
+	Integer issc(ssc_.data(), kEnc.size());
 	std::vector<unsigned char> vssc;
 	vssc.resize(kEnc.size());
-	issc.Encode(&vssc[0], kEnc.size());
+	issc.Encode(vssc.data(), kEnc.size());
 	std::vector<unsigned char> calculatedIV_;
 	CBC_Mode<AES>::Encryption AESCBC_encryption;
 
@@ -159,13 +159,13 @@ static std::vector<unsigned char> buildDO87_AES(
 		return calculatedIV_;
 
 	calculatedIV_.resize(kEnc.size());
-	AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
-	AESCBC_encryption.ProcessData(&calculatedIV_[0], &vssc[0], vssc.size());
+	AESCBC_encryption.SetKeyWithIV(kEnc.data(), kEnc.size(), iv_);
+	AESCBC_encryption.ProcessData(calculatedIV_.data(), vssc.data(), vssc.size());
 	CBC_Mode<AES>::Encryption AESCBC_encryption1;
 	std::vector<unsigned char> encryptedData_;
 	encryptedData_.resize(data_.size());
-	AESCBC_encryption1.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
-	AESCBC_encryption1.ProcessData(&encryptedData_[0], &data_[0], data_.size());
+	AESCBC_encryption1.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
+	AESCBC_encryption1.ProcessData(encryptedData_.data(), data_.data(), data_.size());
 	do87.push_back(0x87);
 	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of padding content indicator
 
@@ -236,11 +236,11 @@ static std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(&ssc_[0], AES::BLOCKSIZE);
+	Integer issc(ssc_.data(), AES::BLOCKSIZE);
 	std::vector<unsigned char> vssc;
 	vssc.resize(AES::BLOCKSIZE);
-	issc.Encode(&vssc[0], AES::BLOCKSIZE);
-	issc.Encode(&ssc_[0], AES::BLOCKSIZE);
+	issc.Encode(vssc.data(), AES::BLOCKSIZE);
+	issc.Encode(ssc_.data(), AES::BLOCKSIZE);
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
@@ -257,9 +257,9 @@ static std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
 	CMAC<AES> cmac;
-	cmac.SetKey(&kMac[0], kMac.size());
-	cmac.Update(&vssc[0], vssc.size());
-	cmac.Final(&result_[0]);
+	cmac.SetKey(kMac.data(), kMac.size());
+	cmac.Update(vssc.data(), vssc.size());
+	cmac.Final(result_.data());
 	result_.resize(8);
 	std::vector<unsigned char> do8E;
 	do8E.push_back(0x8E);
@@ -292,12 +292,12 @@ bool verifyResponse_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(&ssc_[0], AES::BLOCKSIZE);
+	Integer issc(ssc_.data(), AES::BLOCKSIZE);
 	// The data buffer for the computations.
 	std::vector<unsigned char> vssc;
 	vssc.resize(AES::BLOCKSIZE);
-	issc.Encode(&vssc[0], AES::BLOCKSIZE);
-	issc.Encode(&ssc_[0], AES::BLOCKSIZE);
+	issc.Encode(vssc.data(), AES::BLOCKSIZE);
+	issc.Encode(ssc_.data(), AES::BLOCKSIZE);
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
@@ -330,7 +330,7 @@ bool verifyResponse_AES(
 	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);
 
 	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
-	if (memcmp(&dataPart[dataPart.size() - 8], &calculatedMAC_[0], 8)) {
+	if (memcmp(&dataPart[dataPart.size() - 8], calculatedMAC_.data(), 8)) {
 		return false;
 	}
 
@@ -386,13 +386,13 @@ std::vector<unsigned char> decryptResponse_AES(
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 		};
 		calculatedIV_.resize(kEnc.size());
-		AESCBC_encryption.SetKeyWithIV(&kEnc[0], kEnc.size(), iv_);
-		AESCBC_encryption.ProcessData(&calculatedIV_[0], &ssc_[0], ssc_.size());
+		AESCBC_encryption.SetKeyWithIV(kEnc.data(), kEnc.size(), iv_);
+		AESCBC_encryption.ProcessData(calculatedIV_.data(), ssc_.data(), ssc_.size());
 		CBC_Mode<AES>::Decryption AESCBC_decryption;
 		std::vector<unsigned char> decrypted;
 		decrypted.resize(len - 1);
-		AESCBC_decryption.SetKeyWithIV(&kEnc[0], kEnc.size(), &calculatedIV_[0]);
-		AESCBC_decryption.ProcessData(&decrypted[0], &returnedData[offset], len - 1);
+		AESCBC_decryption.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
+		AESCBC_decryption.ProcessData(decrypted.data(), &returnedData[offset], len - 1);
 		size_t padOffset = 0;
 
 		for (size_t i = decrypted.size() - 1; i > 0; i--) {

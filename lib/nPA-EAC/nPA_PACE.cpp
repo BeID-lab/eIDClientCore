@@ -52,7 +52,7 @@ std::vector<unsigned char> generateSKPACE_FromPassword(
 
 	// Get the first 16 bytes from result
 	result.resize(20);
-	paceH.Final(&result[0]);
+	paceH.Final(result.data());
 	result.resize(16);
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> INPUT PIN", password.data(), password.size());
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> SKPACE", result.data(), result.size());
@@ -63,8 +63,8 @@ std::vector<unsigned char> decryptRNDICC_AES(
 	const vector<unsigned char>&  encryptedRNDICC,
 	const vector<unsigned char>& skPACE)
 {
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> SKPACE in decryptRNDICC_AES", (void *) &skPACE[0], skPACE.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> encryptedRNDICC", (void *) &encryptedRNDICC[0], encryptedRNDICC.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> SKPACE in decryptRNDICC_AES", (void *) skPACE.data(), skPACE.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> encryptedRNDICC", (void *) encryptedRNDICC.data(), encryptedRNDICC.size());
 	unsigned char iv_[] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -76,9 +76,9 @@ std::vector<unsigned char> decryptRNDICC_AES(
 		return result_;
 
 	result_.resize(encryptedRNDICC.size());
-	AESCBC_decryption.SetKeyWithIV(&skPACE[0], skPACE.size(), iv_);
-	AESCBC_decryption.ProcessData(&result_[0], &encryptedRNDICC[0], encryptedRNDICC.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> RNDICC", &result_[0], result_.size());
+	AESCBC_decryption.SetKeyWithIV(skPACE.data(), skPACE.size(), iv_);
+	AESCBC_decryption.ProcessData(result_.data(), encryptedRNDICC.data(), encryptedRNDICC.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> RNDICC", result_.data(), result_.size());
 	return result_;
 }
 
@@ -88,10 +88,10 @@ ECP::Point calculate_PuK_IFD_DH2(
 	const ECP::Point &PuK_ICC_DH1,
 	const std::vector<unsigned char>& rndICC_)
 {
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH1 in calculate_PuK_IFD_DH2", (void *) &PrK_IFD_DH1[0], PrK_IFD_DH1.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> rndICC in calculate_PuK_IFD_DH2", (void *) &rndICC_[0], rndICC_.size());
-	Integer k(&PrK_IFD_DH1[0], PrK_IFD_DH1.size());
-	Integer rndICC(&rndICC_[0], rndICC_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH1 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> rndICC in calculate_PuK_IFD_DH2", (void *) rndICC_.data(), rndICC_.size());
+	Integer k(PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
+	Integer rndICC(rndICC_.data(), rndICC_.size());
 	Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
 	Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
 	Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
@@ -103,17 +103,17 @@ ECP::Point calculate_PuK_IFD_DH2(
 	ECP::Point G(X, Y);
 	ECP::Point G_temp = ecp.ScalarMultiply(G, rndICC);
 	ECP::Point G1 = ecp.Add(G_temp, H_);
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH2 in calculate_PuK_IFD_DH2", (void *) &PrK_IFD_DH2[0], PrK_IFD_DH2.size());
-	Integer k1(&PrK_IFD_DH2[0], PrK_IFD_DH2.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH2 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+	Integer k1(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
 	ECP::Point result = ecp.Multiply(k1, G1);
 	std::vector<unsigned char> x_;
 	x_.resize(result.x.ByteCount());
 	std::vector<unsigned char> y_;
 	y_.resize(result.y.ByteCount());
-	result.x.Encode(&x_[0], result.x.ByteCount());
-	result.y.Encode(&y_[0], result.y.ByteCount());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.x", (void *) &x_[0], x_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.y", (void *) &y_[0], y_.size());
+	result.x.Encode(x_.data(), result.x.ByteCount());
+	result.y.Encode(y_.data(), result.y.ByteCount());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.x", (void *) x_.data(), x_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.y", (void *) y_.data(), y_.size());
 	return result;
 }
 
@@ -121,7 +121,7 @@ ECP::Point calculate_KIFD_ICC(
 	const std::vector<unsigned char>& PrK_IFD_DH2,
 	ECP::Point PuK_ICC_DH2)
 {
-	Integer k(&PrK_IFD_DH2[0], PrK_IFD_DH2.size());
+	Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
 	Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
 	Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
 	Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
@@ -132,10 +132,10 @@ ECP::Point calculate_KIFD_ICC(
 	x_.resize(kifd_icc_.x.ByteCount());
 	std::vector<unsigned char> y_;
 	y_.resize(kifd_icc_.y.ByteCount());
-	kifd_icc_.x.Encode(&x_[0], kifd_icc_.x.ByteCount());
-	kifd_icc_.y.Encode(&y_[0], kifd_icc_.y.ByteCount());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.x", (void *) &x_[0], x_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.y", (void *) &y_[0], y_.size());
+	kifd_icc_.x.Encode(x_.data(), kifd_icc_.x.ByteCount());
+	kifd_icc_.y.Encode(y_.data(), kifd_icc_.y.ByteCount());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.x", (void *) x_.data(), x_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.y", (void *) y_.data(), y_.size());
 	return kifd_icc_;
 }
 
@@ -148,7 +148,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	vector<unsigned char> data;
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE | MSE::P1_VERIFY, MSE::P2_AT);
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PACE OID", PACE_OID_.buf, PACE_OID_.size);
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> CHAT", &chat[0], chat.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "###-> CHAT", chat.data(), chat.size());
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KEY REF", &keyReference, 1);
 	// Append OID
 	data.push_back(0x80);
@@ -167,7 +167,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	if (PaceInput::puk == keyReference) data.push_back(0x04);
 
 	// Append CHAT
-	data.insert(data.end(), &chat[0], &chat[0] + chat.size());
+	data.insert(data.end(), chat.data(), chat.data() + chat.size());
 	mse.setData(data);
 
 	RAPDU rapdu = card_.sendAPDU(mse);
@@ -245,8 +245,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	x_.resize(PuK_IFD_DH1_.x.ByteCount());
 	std::vector<unsigned char> y_;
 	y_.resize(PuK_IFD_DH1_.y.ByteCount());
-	PuK_IFD_DH1_.x.Encode(&x_[0], PuK_IFD_DH1_.x.ByteCount());
-	PuK_IFD_DH1_.y.Encode(&y_[0], PuK_IFD_DH1_.y.ByteCount());
+	PuK_IFD_DH1_.x.Encode(x_.data(), PuK_IFD_DH1_.x.ByteCount());
+	PuK_IFD_DH1_.y.Encode(y_.data(), PuK_IFD_DH1_.y.ByteCount());
 	size_t fillerX_ = 0;
 
 	if (32 >= x_.size())
@@ -300,11 +300,11 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 		yValue_.push_back(point_[i]);
 
 	// Encode the point
-	Puk_ICC_DH1_.x.Decode(&xValue_[0], xValue_.size());
-	Puk_ICC_DH1_.y.Decode(&yValue_[0], yValue_.size());
+	Puk_ICC_DH1_.x.Decode(xValue_.data(), xValue_.size());
+	Puk_ICC_DH1_.y.Decode(yValue_.data(), yValue_.size());
 	Puk_ICC_DH1_.identity = false;
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.x", (void *) &xValue_[0], xValue_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.y", (void *) &yValue_[0], yValue_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.x", (void *) xValue_.data(), xValue_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.y", (void *) yValue_.data(), yValue_.size());
 	return ECARD_SUCCESS;
 }
 
@@ -320,8 +320,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	x_.resize(PuK_IFD_DH2_.x.ByteCount());
 	std::vector<unsigned char> y_;
 	y_.resize(PuK_IFD_DH2_.y.ByteCount());
-	PuK_IFD_DH2_.x.Encode(&x_[0], PuK_IFD_DH2_.x.ByteCount());
-	PuK_IFD_DH2_.y.Encode(&y_[0], PuK_IFD_DH2_.y.ByteCount());
+	PuK_IFD_DH2_.x.Encode(x_.data(), PuK_IFD_DH2_.x.ByteCount());
+	PuK_IFD_DH2_.y.Encode(y_.data(), PuK_IFD_DH2_.y.ByteCount());
 	size_t fillerX_ = 0;
 
 	if (32 >= x_.size())
@@ -376,11 +376,11 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 		yValue_.push_back(point_[i]);
 
 	// Encode the point
-	Puk_ICC_DH2_.x.Decode(&xValue_[0], xValue_.size());
-	Puk_ICC_DH2_.y.Decode(&yValue_[0], yValue_.size());
+	Puk_ICC_DH2_.x.Decode(xValue_.data(), xValue_.size());
+	Puk_ICC_DH2_.y.Decode(yValue_.data(), yValue_.size());
 	Puk_ICC_DH2_.identity = false;
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.x", (void *) &xValue_[0], xValue_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.y", (void *) &yValue_[0], yValue_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.x", (void *) xValue_.data(), xValue_.size());
+	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.y", (void *) yValue_.data(), yValue_.size());
 	return ECARD_SUCCESS;
 }
 
@@ -499,7 +499,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		std::vector<unsigned char> x_;
 		std::vector<unsigned char> tmpx_;
 		tmpx_.resize(KIFD_ICC_.x.ByteCount());
-		KIFD_ICC_.x.Encode(&tmpx_[0], KIFD_ICC_.x.ByteCount());
+		KIFD_ICC_.x.Encode(tmpx_.data(), KIFD_ICC_.x.ByteCount());
 		size_t filler = 0;
 
 		if (32 >= tmpx_.size())
@@ -517,8 +517,8 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		x_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.x.ByteCount());
 		std::vector<unsigned char> y_Puk_ICC_DH2_;
 		y_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.y.ByteCount());
-		PuK_ICC_DH2_.x.Encode(&x_Puk_ICC_DH2_[0], PuK_ICC_DH2_.x.ByteCount());
-		PuK_ICC_DH2_.y.Encode(&y_Puk_ICC_DH2_[0], PuK_ICC_DH2_.y.ByteCount());
+		PuK_ICC_DH2_.x.Encode(x_Puk_ICC_DH2_.data(), PuK_ICC_DH2_.x.ByteCount());
+		PuK_ICC_DH2_.y.Encode(y_Puk_ICC_DH2_.data(), PuK_ICC_DH2_.y.ByteCount());
 
 		if (x_Puk_ICC_DH2_.size() != 0x20)
 			x_Puk_ICC_DH2_.insert(x_Puk_ICC_DH2_.begin(), 0x00);
