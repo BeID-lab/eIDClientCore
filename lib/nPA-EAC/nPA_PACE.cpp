@@ -453,14 +453,14 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		OBJECT_IDENTIFIER_t PACE_OID_ = {NULL, 0};
 
 		// Find the algorithm for PACE ...
-		OBJECT_IDENTIFIER_t PACE_ECDH = makeOID(id_PACE_ECDH);
+		OBJECT_IDENTIFIER_t PACE = makeOID(id_PACE);
 		for (size_t i = 0; i < secInfos_->list.count; i++) {
 			OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
 
-			if (PACE_ECDH < oid)
+			if (PACE < oid)
 				PACE_OID_ = oid;
 		}
-		asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH, 1);
+		asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE, 1);
 
 		ECARD_STATUS status = ECARD_SUCCESS;
 

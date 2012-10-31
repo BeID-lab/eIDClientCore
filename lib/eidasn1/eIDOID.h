@@ -10,6 +10,8 @@
 #define id_CA_ECDH                          "0.4.0.127.0.7.2.2.3.2"
 #define id_CA_ECDH_3DES_CBC_CBC             "0.4.0.127.0.7.2.2.3.2.1"
 
+#define id_PACE                             "0.4.0.127.0.7.2.2.4"
+
 #define id_PACE_DH                          "0.4.0.127.0.7.2.2.4.1"
 #define id_PACE_DH_3DES_CBC_CBC             "0.4.0.127.0.7.2.2.4.1.1"
 #define id_PACE_DH_AES_CBC_CMAC_128         "0.4.0.127.0.7.2.2.4.1.2"
