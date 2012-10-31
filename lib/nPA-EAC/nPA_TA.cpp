@@ -204,7 +204,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 		return ECARD_EFCARDACCESS_PARSER_ERROR;
 	}
 
-	OBJECT_IDENTIFIER_t PACE_OID_;
+	OBJECT_IDENTIFIER_t PACE_OID_ = {NULL, 0};
 	AlgorithmIdentifier *PACEDomainParameterInfo_ = 0x00;
 
 	for (int i = 0; i < secInfos_->list.count; i++) {
