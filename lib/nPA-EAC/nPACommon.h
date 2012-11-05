@@ -48,13 +48,21 @@ std::string getCAR(
 std::string getCHR(
 	const std::vector<unsigned char>& certificate);
 
-std::vector<unsigned char> generate_PrK_IFD_DHx(void);
+std::vector<unsigned char> generate_PrK_IFD_DHx(const OBJECT_IDENTIFIER_t &OID_);
 
-ECP::Point calculate_PuK_IFD_DH1(
+std::vector<unsigned char> calculate_PuK_IFD_DH1(
+	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char>& PrK_IFD_DH1);
 
 std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, bool generateMac);
 
-std::vector<unsigned char> generate_compressed_PuK(const ECP::Point &PuK_IFD_DH2);
+std::vector<unsigned char> generate_compressed_PuK(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char> &PuK_IFD_DH2);
+
+ECP::Point vector2point(const std::vector<unsigned char> &v);
+std::vector<unsigned char> point2vector(const ECP::Point &p);
+std::vector<unsigned char> get_y(const std::vector<unsigned char> &v);
+std::vector<unsigned char> get_x(const std::vector<unsigned char> &v);
 
 #endif

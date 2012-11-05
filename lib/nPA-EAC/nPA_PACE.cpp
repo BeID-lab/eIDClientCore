@@ -82,61 +82,99 @@ std::vector<unsigned char> decryptRNDICC_AES(
 	return result_;
 }
 
-ECP::Point calculate_PuK_IFD_DH2(
+std::vector<unsigned char> calculate_PuK_IFD_DH2(
+	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char>& PrK_IFD_DH1,
 	const std::vector<unsigned char>& PrK_IFD_DH2,
-	const ECP::Point &PuK_ICC_DH1,
+	const std::vector<unsigned char>& PuK_ICC_DH1,
 	const std::vector<unsigned char>& rndICC_)
 {
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH1 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> rndICC in calculate_PuK_IFD_DH2", (void *) rndICC_.data(), rndICC_.size());
-	Integer k(PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
-	Integer rndICC(rndICC_.data(), rndICC_.size());
-	Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
-	Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
-	Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
-	ECP ecp(Mod, a, b);
-	// Calculate: H = PrK.IFD.DH1 * PuK.ICC.DH1
-	ECP::Point H_ = ecp.Multiply(k, PuK_ICC_DH1);
-	Integer X("8BD2AEB9CB7E57CB2C4B482FFC81B7AFB9DE27E1E3BD23C23A4453BD9ACE3262h");
-	Integer Y("547EF835C3DAC4FD97F8461A14611DC9C27745132DED8E545C1D54C72F046997h");
-	ECP::Point G(X, Y);
-	ECP::Point G_temp = ecp.ScalarMultiply(G, rndICC);
-	ECP::Point G1 = ecp.Add(G_temp, H_);
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH2 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
-	Integer k1(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
-	ECP::Point result = ecp.Multiply(k1, G1);
-	std::vector<unsigned char> x_;
-	x_.resize(result.x.ByteCount());
-	std::vector<unsigned char> y_;
-	y_.resize(result.y.ByteCount());
-	result.x.Encode(x_.data(), result.x.ByteCount());
-	result.y.Encode(y_.data(), result.y.ByteCount());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.x", (void *) x_.data(), x_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK.IFD.DH2.y", (void *) y_.data(), y_.size());
-	return result;
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	std::vector<unsigned char> result_buffer;
+
+	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
+		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
+		ECP::Point Puk_ICC_DH1_ = vector2point(PuK_ICC_DH1);
+
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH1 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> rndICC in calculate_PuK_IFD_DH2", (void *) rndICC_.data(), rndICC_.size());
+		Integer k(PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
+		Integer rndICC(rndICC_.data(), rndICC_.size());
+		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
+		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
+		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
+		ECP ecp(Mod, a, b);
+		// Calculate: H = PrK.IFD.DH1 * PuK.ICC.DH1
+		ECP::Point H_ = ecp.Multiply(k, Puk_ICC_DH1_);
+		Integer X("8BD2AEB9CB7E57CB2C4B482FFC81B7AFB9DE27E1E3BD23C23A4453BD9ACE3262h");
+		Integer Y("547EF835C3DAC4FD97F8461A14611DC9C27745132DED8E545C1D54C72F046997h");
+		ECP::Point G(X, Y);
+		ECP::Point G_temp = ecp.ScalarMultiply(G, rndICC);
+		ECP::Point G1 = ecp.Add(G_temp, H_);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH2 in calculate_PuK_IFD_DH2", (void *) PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+		Integer k1(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+		ECP::Point result = ecp.Multiply(k1, G1);
+		result_buffer = point2vector(result);
+	}
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	return result_buffer;
 }
 
-ECP::Point calculate_KIFD_ICC(
+std::vector<unsigned char> calculate_KIFD_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char>& PrK_IFD_DH2,
-	ECP::Point PuK_ICC_DH2)
+	const std::vector<unsigned char>& PuK_ICC_DH2)
 {
-	Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
-	Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
-	Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
-	Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
-	ECP ecp(Mod, a, b);
-	// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
-	ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2);
-	std::vector<unsigned char> x_;
-	x_.resize(kifd_icc_.x.ByteCount());
-	std::vector<unsigned char> y_;
-	y_.resize(kifd_icc_.y.ByteCount());
-	kifd_icc_.x.Encode(x_.data(), kifd_icc_.x.ByteCount());
-	kifd_icc_.y.Encode(y_.data(), kifd_icc_.y.ByteCount());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.x", (void *) x_.data(), x_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.y", (void *) y_.data(), y_.size());
-	return kifd_icc_;
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	std::vector<unsigned char> result_buffer;
+
+	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
+		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
+		ECP::Point PuK_ICC_DH2_ = vector2point(PuK_ICC_DH2);
+		Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
+		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
+		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
+		ECP ecp(Mod, a, b);
+		// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
+		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
+		std::vector<unsigned char> x_;
+		x_.resize(kifd_icc_.x.ByteCount());
+		std::vector<unsigned char> y_;
+		y_.resize(kifd_icc_.y.ByteCount());
+		kifd_icc_.x.Encode(x_.data(), kifd_icc_.x.ByteCount());
+		kifd_icc_.y.Encode(y_.data(), kifd_icc_.y.ByteCount());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.x", (void *) x_.data(), x_.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.y", (void *) y_.data(), y_.size());
+
+		while (result_buffer.size() + x_.size() < 0x10)
+			result_buffer.push_back(0x00);
+		result_buffer.insert(result_buffer.end(), x_.begin(), x_.end());
+	}
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	return result_buffer;
 }
 
 ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
@@ -233,154 +271,66 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 	return ECARD_SUCCESS;
 }
 
+#define DATA_INDEX_RAW_POINT 4
+
 ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
-	ECP::Point PuK_IFD_DH1_,
+	std::vector<unsigned char> PuK_IFD_DH1_,
 	ICard &card_,
-	ECP::Point &Puk_ICC_DH1_)
+	std::vector<unsigned char> &Puk_ICC_DH1_)
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	std::vector<unsigned char> x_;
-	x_.resize(PuK_IFD_DH1_.x.ByteCount());
-	std::vector<unsigned char> y_;
-	y_.resize(PuK_IFD_DH1_.y.ByteCount());
-	PuK_IFD_DH1_.x.Encode(x_.data(), PuK_IFD_DH1_.x.ByteCount());
-	PuK_IFD_DH1_.y.Encode(y_.data(), PuK_IFD_DH1_.y.ByteCount());
-	size_t fillerX_ = 0;
-
-	if (32 >= x_.size())
-		fillerX_ = 32 - x_.size();
-
-	size_t fillerY_ = 0;
-
-	if (32 >= y_.size())
-		fillerY_ = 32 - y_.size();
 
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
+	dataPart_.push_back((unsigned char)(0x02 + PuK_IFD_DH1_.size()));
 	dataPart_.push_back(0x81);
-	dataPart_.push_back((unsigned char)(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
-	dataPart_.push_back(0x04);
+	dataPart_.push_back((unsigned char)(PuK_IFD_DH1_.size()));
 
-	// Append X
-	for (size_t i = 0; i < fillerX_; i++)
-		dataPart_.push_back(0x00);
-	for (size_t i = 0; i < x_.size(); i++)
-		dataPart_.push_back(x_[i]);
-
-	// Append Y
-	for (size_t i = 0; i < fillerY_; i++)
-		dataPart_.push_back(0x00);
-	for (size_t i = 0; i < y_.size(); i++)
-		dataPart_.push_back(y_[i]);
+	dataPart_.insert(dataPart_.end(), PuK_IFD_DH1_.begin(), PuK_IFD_DH1_.end());
 
 	authenticate.setData(dataPart_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Map Nonce");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
-	if (!rapdu.isOK())
+	if (!rapdu.isOK() || rapdu.getData().size() < DATA_INDEX_RAW_POINT)
 		return ECARD_PACE_STEP_D_FAILED;
 
-	std::vector<unsigned char> point_;
-#define DATA_INDEX_RAW_POINT 5
-
 	for (size_t i = DATA_INDEX_RAW_POINT; i < rapdu.getData().size(); i++)
-		point_.push_back(rapdu.getData()[i]);
+		Puk_ICC_DH1_.push_back(rapdu.getData()[i]);
 
-	std::vector<unsigned char> xValue_;
-
-	for (size_t i = 0; i <= point_.size() / 2 - 1; i++)
-		xValue_.push_back(point_[i]);
-
-	std::vector<unsigned char> yValue_;
-
-	for (size_t i = point_.size() / 2; i <= point_.size() - 1; i++)
-		yValue_.push_back(point_[i]);
-
-	// Encode the point
-	Puk_ICC_DH1_.x.Decode(xValue_.data(), xValue_.size());
-	Puk_ICC_DH1_.y.Decode(yValue_.data(), yValue_.size());
-	Puk_ICC_DH1_.identity = false;
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.x", (void *) xValue_.data(), xValue_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH1.y", (void *) yValue_.data(), yValue_.size());
 	return ECARD_SUCCESS;
 }
 
 ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
-	ECP::Point PuK_IFD_DH2_,
+	const std::vector<unsigned char> PuK_IFD_DH2_,
 	ICard &card_,
-	ECP::Point &Puk_ICC_DH2_)
+	std::vector<unsigned char> &Puk_ICC_DH2_)
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	std::vector<unsigned char> x_;
-	x_.resize(PuK_IFD_DH2_.x.ByteCount());
-	std::vector<unsigned char> y_;
-	y_.resize(PuK_IFD_DH2_.y.ByteCount());
-	PuK_IFD_DH2_.x.Encode(x_.data(), PuK_IFD_DH2_.x.ByteCount());
-	PuK_IFD_DH2_.y.Encode(y_.data(), PuK_IFD_DH2_.y.ByteCount());
-	size_t fillerX_ = 0;
-
-	if (32 >= x_.size())
-		fillerX_ = 32 - x_.size();
-
-	size_t fillerY_ = 0;
-
-	if (32 >= y_.size())
-		fillerY_ = 32 - y_.size();
 
 	std::vector<unsigned char> dataPart_;
 	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(0x03 + x_.size() + fillerX_ + y_.size() + fillerY_));
+	dataPart_.push_back((unsigned char)(0x02 + PuK_IFD_DH2_.size()));
 	dataPart_.push_back(0x83);
-	dataPart_.push_back((unsigned char)(0x01 + x_.size() + fillerX_ + y_.size() + fillerY_));
-	dataPart_.push_back(0x04);
+	dataPart_.push_back((unsigned char)(PuK_IFD_DH2_.size()));
 
-	// Append X
-	for (size_t i = 0; i < fillerX_; i++)
-		dataPart_.push_back(0x00);
-	for (size_t i = 0; i < x_.size(); i++)
-		dataPart_.push_back(x_[i]);
-
-	// Append Y
-	for (size_t i = 0; i < fillerY_; i++)
-		dataPart_.push_back(0x00);
-	for (size_t i = 0; i < y_.size(); i++)
-		dataPart_.push_back(y_[i]);
+	dataPart_.insert(dataPart_.end(), PuK_IFD_DH2_.begin(), PuK_IFD_DH2_.end());
 
 	// Append command data field
 	authenticate.setData(dataPart_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Perform Key Agreement");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
-	if (!rapdu.isOK())
+	if (!rapdu.isOK() || rapdu.getData().size() < DATA_INDEX_RAW_POINT)
 		return ECARD_PACE_STEP_E_FAILED;
 
-	std::vector<unsigned char> data_ = rapdu.getData();
-	std::vector<unsigned char> point_;
+	for (size_t i = DATA_INDEX_RAW_POINT; i < rapdu.getData().size(); i++)
+		Puk_ICC_DH2_.push_back(rapdu.getData()[i]);
 
-	for (size_t i = 5; i < data_.size(); i++)
-		point_.push_back(data_[i]);
-
-	std::vector<unsigned char> xValue_;
-
-	for (size_t i = 0; i <= point_.size() / 2 - 1; i++)
-		xValue_.push_back(point_[i]);
-
-	std::vector<unsigned char> yValue_;
-
-	for (size_t i = point_.size() / 2; i <= point_.size() - 1; i++)
-		yValue_.push_back(point_[i]);
-
-	// Encode the point
-	Puk_ICC_DH2_.x.Decode(xValue_.data(), xValue_.size());
-	Puk_ICC_DH2_.y.Decode(yValue_.data(), yValue_.size());
-	Puk_ICC_DH2_.identity = false;
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.x", (void *) xValue_.data(), xValue_.size());
-	hexdump(DEBUG_LEVEL_CRYPTO, "PuK.ICC.DH2.y", (void *) yValue_.data(), yValue_.size());
 	return ECARD_SUCCESS;
 }
 
@@ -398,9 +348,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 	dataPart_.push_back(0x85);
 	dataPart_.push_back((unsigned char) macedPuk_ICC_DH2.size());
 
-	// Append maced Data
-	for (size_t i = 0; i < macedPuk_ICC_DH2.size(); i++)
-		dataPart_.push_back(macedPuk_ICC_DH2[i]);
+	dataPart_.insert(dataPart_.end(), macedPuk_ICC_DH2.begin(), macedPuk_ICC_DH2.end());
 
 	authenticate.setData(dataPart_);
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to perform explicit authentication");
@@ -426,6 +374,32 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 	}
 
 	return ECARD_SUCCESS;
+}
+
+std::vector<unsigned char> calculate_ID_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char>& PuK_ICC_DH2)
+{
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	std::vector<unsigned char> result_buffer;
+
+	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
+		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
+		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
+		result_buffer = get_x(PuK_ICC_DH2);
+	}
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	return result_buffer;
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
@@ -476,71 +450,59 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 			return status;
 		}
 
-		std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx();
-		ECP::Point PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PrK_IFD_DH1_);
-		ECP::Point PuK_ICC_DH1_;
+		std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx(PACE_OID_);
+		std::vector<unsigned char> PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PACE_OID_, PrK_IFD_DH1_);
+		std::vector<unsigned char> PuK_ICC_DH1_;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_D(PuK_IFD_DH1_, ePA_, PuK_ICC_DH1_))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
 
-		std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx();
-		ECP::Point PuK_IFD_DH2_ = calculate_PuK_IFD_DH2(PrK_IFD_DH1_, PrK_IFD_DH2_, PuK_ICC_DH1_,
-								  rndICC_);
-		ECP::Point PuK_ICC_DH2_;
+		std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx(PACE_OID_);
+		std::vector<unsigned char> PuK_IFD_DH2_ = calculate_PuK_IFD_DH2(PACE_OID_,
+			   	PrK_IFD_DH1_, PrK_IFD_DH2_, PuK_ICC_DH1_, rndICC_);
+		std::vector<unsigned char> PuK_ICC_DH2_;
 
 		if (ECARD_SUCCESS != (status = perform_PACE_Step_E(PuK_IFD_DH2_, ePA_, PuK_ICC_DH2_))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
 
-		ECP::Point KIFD_ICC_ = calculate_KIFD_ICC(PrK_IFD_DH2_, PuK_ICC_DH2_);
-		std::vector<unsigned char> x_;
-		std::vector<unsigned char> tmpx_;
-		tmpx_.resize(KIFD_ICC_.x.ByteCount());
-		KIFD_ICC_.x.Encode(tmpx_.data(), KIFD_ICC_.x.ByteCount());
-		size_t filler = 0;
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK_IFD_DH2_", PuK_IFD_DH2_.data(), PuK_IFD_DH2_.size());
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PuK_ICC_DH2_", PuK_ICC_DH2_.data(), PuK_ICC_DH2_.size());
 
-		if (32 >= tmpx_.size())
-			filler = 32 - tmpx_.size();
+		std::vector<unsigned char> KIFD_ICC_ = calculate_KIFD_ICC(PACE_OID_, PrK_IFD_DH2_, PuK_ICC_DH2_);
 
-		for (size_t i = 0; i < filler; i++)
-			x_.push_back(0x00);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC", KIFD_ICC_.data(), KIFD_ICC_.size());
 
-		for (size_t i = 0; i < tmpx_.size(); i++)
-			x_.push_back(tmpx_[i]);
-		std::vector<unsigned char> kMac_ = calculate_SMKeys(x_, true);
-		std::vector<unsigned char> kEnc_ = calculate_SMKeys(x_, false);
+		std::vector<unsigned char> kMac_ = calculate_SMKeys(KIFD_ICC_, true);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> kMac_", kMac_.data(), kMac_.size());
+		std::vector<unsigned char> kEnc_ = calculate_SMKeys(KIFD_ICC_, false);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> kEnc_", kEnc_.data(), kEnc_.size());
 
-		std::vector<unsigned char> x_Puk_ICC_DH2_;
-		x_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.x.ByteCount());
-		std::vector<unsigned char> y_Puk_ICC_DH2_;
-		y_Puk_ICC_DH2_.resize(PuK_ICC_DH2_.y.ByteCount());
-		PuK_ICC_DH2_.x.Encode(x_Puk_ICC_DH2_.data(), PuK_ICC_DH2_.x.ByteCount());
-		PuK_ICC_DH2_.y.Encode(y_Puk_ICC_DH2_.data(), PuK_ICC_DH2_.y.ByteCount());
+		std::vector<unsigned char> toBeMaced_PuK_ICC_DH2_ = generate_compressed_PuK(PACE_OID_, PuK_ICC_DH2_);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> toBeMaced_PuK_ICC_DH2_", toBeMaced_PuK_ICC_DH2_.data(), toBeMaced_PuK_ICC_DH2_.size());
+		std::vector<unsigned char> Maced_PuK_ICC_DH2_ = calculateMAC(toBeMaced_PuK_ICC_DH2_, kMac_);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> Maced_PuK_ICC_DH2_", Maced_PuK_ICC_DH2_.data(), Maced_PuK_ICC_DH2_.size());
 
-		if (x_Puk_ICC_DH2_.size() != 0x20)
-			x_Puk_ICC_DH2_.insert(x_Puk_ICC_DH2_.begin(), 0x00);
-
-		if (y_Puk_ICC_DH2_.size() != 0x20)
-			y_Puk_ICC_DH2_.insert(y_Puk_ICC_DH2_.begin(), 0x00);
-
-		std::vector<unsigned char> toBeMaced_PuK_ICC_DH2_ = generate_compressed_PuK(
-					PuK_ICC_DH2_);
-		std::vector<unsigned char> toBeMaced_PuK_IFD_DH2_ = generate_compressed_PuK(
-					PuK_IFD_DH2_);
+		std::vector<unsigned char> toBeMaced_PuK_IFD_DH2_ = generate_compressed_PuK(PACE_OID_, PuK_IFD_DH2_);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> toBeMaced_PuK_IFD_DH2_", toBeMaced_PuK_IFD_DH2_.data(), toBeMaced_PuK_IFD_DH2_.size());
+		std::vector<unsigned char> Maced_PuK_IFD_DH2_ = calculateMAC(toBeMaced_PuK_IFD_DH2_, kMac_);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> Maced_PuK_IFD_DH2_", Maced_PuK_IFD_DH2_.data(), Maced_PuK_IFD_DH2_.size());
 		std::string car_cvca_;
 
-		if (ECARD_SUCCESS != (status = perform_PACE_Step_F(calculateMAC(toBeMaced_PuK_ICC_DH2_, kMac_),
-									   calculateMAC(toBeMaced_PuK_IFD_DH2_, kMac_), ePA_, car_cvca_))) {
+
+		if (ECARD_SUCCESS != (status = perform_PACE_Step_F(Maced_PuK_ICC_DH2_,
+						Maced_PuK_IFD_DH2_, ePA_, car_cvca_))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
 
 		ePA_.setKeys(kEnc_, kMac_);
 		car_cvca = std::vector<unsigned char> (car_cvca_.begin(), car_cvca_.end());
-		x_Puk_ICC_DH2 = x_Puk_ICC_DH2_;
+
+		x_Puk_ICC_DH2 = calculate_ID_ICC(PACE_OID_, PuK_ICC_DH2_);
 
 		asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 	}
