@@ -182,6 +182,7 @@ getSamlResponseThread(void *lpParam)
 	EIDCLIENT_CONNECTION_HANDLE connection;
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
 	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(),
 						urlIDP._port.c_str(), 0, NULL);
 
@@ -196,10 +197,10 @@ getSamlResponseThread(void *lpParam)
 		get += urlIDP._port;
 		get += "\r\n\r\n";
 		connection_status = eIDClientConnectionSendRequest(connection,
-							get.c_str(), get.size(), sz, sizeof sz);
+							get.c_str(), get.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			size_t found = strResult.find("<html");
 			if (found != string::npos)
 				strResult.substr(found);
@@ -354,6 +355,7 @@ int getAuthenticationParams(const char *const cServerName,
 	EIDCLIENT_CONNECTION_HANDLE connection = 0x00;
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
 	connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, 0, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -367,10 +369,10 @@ int getAuthenticationParams(const char *const cServerName,
 		get += pPort;
 		get += "\r\n\r\n";
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, sizeof sz);
+		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			std::string strTmp = strResult;
 			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
 			size_t found = strTmp.find("<html");
@@ -443,10 +445,11 @@ int getAuthenticationParams(const char *const cServerName,
 		request += strContentLength + "\r\n\r\n";
 		request += strData;
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, sizeof sz);
+		sz_len = sizeof sz;
+		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			std::string strTmp = strResult;
 			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
 			size_t found = strTmp.find("<html");

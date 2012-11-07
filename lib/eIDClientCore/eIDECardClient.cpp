@@ -363,39 +363,37 @@ void eIdECardClient::EndConnection()
 // send a HTTP POST request
 string eIdECardClient::request_post(const string &in)
 {
-	string  strParam = "sessionid=" + m_strSessionIdentifier;
-	char    buf[10000];
-	memset(buf, 0x00, sizeof buf);
-	//  string  strReceive;
-	size_t     len = in.length();
+	string  strContent = "";
+
 	ostringstream buffer;
-	buffer << "POST" << " " << m_strPath.c_str() << "/?" << strParam << " HTTP/1.1\r\n";
-	buffer << "Content-Length: " << len << "\r\n";
+	buffer << "POST" << " " << m_strPath.c_str() << "/?" << "sessionid=" << m_strSessionIdentifier << " HTTP/1.1\r\n";
+	buffer << "Content-Length: " << in.length() << "\r\n";
 	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
 	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
 	buffer << "Host: " << m_strHostname.c_str() << ":" <<  m_strPort.c_str() << "\r\n";
 	buffer << "\r\n";
 
-	if (len > 0) {
+	if (in.length() > 0) {
 		buffer << in;
 	}
 
 	const string   &strToSend = buffer.str();
 
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), strToSend.size(), buf, 10000);
+	char buf[10000];
+	memset(buf, 0x00, sizeof buf);
+	size_t buf_len = sizeof buf;
 
-	string strResult;
+	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
+			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
+				strToSend.size(), buf, &buf_len)) {
+		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
+		return strContent;
+	}
 
-	strResult.append(buf);
-
-	string  strContent = "";
-
+	string strResult(buf, buf_len);
 	string  strLength = "";
-
 	int     content_length = 0;
-
 	size_t pos1 = 0;
-
 	size_t pos2 = 0;
 
 	if (((pos1 = strResult.find("Content-Length:")) != string::npos) || ((pos1 = strResult.find("content-length:")) != string::npos)) {
@@ -414,22 +412,29 @@ string eIdECardClient::request_post(const string &in)
 // send a HTTP GET with PAOS-header
 string eIdECardClient::request_get_PAOS()
 {
-	string  strParam = "sessionid=" + m_strSessionIdentifier;
-	char    buf[10000];
-	memset(buf, 0x00, sizeof buf);
-	string  strReceive;
+	string  strContent = "";
+
 	ostringstream buffer;
 	buffer << "GET" << " " << m_strPath.c_str() << " HTTP/1.1\r\n";
 	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
 	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
 	buffer << "Host: " << m_strHostname.c_str() << ":" << m_strPort.c_str() << "\r\n";
 	buffer << "\r\n";
+
 	const string   &strToSend = buffer.str();
-	//  eIDClientConnectionSendRequest(m_hConnection, "GET", strParam.c_str(), NULL, buf, 10000);
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), strToSend.size(), buf, 10000);
-	string strResult;
-	strResult.append(buf);
-	string  strContent = "";
+
+	char buf[10000];
+	memset(buf, 0x00, sizeof buf);
+	size_t buf_len = sizeof buf;
+
+	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
+			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
+				strToSend.size(), buf, &buf_len)) {
+		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
+		return strContent;
+	}
+
+	string strResult(buf, buf_len);
 	string  strLength = "";
 	int     content_length = 0;
 	size_t pos1 = 0;
