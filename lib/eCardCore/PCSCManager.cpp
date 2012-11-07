@@ -24,23 +24,6 @@ PCSCManager::PCSCManager(
 /*
  *
  */
-PCSCManager::~PCSCManager(
-	void)
-{
-}
-
-/*
- *
- */
-vector<IReader *> PCSCManager::getReaders(
-	void)
-{
-	return m_readerList;
-}
-
-/*
- *
- */
 void PCSCManager::findReaders(
 	void)
 {
