@@ -127,7 +127,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE h
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, char *const bufResult, const int nBufResultLength)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const int dataLength, char *const bufResult, const int nBufResultLength)
 {
 	ssize_t ret;
 	socket_st *sock;
@@ -149,7 +149,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 	}
 
 	memset(bufResult, 0x00, nBufResultLength);
-	ret = my_send(sock, data, strlen(data));
+	ret = my_send(sock, data, dataLength);
 	ret = my_recv(sock, bufResult, nBufResultLength);
 
 	if (ret < 0) {

@@ -382,7 +382,7 @@ string eIdECardClient::request_post(const string &in)
 
 	const string   &strToSend = buffer.str();
 
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), buf, 10000);
+	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), strToSend.size(), buf, 10000);
 
 	string strResult;
 
@@ -426,7 +426,7 @@ string eIdECardClient::request_get_PAOS()
 	buffer << "\r\n";
 	const string   &strToSend = buffer.str();
 	//  eIDClientConnectionSendRequest(m_hConnection, "GET", strParam.c_str(), NULL, buf, 10000);
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), buf, 10000);
+	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), strToSend.size(), buf, 10000);
 	string strResult;
 	strResult.append(buf);
 	string  strContent = "";

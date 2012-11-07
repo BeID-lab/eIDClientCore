@@ -196,7 +196,7 @@ getSamlResponseThread(void *lpParam)
 		get += urlIDP._port;
 		get += "\r\n\r\n";
 		connection_status = eIDClientConnectionSendRequest(connection,
-							get.c_str(), sz, sizeof sz);
+							get.c_str(), get.size(), sz, sizeof sz);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += sz;
@@ -367,7 +367,7 @@ int getAuthenticationParams(const char *const cServerName,
 		get += pPort;
 		get += "\r\n\r\n";
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), sz, sizeof sz);
+		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, sizeof sz);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += sz;
@@ -443,7 +443,7 @@ int getAuthenticationParams(const char *const cServerName,
 		request += strContentLength + "\r\n\r\n";
 		request += strData;
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), sz, sizeof sz);
+		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, sizeof sz);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += sz;
