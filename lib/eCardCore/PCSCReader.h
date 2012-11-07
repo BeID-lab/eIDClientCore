@@ -74,12 +74,6 @@ class PCSCReader : public IReader
 			const vector<unsigned char>& cmd);
 
 		/*!
-		 * @brief This command uses SCardTransmit to send a command to the card.
-		 */
-		vector<vector<unsigned char> > sendAPDUs(
-			const vector<vector<unsigned char> > &cmd);
-
-		/*!
 		 *
 		 */
 		vector<BYTE> getATRForPresentCard(

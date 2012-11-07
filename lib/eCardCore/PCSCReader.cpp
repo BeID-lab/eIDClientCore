@@ -233,16 +233,6 @@ vector <unsigned char> PCSCReader::sendAPDU(
 	return vector<unsigned char>(res, res + reslen);
 }
 
-vector<vector<unsigned char> > PCSCReader::sendAPDUs(
-	const vector<vector<unsigned char> > &cmds)
-{
-	vector<vector<unsigned char> > resp;
-	for (size_t i = 0; i < cmds.size(); i++) {
-		resp.push_back(sendAPDU(cmds[i]));
-	}
-	return resp;
-}
-
 vector<BYTE> PCSCReader::getATRForPresentCard()
 {
 	vector<BYTE> atr;

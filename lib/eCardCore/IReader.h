@@ -181,6 +181,15 @@ class IReader
 			return m_readerName;
 		}
 
+		virtual vector<vector<unsigned char> > sendAPDUs(
+			const vector<vector<unsigned char> > &cmds) {
+				vector<vector<unsigned char> > resp;
+				for (size_t i = 0; i < cmds.size(); i++) {
+					resp.push_back(sendAPDU(cmds[i]));
+				}
+				return resp;
+			}
+
 		// -------------------------------------------------------------------------
 		// Pure virtuals
 		// -------------------------------------------------------------------------
@@ -196,9 +205,6 @@ class IReader
 
 		virtual vector<unsigned char> sendAPDU(
 			const vector<unsigned char>& cmd) = 0;
-
-		virtual vector<vector<unsigned char> > sendAPDUs(
-			const vector<vector<unsigned char> > &cmds) = 0;
 
 		/*!
 		 *
