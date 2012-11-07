@@ -200,8 +200,24 @@ class IReader
 		virtual void close(
 			void) = 0;
 
+		/*!
+		 * @brief Use this function to get a pointer to a ICard object.
+		 */
 		virtual ICard *getCard(
-			void) = 0;
+			void)
+			{
+				ICard *card = 0x0;
+
+				for (vector<ICardDetector *>::iterator it = m_cardDetectors.begin();
+						it != m_cardDetectors.end(); it++) {
+					card = ((ICardDetector *) * it)->getCard(this);
+
+					if (card != 0x0)
+						break;
+				}
+
+				return card;
+			};
 
 		virtual vector<unsigned char> sendAPDU(
 			const vector<unsigned char>& cmd) = 0;

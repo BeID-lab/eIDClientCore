@@ -187,25 +187,6 @@ bool PCSCReader::open(
 /*
  *
  */
-ICard *PCSCReader::getCard(
-	void)
-{
-	ICard *card = 0x0;
-
-	for (vector<ICardDetector *>::iterator it = m_cardDetectors.begin();
-		 it != m_cardDetectors.end(); it++) {
-		card = ((ICardDetector *) * it)->getCard(this);
-
-		if (card != 0x0)
-			break;
-	}
-
-	return card;
-}
-
-/*
- *
- */
 void PCSCReader::close(
 	void)
 {
