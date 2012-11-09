@@ -174,20 +174,20 @@ NPACLIENT_ERROR eIdECardClient::initialize(
 		return NPACLIENT_ERROR_NO_CERTIFICATE_DESCRIPTION;
 	}
 
-	hexdump(DEBUG_LEVEL_PAOS, "StartPAOS Cert:    ", &m_TerminalCertificate[0], m_TerminalCertificate.size());
-	hexdump(DEBUG_LEVEL_PAOS, "StartPAOS CDesc:   ", &m_CertificateDescription[0], m_CertificateDescription.size());
+	hexdump(DEBUG_LEVEL_PAOS, "StartPAOS Cert:    ", m_TerminalCertificate.data(), m_TerminalCertificate.size());
+	hexdump(DEBUG_LEVEL_PAOS, "StartPAOS CDesc:   ", m_CertificateDescription.data(), m_CertificateDescription.size());
 
 	if (!m_RequiredCHAT.empty())
-		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS RCHAT:   ", &m_RequiredCHAT[0], m_RequiredCHAT.size());
+		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS RCHAT:   ", m_RequiredCHAT.data(), m_RequiredCHAT.size());
 
 	if (!m_OptionalCHAT.empty())
-		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS OCHAT:   ", &m_OptionalCHAT[0], m_OptionalCHAT.size());
+		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS OCHAT:   ", m_OptionalCHAT.data(), m_OptionalCHAT.size());
 
 	if (!m_AuthenticatedAuxiliaryData.empty())
-		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS AuthAux: ", &m_AuthenticatedAuxiliaryData[0], m_AuthenticatedAuxiliaryData.size());
+		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS AuthAux: ", m_AuthenticatedAuxiliaryData.data(), m_AuthenticatedAuxiliaryData.size());
 
 	if (!m_strLastMsgUUID.empty())
-		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS MsgUUID: ", &m_strLastMsgUUID[0], m_strLastMsgUUID.size());
+		hexdump(DEBUG_LEVEL_PAOS, "StartPAOS MsgUUID: ", m_strLastMsgUUID.data(), m_strLastMsgUUID.size());
 
 	return NPACLIENT_ERROR_SUCCESS;
 }
@@ -205,11 +205,11 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	std::vector<unsigned char>& y_Puk_IFD_DH_CA_
 )
 {
-	string myEFCardAccess = Byte2Hex(&efCardAccess[0], efCardAccess.size());
-	string myIDPICC = Byte2Hex(&idPICC[0], idPICC.size());
-	string myChat = Byte2Hex(&chat[0], chat.size());
+	string myEFCardAccess = Byte2Hex(efCardAccess.data(), efCardAccess.size());
+	string myIDPICC = Byte2Hex(idPICC.data(), idPICC.size());
+	string myChat = Byte2Hex(chat.data(), chat.size());
 	std::vector<unsigned char> reqChat = m_RequiredCHAT;
-	string myReqChat = Byte2Hex(&reqChat[0],  reqChat.size());
+	string myReqChat = Byte2Hex(reqChat.data(),  reqChat.size());
 	hexdump(DEBUG_LEVEL_PAOS, "IDPICC", (void *) myIDPICC.c_str(), myIDPICC.size());
 	hexdump(DEBUG_LEVEL_PAOS, "used Chat", (void *) myChat.c_str(), myChat.size());
 	string ephPubKey = "";
@@ -230,7 +230,7 @@ bool eIdECardClient::getTerminalAuthenticationData(
 
 	if (myKey.empty()) return false;
 
-	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", &myKey[0], ephPubKey.size() / 2);
+	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", myKey.data(), ephPubKey.size() / 2);
 
 	if (!(cert1.length() % 2 == 0)) return false;
 
@@ -254,7 +254,7 @@ bool eIdECardClient::createSignature(
 	std::vector<unsigned char> toBeSigned,
 	std::vector<unsigned char>& signature)
 {
-	string challenge = Byte2Hex(&toBeSigned[0], toBeSigned.size());
+	string challenge = Byte2Hex(toBeSigned.data(), toBeSigned.size());
 	string retSignature = "";
 	string strNewMessageID = "";
 	TAResponse(m_strLastMsgUUID, challenge, retSignature, strNewMessageID);
@@ -272,7 +272,7 @@ bool eIdECardClient::finalizeAuthentication(
 	std::vector<unsigned char> GAResult,
 	std::vector<CAPDU>& apdus)
 {
-	string myEFCardSecurity = Byte2Hex(&efCardSecurity[0], efCardSecurity.size());
+	string myEFCardSecurity = Byte2Hex(efCardSecurity.data(), efCardSecurity.size());
 	string myAuthToken = Byte2Hex(&GAResult[4 + 8 + 2], 8);
 	string myNonce = Byte2Hex(&GAResult[4], 8);
 	APDUList_t  myAPDUList;
@@ -300,7 +300,7 @@ bool eIdECardClient::readAttributes(
 
 	for (size_t i = 0; i < rapdus.size(); ++i) {
 		rapdu = rapdus.at(i).asBuffer();
-		string strAPDU = Byte2Hex(&rapdu[0], rapdu.size());
+		string strAPDU = Byte2Hex(rapdu.data(), rapdu.size());
 		inAPDUList.push_back(strAPDU);
 	}
 
@@ -363,39 +363,37 @@ void eIdECardClient::EndConnection()
 // send a HTTP POST request
 string eIdECardClient::request_post(const string &in)
 {
-	string  strParam = "sessionid=" + m_strSessionIdentifier;
-	char    buf[10000];
-	memset(&buf[0], 0x00, 10000);
-	//  string  strReceive;
-	size_t     len = in.length();
+	string  strContent = "";
+
 	ostringstream buffer;
-	buffer << "POST" << " " << m_strPath.c_str() << "/?" << strParam << " HTTP/1.1\r\n";
-	buffer << "Content-Length: " << len << "\r\n";
+	buffer << "POST" << " " << m_strPath.c_str() << "/?" << "sessionid=" << m_strSessionIdentifier << " HTTP/1.1\r\n";
+	buffer << "Content-Length: " << in.length() << "\r\n";
 	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
 	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
 	buffer << "Host: " << m_strHostname.c_str() << ":" <<  m_strPort.c_str() << "\r\n";
 	buffer << "\r\n";
 
-	if (len > 0) {
+	if (in.length() > 0) {
 		buffer << in;
 	}
 
 	const string   &strToSend = buffer.str();
 
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), &buf[0], 10000);
+	char buf[10000];
+	memset(buf, 0x00, sizeof buf);
+	size_t buf_len = sizeof buf;
 
-	string strResult;
+	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
+			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
+				strToSend.size(), buf, &buf_len)) {
+		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
+		return strContent;
+	}
 
-	strResult.append(&buf[0]);
-
-	string  strContent = "";
-
+	string strResult(buf, buf_len);
 	string  strLength = "";
-
 	int     content_length = 0;
-
 	size_t pos1 = 0;
-
 	size_t pos2 = 0;
 
 	if (((pos1 = strResult.find("Content-Length:")) != string::npos) || ((pos1 = strResult.find("content-length:")) != string::npos)) {
@@ -414,22 +412,29 @@ string eIdECardClient::request_post(const string &in)
 // send a HTTP GET with PAOS-header
 string eIdECardClient::request_get_PAOS()
 {
-	string  strParam = "sessionid=" + m_strSessionIdentifier;
-	char    buf[10000];
-	memset(&buf[0], 0x00, 10000);
-	string  strReceive;
+	string  strContent = "";
+
 	ostringstream buffer;
 	buffer << "GET" << " " << m_strPath.c_str() << " HTTP/1.1\r\n";
 	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
 	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
 	buffer << "Host: " << m_strHostname.c_str() << ":" << m_strPort.c_str() << "\r\n";
 	buffer << "\r\n";
+
 	const string   &strToSend = buffer.str();
-	//  eIDClientConnectionSendRequest(m_hConnection, "GET", strParam.c_str(), NULL, &buf[0], 10000);
-	eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(), &buf[0], 10000);
-	string strResult;
-	strResult.append(&buf[0]);
-	string  strContent = "";
+
+	char buf[10000];
+	memset(buf, 0x00, sizeof buf);
+	size_t buf_len = sizeof buf;
+
+	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
+			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
+				strToSend.size(), buf, &buf_len)) {
+		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
+		return strContent;
+	}
+
+	string strResult(buf, buf_len);
 	string  strLength = "";
 	int     content_length = 0;
 	size_t pos1 = 0;

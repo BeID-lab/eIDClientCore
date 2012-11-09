@@ -27,7 +27,7 @@ RAPDU ICard::sendAPDU(const CAPDU &cmd)
 	eCardCore_info(DEBUG_LEVEL_APDU, "Incoming APDU:  SW=%04X  Nr=%u", rapdu.getSW(), rapdu.getData().size());
 
 	if (!rapdu.getData().empty())
-		hexdump(DEBUG_LEVEL_APDU, NULL, &rapdu.getData()[0], rapdu.getData().size());
+		hexdump(DEBUG_LEVEL_APDU, NULL, rapdu.getData().data(), rapdu.getData().size());
 
 	return rapdu;
 }

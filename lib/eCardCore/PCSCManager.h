@@ -13,9 +13,6 @@
 class PCSCManager : public IReaderManager
 {
 	private:
-		/*!
-		 *
-		 */
 		void findReaders(
 			void);
 
@@ -24,18 +21,6 @@ class PCSCManager : public IReaderManager
 		 *
 		 */
 		PCSCManager(
-			void);
-
-		/*!
-		 *
-		 */
-		~PCSCManager(
-			void);
-
-		/*!
-		 *
-		 */
-		vector<IReader *> getReaders(
 			void);
 
 		/*!
