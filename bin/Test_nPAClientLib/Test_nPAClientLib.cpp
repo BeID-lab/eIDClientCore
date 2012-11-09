@@ -27,6 +27,7 @@
 
 #include <eIDClientCore.h>
 #include <eIDClientConnection.h>
+#include "url.h"
 
 using namespace std;
 
@@ -166,76 +167,6 @@ void CeIdObject::GetParams(string strToParse)
 	XML_ParserFree(parser);
 }
 
-class URL
-{
-	public:
-		URL(const char *url) {
-			if (!parse_url(url))
-				_valid = false;
-			else
-				_valid = true;
-		}
-
-		string  _scheme;
-		string  _hostname;
-		string  _port;
-		string  _path;
-		bool _valid;
-
-		bool parse_url(const char *str, const char *default_port = "80") {
-			if (!str || !*str)
-				return false;
-
-			const char *p1 = strstr(str, "://");
-
-			if (p1) {
-				_scheme.assign(str, p1 - str);
-				p1 += 3;
-				std::transform(_scheme.begin(), _scheme.end(), _scheme.begin(), static_cast<int ( *)(int)>(tolower));
-
-				if (0x00 == _scheme.compare("https")) {
-					default_port = "443";
-				}
-
-			} else {
-				p1 = str;
-			}
-
-			const char *p2 = strchr(p1, ':');
-
-			//      const char* p3 = p2 ? strchr(p2+1, '/'): p2;
-			const char *p3 = strchr(p1, '/');
-
-			if (p2) {
-				_hostname.assign(p1, p2 - p1);
-
-				if (p3) {
-					_port.assign(p2 + 1, p3 - (p2 + 1));
-					_path = p3;
-
-				} else {
-					_port.assign(p2 + 1);
-				}
-
-			} else {
-				_port = default_port;
-
-				if (p3) {
-					_hostname.assign(p1, p3 - p1);
-					_path = p3;
-
-				} else {
-					_hostname = p1;
-				}
-			}
-
-			if (_path.empty())
-				_path = "";
-
-			return true;
-		}
-};
-
 
 string strRefresh = "";
 
@@ -251,6 +182,7 @@ getSamlResponseThread(void *lpParam)
 	EIDCLIENT_CONNECTION_HANDLE connection;
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
 	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(),
 						urlIDP._port.c_str(), 0, NULL);
 
@@ -265,10 +197,10 @@ getSamlResponseThread(void *lpParam)
 		get += urlIDP._port;
 		get += "\r\n\r\n";
 		connection_status = eIDClientConnectionSendRequest(connection,
-							get.c_str(), sz, sizeof sz);
+							get.c_str(), get.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			size_t found = strResult.find("<html");
 			if (found != string::npos)
 				strResult.substr(found);
@@ -423,6 +355,7 @@ int getAuthenticationParams(const char *const cServerName,
 	EIDCLIENT_CONNECTION_HANDLE connection = 0x00;
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
 	connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, 0, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -436,10 +369,10 @@ int getAuthenticationParams(const char *const cServerName,
 		get += pPort;
 		get += "\r\n\r\n";
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), sz, sizeof sz);
+		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			std::string strTmp = strResult;
 			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
 			size_t found = strTmp.find("<html");
@@ -512,10 +445,11 @@ int getAuthenticationParams(const char *const cServerName,
 		request += strContentLength + "\r\n\r\n";
 		request += strData;
 		memset(sz, 0x00, READ_BUFFER);
-		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), sz, sizeof sz);
+		sz_len = sizeof sz;
+		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, &sz_len);
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-			strResult += sz;
+			strResult += string(sz, sz_len);
 			std::string strTmp = strResult;
 			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
 			size_t found = strTmp.find("<html");

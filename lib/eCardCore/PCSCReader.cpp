@@ -187,25 +187,6 @@ bool PCSCReader::open(
 /*
  *
  */
-ICard *PCSCReader::getCard(
-	void)
-{
-	ICard *card = 0x0;
-
-	for (vector<ICardDetector *>::iterator it = m_cardDetectors.begin();
-		 it != m_cardDetectors.end(); it++) {
-		card = ((ICardDetector *) * it)->getCard(this);
-
-		if (card != 0x0)
-			break;
-	}
-
-	return card;
-}
-
-/*
- *
- */
 void PCSCReader::close(
 	void)
 {
@@ -233,16 +214,6 @@ vector <unsigned char> PCSCReader::sendAPDU(
 	return vector<unsigned char>(res, res + reslen);
 }
 
-vector<vector<unsigned char> > PCSCReader::sendAPDUs(
-	const vector<vector<unsigned char> > &cmds)
-{
-	vector<vector<unsigned char> > resp;
-	for (size_t i = 0; i < cmds.size(); i++) {
-		resp.push_back(sendAPDU(cmds[i]));
-	}
-	return resp;
-}
-
 vector<BYTE> PCSCReader::getATRForPresentCard()
 {
 	vector<BYTE> atr;
@@ -255,7 +226,7 @@ vector<BYTE> PCSCReader::getATRForPresentCard()
 	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, 0x00, &atrSize);
 	atr.reserve(atrSize);
 	atr.resize(atrSize);
-	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, &atr[0], &atrSize);
+	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, atr.data(), &atrSize);
 #else
 	unsigned char atr_[512];
 	uint32_t len = sizeof(atr_);

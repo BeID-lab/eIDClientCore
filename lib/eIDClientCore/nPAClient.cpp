@@ -194,7 +194,7 @@ bool nPAClient::getCHAT(
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK) {
+				   m_Idp->getTerminalCertificate().data(), m_Idp->getTerminalCertificate().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT - Could not parse terminal certificate.");
 		// @TODO: Do logging ...
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
@@ -207,7 +207,7 @@ bool nPAClient::getCHAT(
 		return false;
 
 	chatFromCertificate.bufferSize = CVCertificate->certBody.certHolderAuthTemplate.chat.size;
-	memcpy(chatFromCertificate.pDataBuffer, &CVCertificate->certBody.certHolderAuthTemplate.chat.buf[0],
+	memcpy(chatFromCertificate.pDataBuffer, CVCertificate->certBody.certHolderAuthTemplate.chat.buf,
 		   chatFromCertificate.bufferSize);
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return true;
@@ -225,7 +225,7 @@ bool nPAClient::getRequiredCHAT(
 		return false;
 
 	requiredChat.bufferSize = m_Idp->getRequiredChat().size();
-	memcpy(requiredChat.pDataBuffer, &m_Idp->getRequiredChat()[0], m_Idp->getRequiredChat().size());
+	memcpy(requiredChat.pDataBuffer, m_Idp->getRequiredChat().data(), m_Idp->getRequiredChat().size());
 	return true;
 }
 
@@ -244,7 +244,7 @@ bool nPAClient::getOptionalCHAT(
 		return false;
 
 	optionalChat.bufferSize = m_Idp->getOptionalChat().size();
-	memcpy(optionalChat.pDataBuffer, &m_Idp->getOptionalChat()[0], m_Idp->getOptionalChat().size());
+	memcpy(optionalChat.pDataBuffer, m_Idp->getOptionalChat().data(), m_Idp->getOptionalChat().size());
 	return true;
 }
 
@@ -257,7 +257,7 @@ bool nPAClient::getValidFromDate(
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK) {
+				   m_Idp->getTerminalCertificate().data(), m_Idp->getTerminalCertificate().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - Could not parse terminal certificate.");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		// @TODO: Do logging ...
@@ -278,7 +278,7 @@ bool nPAClient::getValidToDate(
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   &m_Idp->getTerminalCertificate()[0], m_Idp->getTerminalCertificate().size()).code != RC_OK) {
+				   m_Idp->getTerminalCertificate().data(), m_Idp->getTerminalCertificate().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getValidToDate - Could not parse terminal certificate.");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		return false;
@@ -298,7 +298,7 @@ bool nPAClient::getCertificateDescription(
 	CertificateDescription_t *certificateDescription_ = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_,
-				   &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK) {
+				   m_Idp->getCertificateDescription().data(), m_Idp->getCertificateDescription().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCertificateDescription - Could not parse certificate description.");
 		asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 		return false;
@@ -307,7 +307,7 @@ bool nPAClient::getCertificateDescription(
 	PlainTermsOfUsage_t *usage = 0x00;
 
 	if (ber_decode(0, &asn_DEF_PlainTermsOfUsage, (void **)&usage,
-				   &certificateDescription_->termsOfUsage.buf[0], certificateDescription_->termsOfUsage.size).code != RC_OK) {
+				   certificateDescription_->termsOfUsage.buf, certificateDescription_->termsOfUsage.size).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCertificateDescription - Could not parse certificate description.");
 		asn_DEF_PlainTermsOfUsage.free_struct(&asn_DEF_PlainTermsOfUsage, usage, 0);
 		return false;
@@ -319,7 +319,7 @@ bool nPAClient::getCertificateDescription(
 		return false;
 
 	certificateDescription.bufferSize = usage->size;
-	memcpy(certificateDescription.pDataBuffer, &usage->buf[0],
+	memcpy(certificateDescription.pDataBuffer, usage->buf,
 		   usage->size);
 	asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 	asn_DEF_PlainTermsOfUsage.free_struct(&asn_DEF_PlainTermsOfUsage, usage, 0);
@@ -332,7 +332,7 @@ bool nPAClient::getServiceName(
 	CertificateDescription_t *certificateDescription_ = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_,
-				   &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK) {
+				   m_Idp->getCertificateDescription().data(), m_Idp->getCertificateDescription().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getServiceName - Could not parse certificate description.");
 		asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 		return false;
@@ -344,7 +344,7 @@ bool nPAClient::getServiceName(
 		return false;
 
 	serviceName.bufferSize = certificateDescription_->subjectName.size;
-	memcpy(serviceName.pDataBuffer, &certificateDescription_->subjectName.buf[0],
+	memcpy(serviceName.pDataBuffer, certificateDescription_->subjectName.buf,
 		   serviceName.bufferSize);
 	asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 	return true;
@@ -356,7 +356,7 @@ bool nPAClient::getServiceURL(
 	CertificateDescription_t *certificateDescription_ = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CertificateDescription, (void **)&certificateDescription_,
-				   &m_Idp->getCertificateDescription()[0], m_Idp->getCertificateDescription().size()).code != RC_OK) {
+				   m_Idp->getCertificateDescription().data(), m_Idp->getCertificateDescription().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getServiceURL - Could not parse certificate description.");
 		asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 		return false;
@@ -373,7 +373,7 @@ bool nPAClient::getServiceURL(
 		return false;
 
 	serviceURL.bufferSize = certificateDescription_->subjectURL->size;
-	memcpy(serviceURL.pDataBuffer, &certificateDescription_->subjectURL->buf[0],
+	memcpy(serviceURL.pDataBuffer, certificateDescription_->subjectURL->buf,
 		   serviceURL.bufferSize);
 	asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, certificateDescription_, 0);
 	return true;

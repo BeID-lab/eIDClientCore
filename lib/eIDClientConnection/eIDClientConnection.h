@@ -35,14 +35,14 @@ extern "C"
 
 	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection);
 
-	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, char *const bufResult, const int nBufResultLength);
+	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const size_t dataLength, char *const bufResult, size_t *nBufResultLength);
 
 
 	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionStart_t)(P_EIDCLIENT_CONNECTION_HANDLE, const char *const, const char *const, const char *const, const char *const, const char *const);
 
 	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionEnd_t)(EIDCLIENT_CONNECTION_HANDLE);
 
-	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionSendRequest_)(EIDCLIENT_CONNECTION_HANDLE, const char *const, char *const, const int);
+	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionSendRequest_)(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const, const size_t, char *const, size_t *);
 
 #if defined(__cplusplus)
 }

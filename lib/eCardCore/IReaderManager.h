@@ -70,6 +70,12 @@ class IReaderManager
 		/*!
 		 *
 		 */
+		vector<IReader *> getReaders(
+			void) { return m_readerList; };
+
+		/*!
+		 *
+		 */
 		IReader *getReader(
 			const string &readerName) {
 			for (vector<IReader *>::iterator it = m_readerList.begin();
@@ -94,12 +100,6 @@ class IReaderManager
 		// -------------------------------------------------------------------------
 		// Pure virtuals
 		// -------------------------------------------------------------------------
-
-		/*!
-		 *
-		 */
-		virtual vector<IReader *> getReaders(
-			void) = 0;
 
 		/*!
 		 *

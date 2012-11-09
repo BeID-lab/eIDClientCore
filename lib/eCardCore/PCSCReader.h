@@ -62,22 +62,10 @@ class PCSCReader : public IReader
 			void);
 
 		/*!
-		 * @brief Use this function to get a pointer to a ICard object.
-		 */
-		ICard *getCard(
-			void);
-
-		/*!
 		 * @brief This command uses SCardTransmit to send a command to the card.
 		 */
 		vector<unsigned char> sendAPDU(
 			const vector<unsigned char>& cmd);
-
-		/*!
-		 * @brief This command uses SCardTransmit to send a command to the card.
-		 */
-		vector<vector<unsigned char> > sendAPDUs(
-			const vector<vector<unsigned char> > &cmd);
 
 		/*!
 		 *

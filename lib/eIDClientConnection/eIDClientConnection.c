@@ -127,13 +127,13 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE h
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, char *const bufResult, const int nBufResultLength)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const size_t dataLength, char *const bufResult, size_t *nBufResultLength)
 {
 	ssize_t ret;
 	socket_st *sock;
 	sock = (socket_st *) hConnection;
 
-	if (!sock)
+	if (!sock || !nBufResultLength)
 		return EID_CLIENT_CONNECTION_INVALID_HANDLE;
 
     /* HTTP requires sockets to be closed after each successfull transmit. So
@@ -148,13 +148,15 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
         }
 	}
 
-	memset(bufResult, 0x00, nBufResultLength);
-	ret = my_send(sock, data, strlen(data));
-	ret = my_recv(sock, bufResult, nBufResultLength);
+	memset(bufResult, 0x00, *nBufResultLength);
+	ret = my_send(sock, data, dataLength);
+	ret = my_recv(sock, bufResult, *nBufResultLength);
 
 	if (ret < 0) {
 		return EID_CLIENT_CONNECTION_SOCKET_ERROR;
 	}
+
+	*nBufResultLength = ret;
 
 	/* TODO return the number of bytes received (ret) to caller */
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
