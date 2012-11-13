@@ -138,7 +138,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 
     /* HTTP requires sockets to be closed after each successfull transmit. So
      * we have to reconnect here. */
-	if (0x00 == sock->secure) {
+	if (0x00 == sock->secure && (sock->port && (
+					strcmp(sock->port, "80") == 0
+					|| strcmp(sock->port, "8080") == 0))) {
 		my_closesocket(sock->fd);
 		sock->fd = my_connectsocket(sock->hostname, sock->port);
 
