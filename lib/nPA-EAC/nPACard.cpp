@@ -469,14 +469,48 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 
 RAPDU ePACard::sendAPDU(const CAPDU &cmd)
 {
-	if (!m_kEnc.empty() && !m_kMac.empty()
-		&& !cmd.isSecure()) {
+	if (!m_kEnc.empty() && !m_kMac.empty() && !cmd.isSecure()) {
 		CAPDU sm_apdu = applySM(cmd);
 		RAPDU sm_rapdu = ICard::sendAPDU(sm_apdu);
 		return removeSM(sm_rapdu);
 	}
 
 	return ICard::sendAPDU(cmd);
+}
+
+vector<RAPDU> ePACard::sendAPDUs(const vector<CAPDU> &cmds)
+{
+	vector<RAPDU> resps;
+
+	if (!m_kEnc.empty() && !m_kMac.empty()) {
+		unsigned long long start_ssc = m_ssc;
+		size_t i;
+		vector<CAPDU> sm_cmds;
+		for (i = 0; i < cmds.size(); i++) {
+			if (!cmds[i].isSecure()) {
+				sm_cmds.push_back(applySM(cmds[i]));
+				/* increment SSC, to simulate decryption of the APDU */
+				m_ssc++;
+			} else
+				sm_cmds.push_back(cmds[i]);
+		}
+
+		vector<RAPDU> sm_resps = ICard::sendAPDUs(sm_cmds);
+
+		m_ssc = start_ssc;
+		for (i = 0; i < sm_resps.size() && i < cmds.size(); i++) {
+			if (!cmds[i].isSecure()) {
+				/* increment SSC, to simulate encryption of the APDU */
+				m_ssc++;
+				resps.push_back(removeSM(sm_resps[i]));
+			} else
+				resps.push_back(sm_resps[i]);
+		}
+	} else {
+		resps = ICard::sendAPDUs(cmds);
+	}
+
+	return resps;
 }
 
 void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)

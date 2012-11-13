@@ -132,6 +132,9 @@ namespace Bundesdruckerei
 				RAPDU sendAPDU(
 					const CAPDU &cmd);
 
+				vector<RAPDU> sendAPDUs(
+					const vector<CAPDU> &cmds);
+
 				void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
                 void setSSC(unsigned long long ssc);
 
