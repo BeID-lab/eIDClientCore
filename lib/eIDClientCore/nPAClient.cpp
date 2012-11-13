@@ -563,13 +563,11 @@ NPACLIENT_ERROR nPAClient::readAttributed(void)
 	if (Authenticated != m_protocolState)
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
-	for (size_t i = 0; i < m_capdus.size(); ++i) {
-		try {
-			m_rapdus.push_back(m_hCard->sendAPDU(m_capdus[i]));
+	try {
+		m_rapdus = m_hCard->sendAPDUs(m_capdus);
 
-		} catch (...) {
-			return NPACLIENT_ERROR_TRANSMISSION_ERROR;
-		}
+	} catch (...) {
+		return NPACLIENT_ERROR_TRANSMISSION_ERROR;
 	}
 
 	std::string attributes;
