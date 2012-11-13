@@ -85,29 +85,6 @@ ECARD_STATUS __STDCALL__ perform_TA_Step_Verify_Certificate(
 	return ECARD_SUCCESS;
 }
 
-ECARD_STATUS __STDCALL__ perform_TA_Step_C(
-	std::vector<unsigned char> &carDVCA,
-	ICard &card_)
-{
-	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_DST);
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x83);
-	dataPart_.push_back((unsigned char) carDVCA.size());
-
-	// Append the CAR
-	for (size_t i = 0; i < carDVCA.size() ; i++)
-		dataPart_.push_back(carDVCA[i]);
-
-	mse.setData(dataPart_);
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set CAR for PuK.DV");
-	RAPDU rapdu = card_.sendAPDU(mse);
-
-	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_C_FAILED;
-
-	return ECARD_SUCCESS;
-}
-
 ECARD_STATUS __STDCALL__ perform_TA_Step_E(
 	const std::vector<unsigned char>& keyID,
 	const std::vector<unsigned char>& x_Puk_IFD_DH,
