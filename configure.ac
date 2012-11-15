@@ -95,8 +95,6 @@ case "${host}" in
 esac
 
 
-CPPFLAGS="$PCSC_CFLAGS $CPPFLAGS"
-
 # Checks for header files.
 AC_CHECK_HEADERS([netdb.h stdlib.h])
 
