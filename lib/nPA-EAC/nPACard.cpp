@@ -28,32 +28,30 @@ static std::vector<unsigned char> decryptResponse_AES(
 	const std::vector<unsigned char>& returnedData,
 	unsigned long long ssc);
 
-ePACard::ePACard(
-	IReader *hSubSystem) : ICard(hSubSystem)
+ePACard::ePACard(IReader *hSubSystem) : ICard(hSubSystem)
 {
 	if (!selectMF()
 		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
 		throw WrongHandle();
 }
 
-ePACard::ePACard(
-	IReader *hSubSystem, const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
+ePACard::ePACard(IReader *hSubSystem,
+	   	const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
 {
     m_ef_cardaccess = ef_cardaccess;
 }
 
-string ePACard::getCardDescription(
-	void)
+string ePACard::getCardDescription(void)
 {
 	return "German nPA";
 }
 
-const vector<unsigned char> ePACard::get_ef_cardaccess() const
+const vector<unsigned char> ePACard::get_ef_cardaccess(void) const
 {
 	return m_ef_cardaccess;
 }
 
-const vector<unsigned char> ePACard::get_ef_cardsecurity()
+const vector<unsigned char> ePACard::get_ef_cardsecurity(void)
 {
 	if (m_ef_cardsecurity.empty()
 		&& !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
@@ -62,62 +60,6 @@ const vector<unsigned char> ePACard::get_ef_cardsecurity()
 	return m_ef_cardsecurity;
 }
 
-bool ePACard::selectMF(
-	void)
-{
-	SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
-
-bool ePACard::selectEF(
-	unsigned short FID)
-{
-	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
-
-bool ePACard::selectEF(
-	unsigned short FID,
-	vector<unsigned char>& fcp)
-{
-	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
-	select.setNe(CAPDU::DATA_SHORT_MAX);
-	RAPDU response = sendAPDU(select);
-	fcp = response.getData();
-	return response.isOK();
-}
-
-bool ePACard::selectDF(
-	unsigned short FID)
-{
-	SelectFile select(SelectFile::P1_SELECT_DF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
-
-bool ePACard::readFile(
-	unsigned char sfid,
-	size_t size,
-	vector<unsigned char>& result)
-{
-	ReadBinary read = ReadBinary(0, sfid);
-	read.setNe(size);
-	RAPDU response = sendAPDU(read);
-	result = response.getData();
-	return response.isOK();
-}
-
-bool ePACard::readFile(
-	vector<unsigned char>& result)
-{
-	ReadBinary read = ReadBinary();
-	read.setNe(CAPDU::DATA_EXTENDED_MAX);
-	RAPDU response = sendAPDU(read);
-	result = response.getData();
-	return response.isOK();
-}
 
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,
@@ -535,4 +477,3 @@ ICard *ePACardDetector::getCard(IReader *reader)
 
 	return 0x00;
 }
-

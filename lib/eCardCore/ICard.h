@@ -11,9 +11,7 @@
 
 #include <string>
 
-/*!
- * @class ICard
- */
+/* ISO 7816 smart card */
 class ICard
 {
 	private:
@@ -29,36 +27,21 @@ class ICard
 	public:
 		static const unsigned short FID_MF = 0x3F00;
 
-		/*!
-		 *
-		 */
-		ICard(
-			IReader *subSystem);
+		ICard(IReader *subSystem);
+		virtual ~ICard(void);
 
-		/*!
-		 *
-		 */
-		virtual ~ICard(
-			void);
+		bool selectMF(void);
+		bool selectDF(unsigned short FID);
+		bool selectEF(unsigned short FID);
+		bool selectEF(unsigned short FID, vector<unsigned char>& fcp);
 
-		bool selectEF(
-			unsigned short FID);
+		bool readFile(vector<unsigned char>& result);
+		bool readFile(unsigned char sfid, size_t size,
+			   	vector<unsigned char>& result);
 
-		bool selectEF(
-			unsigned short FID,
-			vector<unsigned char>& fcp);
+		virtual RAPDU sendAPDU(const CAPDU &cmd);
 
-		bool selectDF(
-			unsigned short FID);
-
-		bool selectMF(
-			void);
-
-		virtual RAPDU sendAPDU(
-			const CAPDU &cmd);
-
-		virtual std::vector<RAPDU> sendAPDUs(
-			const std::vector<CAPDU> &cmds);
+		virtual std::vector<RAPDU> sendAPDUs(const std::vector<CAPDU> &cmds);
 
 		const IReader *getSubSystem(void) const;
 
@@ -66,11 +49,7 @@ class ICard
 		// Pure virtuals
 		// -------------------------------------------------------------------------
 
-		/*!
-		 *
-		 */
-		virtual string getCardDescription(
-			void) = 0;
+		virtual string getCardDescription(void) = 0;
 
 }; // class ICard
 

@@ -3,6 +3,7 @@
  */
 
 #include "ICard.h"
+#include "CardCommand.h"
 #include "IReaderManager.h"
 
 ICard::ICard(
@@ -65,4 +66,61 @@ std::vector<RAPDU> ICard::sendAPDUs(const std::vector<CAPDU> &cmds)
 const IReader *ICard::getSubSystem(void) const
 {
 	return m_subSystem;
+}
+
+bool ICard::selectMF(
+	void)
+{
+	SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
+	RAPDU response = sendAPDU(select);
+	return response.isOK();
+}
+
+bool ICard::selectEF(
+	unsigned short FID)
+{
+	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_NO_RESPONSE, FID);
+	RAPDU response = sendAPDU(select);
+	return response.isOK();
+}
+
+bool ICard::selectEF(
+	unsigned short FID,
+	vector<unsigned char>& fcp)
+{
+	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
+	select.setNe(CAPDU::DATA_SHORT_MAX);
+	RAPDU response = sendAPDU(select);
+	fcp = response.getData();
+	return response.isOK();
+}
+
+bool ICard::selectDF(
+	unsigned short FID)
+{
+	SelectFile select(SelectFile::P1_SELECT_DF, SelectFile::P2_NO_RESPONSE, FID);
+	RAPDU response = sendAPDU(select);
+	return response.isOK();
+}
+
+bool ICard::readFile(
+	unsigned char sfid,
+	size_t size,
+	vector<unsigned char>& result)
+{
+	ReadBinary read = ReadBinary(0, sfid);
+	read.setNe(size);
+	RAPDU response = sendAPDU(read);
+	result = response.getData();
+	return response.isOK();
+}
+
+bool ICard::readFile(
+	vector<unsigned char>& result)
+{
+	ReadBinary read = ReadBinary();
+	read.setNe(CAPDU::DATA_EXTENDED_MAX);
+	RAPDU response = sendAPDU(read);
+	result = response.getData();
+	return response.isOK();
 }
