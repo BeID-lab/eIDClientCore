@@ -7,9 +7,6 @@
 
 #define id_TA                               "0.4.0.127.0.7.2.2.2"
 
-#define id_CA_ECDH                          "0.4.0.127.0.7.2.2.3.2"
-#define id_CA_ECDH_3DES_CBC_CBC             "0.4.0.127.0.7.2.2.3.2.1"
-
 #define id_PACE                             "0.4.0.127.0.7.2.2.4"
 
 #define id_PACE_DH                          "0.4.0.127.0.7.2.2.4.1"
@@ -29,11 +26,18 @@
 #define id_TA_ECDSA_SHA_224                 "0.4.0.127.0.7.2.2.2.2.2"
 #define id_TA_ECDSA_SHA_256                 "0.4.0.127.0.7.2.2.2.2.3"
 
+
 #define id_CA_ECDH                          "0.4.0.127.0.7.2.2.3.2"
 #define id_CA_ECDH_3DES_CBC_CBC             "0.4.0.127.0.7.2.2.3.2.1"
 #define id_CA_ECDH_AES_CBC_CMAC_128         "0.4.0.127.0.7.2.2.3.2.2"
 #define id_CA_ECDH_AES_CBC_CMAC_192         "0.4.0.127.0.7.2.2.3.2.3"
 #define id_CA_ECDH_AES_CBC_CMAC_256         "0.4.0.127.0.7.2.2.3.2.4"
+
+#define id_CA_DH                            "0.4.0.127.0.7.2.2.3.1"
+#define id_CA_DH_3DES_CBC_CBC               "0.4.0.127.0.7.2.2.3.1.1"
+#define id_CA_DH_AES_CBC_CMAC_128           "0.4.0.127.0.7.2.2.3.1.2"
+#define id_CA_DH_AES_CBC_CMAC_192           "0.4.0.127.0.7.2.2.3.1.3"
+#define id_CA_DH_AES_CBC_CMAC_256           "0.4.0.127.0.7.2.2.3.1.4"
 
 #define id_PK_ECDH                          "0.4.0.127.0.7.2.2.1.2"
 
