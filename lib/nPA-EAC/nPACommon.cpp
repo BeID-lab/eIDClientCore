@@ -293,3 +293,62 @@ std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsign
 
 	return encoded;
 }
+
+std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
+	   	unsigned int *tag, std::vector<unsigned char> &data)
+{
+	/* XXX use asn1c instead of doing TLV by hand */
+	size_t l;
+	unsigned int t;
+	vector<unsigned char> rest;
+	vector<unsigned char>::const_iterator i;
+
+	if (tlv.empty() || !tag)
+		goto err;
+
+	i = tlv.begin();
+
+	t = i[0];
+	i++;
+	if ((t & 0x1F) == 0x1F) {
+		t <<= 8 | i[0];
+		while (i[0] & 0x80 == 0x80) {
+			i++;
+			t <<= 8 | i[0];
+		}
+		i++;
+	}
+
+	l = i[0];
+	i++;
+	if (l >= 0x80) {
+		unsigned int l_ = 0;
+		l &= 0x7F;
+		while (l > 0) {
+			l_ = l_*256 + i[0];
+			i++;
+			l--;
+		}
+		l = l_;
+	}
+
+	if (i+l > tlv.end())
+		goto err;
+
+	*tag = t;
+
+	data.resize(l);
+	copy(i, i+l, data.begin());
+
+	i += l;
+	rest.resize(tlv.end() - i);
+	copy(i, i+rest.size(), rest.begin());
+
+	return rest;
+
+err:
+	if (tag)
+		tag = 0x00;
+
+	return rest;
+}

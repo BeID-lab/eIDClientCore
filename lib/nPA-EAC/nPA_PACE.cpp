@@ -265,8 +265,6 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 	return ECARD_SUCCESS;
 }
 
-#define DATA_INDEX_RAW_POINT 4
-
 ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	std::vector<unsigned char> PuK_IFD_DH1_,
 	ICard &card_,
@@ -280,11 +278,17 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Map Nonce");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
-	if (!rapdu.isOK() || rapdu.getData().size() < DATA_INDEX_RAW_POINT)
+	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_D_FAILED;
 
-	for (size_t i = DATA_INDEX_RAW_POINT; i < rapdu.getData().size(); i++)
-		Puk_ICC_DH1_.push_back(rapdu.getData()[i]);
+	unsigned int tag;
+	vector<unsigned char> tlv_puk;
+
+	if (!TLV_decode(rapdu.getData(), &tag, tlv_puk).empty() || tag != 0x7C)
+		return ECARD_PACE_STEP_D_FAILED;
+
+	if (!TLV_decode(tlv_puk, &tag, Puk_ICC_DH1_).empty() || tag != 0x82)
+		return ECARD_PACE_STEP_D_FAILED;
 
 	return ECARD_SUCCESS;
 }
@@ -303,11 +307,17 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Perform Key Agreement");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
-	if (!rapdu.isOK() || rapdu.getData().size() < DATA_INDEX_RAW_POINT)
+	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_E_FAILED;
 
-	for (size_t i = DATA_INDEX_RAW_POINT; i < rapdu.getData().size(); i++)
-		Puk_ICC_DH2_.push_back(rapdu.getData()[i]);
+	unsigned int tag;
+	vector<unsigned char> tlv_puk;
+
+	if (!TLV_decode(rapdu.getData(), &tag, tlv_puk).empty() || tag != 0x7C)
+		return ECARD_PACE_STEP_D_FAILED;
+
+	if (!TLV_decode(tlv_puk, &tag, Puk_ICC_DH2_).empty() || tag != 0x84)
+		return ECARD_PACE_STEP_D_FAILED;
 
 	return ECARD_SUCCESS;
 }
