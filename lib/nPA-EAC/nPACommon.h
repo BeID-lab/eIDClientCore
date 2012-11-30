@@ -65,4 +65,6 @@ std::vector<unsigned char> point2vector(const ECP::Point &p);
 std::vector<unsigned char> get_y(const std::vector<unsigned char> &v);
 std::vector<unsigned char> get_x(const std::vector<unsigned char> &v);
 
+std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsigned char> &data);
+
 #endif

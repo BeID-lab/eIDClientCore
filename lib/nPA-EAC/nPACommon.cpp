@@ -251,38 +251,45 @@ std::vector<unsigned char> generate_compressed_PuK(
 	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char> &PuK_IFD_DH2)
 {
-	std::vector<unsigned char> result_;
+	std::vector<unsigned char> do06, do86;
 
-	std::vector<unsigned char> tempResult_;
-	// Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-	tempResult_.push_back(0x86);
-	tempResult_.push_back((unsigned char)(PuK_IFD_DH2.size()));
+	do06 = TLV_encode(0x06, vector<unsigned char> (OID_.buf, OID_.buf + OID_.size));
+	do86 = TLV_encode(0x86, PuK_IFD_DH2);
 
-	tempResult_.insert(tempResult_.end(), PuK_IFD_DH2.begin(), PuK_IFD_DH2.end());
+	do06.insert(do06.end(), do86.begin(), do86.end());
 
-	result_.push_back(0x7f);
-	result_.push_back(0x49);
+	return TLV_encode(0x7F49, do06);
+}
 
-	if (tempResult_.size() <= 0x80) {
-		result_.push_back((unsigned char)(tempResult_.size() + 2 + OID_.size));
+std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsigned char> &data)
+{
+	/* XXX use asn1c instead of doing TLV by hand */
+	vector<unsigned char> encoded, t, l;
 
-	} else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF) {
-		result_.push_back(0x81);
-		result_.push_back((unsigned char)(tempResult_.size() + 2 + OID_.size));
+	if (tag == 0x00 || tag == 0xFF)
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid tag.");
 
-	} else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF) {
-		result_.push_back(0x82);
-		result_.push_back((tempResult_.size() + 2 + OID_.size & 0xFF00) >> 8);
-		result_.push_back(tempResult_.size() + 2 + OID_.size & 0xFF);
+	while (tag > 0) {
+		t.insert(t.begin(), (unsigned char) (tag & 0xff));
+		tag >>= 8;
 	}
 
-	result_.push_back(0x06);
-	result_.push_back((unsigned char)OID_.size);
-	for (size_t i = 0; i < OID_.size; i++)
-		result_.push_back(OID_.buf[i]);
+	if (data.size() < 0x7F) {
+		l.push_back((unsigned char) data.size());
+	} else {
+		size_t length = data.size();
+		while (length > 0) {
+			l.insert(l.begin(), (unsigned char) (length & 0xff));
+			length >>= 8;
+		}
+		if (l.size() >= 0x7F)
+			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Input data too long.");
+		l.insert(l.begin(), (unsigned char) (0x80|l.size()));
+	}
 
-	for (size_t i = 0; i < tempResult_.size(); i++)
-		result_.push_back(tempResult_[i]);
+	encoded.insert(encoded.end(), t.begin(), t.end());
+	encoded.insert(encoded.end(), l.begin(), l.end());
+	encoded.insert(encoded.end(), data.begin(), data.end());
 
-	return result_;
+	return encoded;
 }

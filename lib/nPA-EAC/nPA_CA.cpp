@@ -58,27 +58,17 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 	if (32 >= y_Puk_IFD_DH.size())
 		fillerY_ = 32 - y_Puk_IFD_DH.size();
 
-	std::vector<unsigned char> dataPart_;
-	// '7C' || L7C || '80' || L80 || ('04' || x(PuK.IFD.DH) || y(PuK.IFD.DH))
-	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_ + 3));
-	dataPart_.push_back(0x80);
-	dataPart_.push_back((unsigned char)(x_Puk_IFD_DH.size() + fillerX_ + y_Puk_IFD_DH.size() + fillerY_ + 1));
-	dataPart_.push_back(0x04);
-
+	std::vector<unsigned char> Puk_IFD_DH;
 	for (size_t i = 0; i < fillerX_; i++)
-		dataPart_.push_back(0x00);
-
+		Puk_IFD_DH.push_back(0x00);
 	for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
-		dataPart_.push_back(x_Puk_IFD_DH[i]);
-
+		Puk_IFD_DH.push_back(x_Puk_IFD_DH[i]);
 	for (size_t i = 0; i < fillerY_; i++)
-		dataPart_.push_back(0x00);
-
+		Puk_IFD_DH.push_back(0x00);
 	for (size_t i = 0; i < y_Puk_IFD_DH.size(); i++)
-		dataPart_.push_back(y_Puk_IFD_DH[i]);
+		Puk_IFD_DH.push_back(y_Puk_IFD_DH[i]);
 
-	authenticate.setData(dataPart_);
+	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, Puk_IFD_DH)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
 	RAPDU GenralAuthenticate_Result_ = ePA_.sendAPDU(authenticate);
 

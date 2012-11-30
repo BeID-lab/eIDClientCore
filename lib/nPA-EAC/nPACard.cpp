@@ -61,12 +61,12 @@ const vector<unsigned char> ePACard::get_ef_cardsecurity(void)
 }
 
 
+#define BIT_PADDING 0x01
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,
 	const std::vector<unsigned char>& data,
 	unsigned long long ssc)
 {
-	std::vector<unsigned char> do87;
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
 	data_.push_back(0x80);
 
@@ -108,29 +108,11 @@ static std::vector<unsigned char> buildDO87_AES(
 	encryptedData_.resize(data_.size());
 	AESCBC_encryption1.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
 	AESCBC_encryption1.ProcessData(encryptedData_.data(), data_.data(), data_.size());
-	do87.push_back(0x87);
-	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of padding content indicator
+   
+	// Append padding content indicator
+	encryptedData_.insert(encryptedData_.begin(), BIT_PADDING);
 
-	if (encryptedSize <= 0x80) {
-		do87.push_back((unsigned char) encryptedSize);
-
-	} else if (encryptedSize > 0x80 && encryptedSize <= 0xFF) {
-		do87.push_back(0x81);
-		do87.push_back((unsigned char) encryptedSize);
-
-	} else if (encryptedSize > 0xFF && encryptedSize <= 0xFFFF) {
-		do87.push_back(0x82);
-		do87.push_back((encryptedSize & 0xFF00) >> 8);
-		do87.push_back(encryptedSize & 0xFF);
-	}
-
-	// Append ISO padding byte
-	do87.push_back(0x01);
-
-	for (size_t z = 0; z < encryptedData_.size(); z++)
-		do87.push_back(encryptedData_[z]);
-
-	return do87;
+	return TLV_encode(0x87, encryptedData_);
 }
 
 static std::vector<unsigned char> buildDO8E_AES(
@@ -203,14 +185,8 @@ static std::vector<unsigned char> buildDO8E_AES(
 	cmac.Update(vssc.data(), vssc.size());
 	cmac.Final(result_.data());
 	result_.resize(8);
-	std::vector<unsigned char> do8E;
-	do8E.push_back(0x8E);
-	do8E.push_back(0x08);
 
-	for (size_t o = 0; o < result_.size(); o++)
-		do8E.push_back(result_[o]);
-
-	return do8E;
+	return TLV_encode(0x8E, result_);
 }
 
 bool verifyResponse_AES(
@@ -366,14 +342,10 @@ CAPDU ePACard::applySM(const CAPDU &capdu)
 	Le = capdu.encodedLe();
 
 	if (!Le.empty()) {
-		do97_.push_back(0x97);
-
 		if (Le.size() > 2) {
 			Le.erase(Le.begin());
 		}
-
-		do97_.push_back((unsigned char) Le.size());
-		do97_.insert(do97_.end(), Le.begin(), Le.end());
+		do97_ = TLV_encode(0x97, Le);
 	}
 
 	/* here, sm_apdu is still a case 1 APDU with header only. */

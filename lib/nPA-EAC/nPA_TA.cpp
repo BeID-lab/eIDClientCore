@@ -24,14 +24,8 @@ CAPDU build_TA_Step_Set_CAR(
 		std::vector<unsigned char> &carCVCA)
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_DST);
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x83);
-	dataPart_.push_back((unsigned char) carCVCA.size());
 
-	// Append the CAR
-	dataPart_.insert(dataPart_.end(), carCVCA.begin(), carCVCA.end());
-
-	mse.setData(dataPart_);
+	mse.setData(TLV_encode(0x83, carCVCA));
 
 	return mse;
 }
@@ -95,7 +89,7 @@ CAPDU build_TA_Step_E(
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_AT);
 	// @TODO Get the right oid for TA
-	std::vector<unsigned char> dataField;
+	std::vector<unsigned char> dataField, do83, do91;
 	dataField.push_back(0x80); // OID for algorithm id_TA_ECDSA_SHA_1
 	dataField.push_back(0x0A);
 	dataField.push_back(0x04);
@@ -109,14 +103,13 @@ CAPDU build_TA_Step_E(
 	dataField.push_back(0x02);
 	dataField.push_back(0x03);
 
-	dataField.push_back(0x83); // keyId
-	dataField.push_back((unsigned char) keyID.size());
-	dataField.insert(dataField.end(), keyID.begin(), keyID.end());
+	// keyId
+	do83 = TLV_encode(0x83, keyID);
+	dataField.insert(dataField.end(), do83.begin(), do83.end());
 
-	dataField.push_back(0x91); // x(Puk.IFD.CA)
-	dataField.push_back((unsigned char) x_Puk_IFD_DH.size());
-	dataField.insert(dataField.end(), x_Puk_IFD_DH.begin(),
-			x_Puk_IFD_DH.end());
+	// x(Puk.IFD.CA)
+	do91 = TLV_encode(0x91, x_Puk_IFD_DH);
+	dataField.insert(dataField.end(), do91.begin(), do91.end());
 
 	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(),
 			authenticatedAuxiliaryData.end());

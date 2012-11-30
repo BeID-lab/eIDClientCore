@@ -183,29 +183,26 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	const std::vector<unsigned char>& chat,
 	ICard &card_)
 {
-	vector<unsigned char> data;
+	vector<unsigned char> data, do80, do83, key_ref;
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE | MSE::P1_VERIFY, MSE::P2_AT);
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PACE OID", PACE_OID_.buf, PACE_OID_.size);
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> CHAT", chat.data(), chat.size());
 	hexdump(DEBUG_LEVEL_CRYPTO, "###-> KEY REF", &keyReference, 1);
+
 	// Append OID
-	data.push_back(0x80);
-	data.push_back((unsigned char) PACE_OID_.size);
-	data.insert(data.end(), PACE_OID_.buf, PACE_OID_.buf + PACE_OID_.size);
+	do80 = TLV_encode(0x80, vector<unsigned char> (PACE_OID_.buf, PACE_OID_.buf + PACE_OID_.size));
+	data.insert(data.end(), do80.begin(), do80.end());
+
 	// Append Key reference
-	data.push_back(0x83);
-	data.push_back(0x01);
-
-	if (PaceInput::mrz == keyReference) data.push_back(0x01);
-
-	if (PaceInput::can == keyReference) data.push_back(0x02);
-
-	if (PaceInput::pin == keyReference) data.push_back(0x03);
-
-	if (PaceInput::puk == keyReference) data.push_back(0x04);
+	if (PaceInput::mrz == keyReference) key_ref.push_back(0x01);
+	if (PaceInput::can == keyReference) key_ref.push_back(0x02);
+	if (PaceInput::pin == keyReference) key_ref.push_back(0x03);
+	if (PaceInput::puk == keyReference) key_ref.push_back(0x04);
+	do83 = TLV_encode(0x83, key_ref);
+	data.insert(data.end(), do83.begin(), do83.end());
 
 	// Append CHAT
-	data.insert(data.end(), chat.data(), chat.data() + chat.size());
+	data.insert(data.end(), chat.begin(), chat.end());
 	mse.setData(data);
 
 	RAPDU rapdu = card_.sendAPDU(mse);
@@ -232,10 +229,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	vector<unsigned char> data;
-	data.push_back(0x7C);
-	data.push_back(0x00);
-	authenticate.setData(data);
+	authenticate.setData(TLV_encode(0x7C, vector<unsigned char> ()));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to get RND.ICC");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
@@ -282,15 +276,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(0x02 + PuK_IFD_DH1_.size()));
-	dataPart_.push_back(0x81);
-	dataPart_.push_back((unsigned char)(PuK_IFD_DH1_.size()));
-
-	dataPart_.insert(dataPart_.end(), PuK_IFD_DH1_.begin(), PuK_IFD_DH1_.end());
-
-	authenticate.setData(dataPart_);
+	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x81, PuK_IFD_DH1_)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Map Nonce");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
@@ -312,16 +298,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(0x02 + PuK_IFD_DH2_.size()));
-	dataPart_.push_back(0x83);
-	dataPart_.push_back((unsigned char)(PuK_IFD_DH2_.size()));
-
-	dataPart_.insert(dataPart_.end(), PuK_IFD_DH2_.begin(), PuK_IFD_DH2_.end());
-
 	// Append command data field
-	authenticate.setData(dataPart_);
+	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x83, PuK_IFD_DH2_)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Perform Key Agreement");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
@@ -342,15 +320,8 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x7C);
-	dataPart_.push_back((unsigned char)(0x02 + macedPuk_ICC_DH2.size()));
-	dataPart_.push_back(0x85);
-	dataPart_.push_back((unsigned char) macedPuk_ICC_DH2.size());
 
-	dataPart_.insert(dataPart_.end(), macedPuk_ICC_DH2.begin(), macedPuk_ICC_DH2.end());
-
-	authenticate.setData(dataPart_);
+	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x85, macedPuk_ICC_DH2)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to perform explicit authentication");
 	RAPDU rapdu = card_.sendAPDU(authenticate);
 
