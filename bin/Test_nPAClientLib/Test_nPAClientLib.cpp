@@ -490,7 +490,7 @@ int getAuthenticationParams(const char *const cServerName,
 
 int main(int argc, char **argv)
 {
-	int loopCount = 1;
+	int loopCount = 10;
 	int retValue = 0;
 	int serverErrorCounter = 0;
 	char buffer[500];

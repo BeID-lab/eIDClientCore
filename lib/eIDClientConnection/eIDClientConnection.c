@@ -23,6 +23,8 @@ typedef long ssize_t;
 typedef struct {
 	char *hostname;
 	char *port;
+	char *path;
+	char *sid;
 	int fd;
 	int secure;
 	void *ssl_tls_driver_data;
@@ -49,6 +51,66 @@ void *gnutls_connect(int fd, const unsigned char *const psk, size_t psk_len, con
 ssize_t gnutls_recv(const void *const driver_data, void *const buffer, size_t buffer_size);
 ssize_t gnutls_send(const void *const driver_data, const void *const buffer, size_t buffer_size);
 
+void parse_url( const char* const url, const char* hostname, size_t *nHostnameLength, const char* port, size_t *nPortLength, const char* path, size_t *nPathLength) 
+{
+	const char *p1 = 0x00;
+	const char *p2 = 0x00;
+	const char *p3 = 0x00;
+
+	if (!url || !*url)
+		return;
+
+	memset(hostname, 0x00, *nHostnameLength);
+	memset(port, 0x00, *nPortLength);
+	memset(path, 0x00, *nPathLength);
+
+	p1 = strstr(url, "://");
+
+	if (p1) {
+//		strScheme.assign(url, p1 - url);
+		p1 += 3;
+
+	} else {
+		p1 = url;
+	}
+
+	p2 = strchr(p1, ':');
+
+	p3 = strchr(p1, '/');
+
+	if (p2) {
+		if( (p2 - p1) < *nHostnameLength)
+		  strncpy(hostname,p1, p2 - p1);
+		if (p3) {
+			if( ( p3 - (p2 + 1)) < *nPortLength)
+       		  strncpy(port, p2 + 1, p3 - (p2 + 1));
+			if( strlen(p3) < *nPathLength)
+     		  strcpy(path,p3);
+		} else {
+			if( strlen(p2 + 1) < *nPortLength)
+     		  strcpy(port, p2 + 1);
+		}
+
+	} else {
+		if (p3) {
+		    if( (p3 - p1) < *nHostnameLength)
+     		  strncpy(hostname,p1, p3 - p1);
+			if( strlen(p3) < *nPathLength)
+     		  strcpy(path,p3);
+		} else {
+			if( strlen(p1) < *nPortLength)
+     		  strcpy(port,p1);
+		}
+	}
+	if (strlen(path) < 1)
+     	strcpy(path,"");
+
+	*nHostnameLength = strlen(hostname);
+	*nPortLength = strlen(port);
+	*nPathLength = strlen(path);
+
+	return;
+}
 
 
 EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection,  const char *const hostname, const char *const port,
@@ -72,6 +134,8 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 	// initalize sock
 	sock->hostname = strdup(hostname);
 	sock->port = strdup(port);
+	sock->path = 0x00;
+	sock->sid = strdup(sid);
 	sock->fd = 0x00;
 	sock->secure = 0;
 	sock->ssl_tls_driver_data = 0x00;
@@ -102,6 +166,38 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const pskKey)
+{
+	char hostname[100];
+	char port[100];
+	char path[100];
+	size_t nHostnameLength = sizeof(hostname);	
+	size_t nPortLength = sizeof(port);
+	size_t nPathLength = sizeof(path);
+	socket_st* sock = 0x00;
+
+	memset(hostname, 0x00, sizeof(hostname));
+	memset(port, 0x00, sizeof(port));
+	memset(path, 0x00, sizeof(path));
+
+	// möglicher buffer overflow, ggf. Länge mit übergeben
+	 parse_url(url, hostname, &nHostnameLength, port, &nPortLength, path, &nPathLength);
+
+	 if( EID_CLIENT_CONNECTION_SOCKET_ERROR == eIDClientConnectionStart(hConnection,  hostname, port, sid, pskKey) )
+	 {
+		 return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+	 }
+	 
+	 sock = (socket_st*) *hConnection;
+
+	if (!sock)
+		return EID_CLIENT_CONNECTION_INVALID_HANDLE;
+
+	sock->path = strdup(path);
+
+	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
+}
+
 EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection)
 {
 	socket_st *sock = (socket_st *) hConnection;
@@ -118,6 +214,12 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE h
 
 	if (sock->port)
 		free(sock->port);
+
+	if (sock->path)
+		free(sock->path);
+
+	if (sock->sid)
+		free(sock->sid);
 
 	if (sock->fd != -1) {
 		my_closesocket(sock->fd);
@@ -159,6 +261,81 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 	}
 
 	*nBufResultLength = ret;
+
+	/* TODO return the number of bytes received (ret) to caller */
+	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
+}
+
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const size_t dataLength, char *const bufResult, size_t *nBufResultLength)
+{
+	ssize_t ret;
+	socket_st *sock = (socket_st *) hConnection;
+	char buf[10000];
+	char result[10000];
+	size_t bufLength = 0x00;
+	size_t resultLength = 10000;
+	size_t contentLength = 0x00;
+	char* p1 = 0x00;
+	char* p2 = 0x00;
+	char p3[100];
+	char p4[100];
+	char* p5 = 0x00;
+
+
+	if (!sock || !nBufResultLength)
+		return EID_CLIENT_CONNECTION_INVALID_HANDLE;
+	
+	memset(buf, 0x00, sizeof buf);
+	memset(result, 0x00, sizeof result);
+	memset(p3, 0x00, sizeof p3);
+	memset(p4, 0x00, sizeof p4);
+
+	itoa((int)dataLength, p4, 10);
+
+	strcat(buf, "POST ");
+	strcat(buf, sock->path);
+	strcat(buf, "/?sessionid="); 
+	strcat(buf, sock->sid);
+	strcat(buf, " HTTP/1.1\r\n"); 
+
+	strcat(buf, "Content-Length: "); 
+	strcat(buf, p4); 
+	strcat(buf, "\r\n");
+
+	strcat(buf, "Accept: text/html; application/vnd.paos+xml\r\n"); 
+	strcat(buf, "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n"); 
+
+	strcat(buf, "Host: "); 
+	strcat(buf, sock->hostname); 
+	strcat(buf, ":"); 
+	strcat(buf, sock->port); 
+	strcat(buf, "\r\n");
+	strcat(buf, "\r\n");
+
+	if(dataLength > 0)
+	{
+		strcat(buf, data);
+	}
+	bufLength = strlen(buf);
+
+	if( EID_CLIENT_CONNECTION_ERROR_SUCCESS == eIDClientConnectionSendRequest(hConnection, buf,bufLength, result, &resultLength) )
+	{
+	  p1 = strstr(result,"Content-Length:");
+ 	  p1 += 15;
+	  p2 = strstr(p1,"\n");
+      strncpy(p3, p1, p2-p1);
+	  contentLength = atoi(p3);
+
+	  p5 = result;
+	  p5 = p5 + resultLength - contentLength;
+      strncpy(bufResult, p5, contentLength);
+
+	  *nBufResultLength = strlen(bufResult);
+	}
+	else
+	{
+		return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+	}
 
 	/* TODO return the number of bytes received (ret) to caller */
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
