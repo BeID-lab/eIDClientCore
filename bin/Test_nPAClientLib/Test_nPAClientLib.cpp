@@ -355,11 +355,16 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 	}
 }
 
-static string p("123456");
-static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
+static const char default_pin[] = "123456";
+static const char *pin = default_pin;
+
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
 {
+	static nPADataBuffer_t p;
+	p.pDataBuffer = (unsigned char *) pin;
+	p.bufferSize = strlen(default_pin);
+
 	std::cout << "serviceName: ";
 	std::cout.write((char *) description->name->pDataBuffer, description->name->bufferSize);
 	std::cout << std::endl;
@@ -372,7 +377,7 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	input->chat_selected = description->chat_required;
 
 	if (input->pin_required)
-		input->pin = &pin;
+		input->pin = &p;
 
 	return NPACLIENT_ERROR_SUCCESS;
 }
@@ -396,9 +401,7 @@ string str_replace(string rep, string wit, string in)
 	return in;
 }
 
-int getAuthenticationParams(const char *const cServerName,
-							const char *const pPort,
-							const char *const cPath,
+int getAuthenticationParams(const char *const SP_URL,
 							string &strIdpAddress,
 							string &strSessionIdentifier,
 							string &strPathSecurityParameters)
@@ -408,17 +411,22 @@ int getAuthenticationParams(const char *const cServerName,
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-	connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, 0, NULL);
+
+	URL urlSP(SP_URL);
+	if (!urlSP._valid)
+		return 0;
+
+	connection_status = eIDClientConnectionStart(&connection, urlSP._hostname.c_str(), urlSP._port.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		/* Send a GET request */
 		string get("GET ");
-		get += cPath;
+		get += urlSP._path.c_str();
 		get += " HTTP/1.1\r\n";
 		get += "Host: ";
-		get += cServerName;
+		get += urlSP._hostname.c_str();
 		get += ":";
-		get += pPort;
+		get += urlSP._port.c_str();
 		get += "\r\n\r\n";
 		memset(sz, 0x00, READ_BUFFER);
 		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, &sz_len);
@@ -476,7 +484,7 @@ int getAuthenticationParams(const char *const cServerName,
 	string strContentLength = "Content-Length: " + out.str();
 	strResult = "";
 	connection = 0x00;
-	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), 0, NULL);
+	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		string request;
@@ -548,6 +556,29 @@ int main(int argc, char **argv)
 	char buffer[500];
 	std::vector<double> diffv;
 
+	const char default_serviceURL[] = "https://eidservices.bundesdruckerei.de"
+		":433"
+		"/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI";
+	const char *serviceURL = default_serviceURL;
+
+	switch (argc) {
+		case 3:
+			pin = argv[2];
+
+		case 2:
+			serviceURL = argv[1];
+
+		case 1:
+
+			cout << "Connection Parameters:" << std::endl;
+			cout << "SP URL\t\t" << serviceURL << std::endl;
+			cout << "eID PIN\t\t" << pin << std::endl;
+			break;
+
+		default:
+			cout << "Usage: " << argv[0] << "[\"Service Provider URL\" [\"eID PIN\"]]" << std::endl;
+	}
+
 	while (0 == retValue) {
 		time_t start;
 		time(&start);
@@ -555,7 +586,7 @@ int main(int argc, char **argv)
 		string strSessionIdentifier("");
 		string strPathSecurityParameters("");
 		string strRef("");
-        getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+        getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);
