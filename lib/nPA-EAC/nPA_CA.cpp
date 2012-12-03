@@ -9,6 +9,8 @@
 using namespace Bundesdruckerei::nPA;
 
 #include "nPACommon.h"
+#include "eidasn1/eIDHelper.h"
+#include "eidasn1/eIDOID.h"
 
 ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 	ICard &ePA_)
@@ -41,34 +43,30 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_B(
 
 ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 	ICard &ePA_,
-	const std::vector<unsigned char>& x_Puk_IFD_DH,
-	const std::vector<unsigned char>& y_Puk_IFD_DH,
+	const OBJECT_IDENTIFIER_t& CA_OID,
+	const std::vector<unsigned char>& Puk_IFD_DH,
 	std::vector<unsigned char>& GeneralAuthenticationResult)
 {
 	GeneralAuthenticate authenticate = GeneralAuthenticate(
 										   GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
-	size_t fillerX_ = 0;
 
-	if (32 >= x_Puk_IFD_DH.size())
-		fillerX_ = 32 - x_Puk_IFD_DH.size();;
+	std::vector<unsigned char> puk;
+	OBJECT_IDENTIFIER_t ca_dh = makeOID(id_CA_DH);
+	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	if (ca_dh < CA_OID) {
+		puk = Puk_IFD_DH;
+	} else if (ca_ecdh < CA_OID) {
+		puk.push_back(0x04);
+		puk.insert(puk.end(), Puk_IFD_DH.begin(), Puk_IFD_DH.end());
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid CA OID.");
+	}
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
 
-	size_t fillerY_ = 0;
+	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, puk)));
 
-	if (32 >= y_Puk_IFD_DH.size())
-		fillerY_ = 32 - y_Puk_IFD_DH.size();
-
-	std::vector<unsigned char> Puk_IFD_DH;
-	for (size_t i = 0; i < fillerX_; i++)
-		Puk_IFD_DH.push_back(0x00);
-	for (size_t i = 0; i < x_Puk_IFD_DH.size(); i++)
-		Puk_IFD_DH.push_back(x_Puk_IFD_DH[i]);
-	for (size_t i = 0; i < fillerY_; i++)
-		Puk_IFD_DH.push_back(0x00);
-	for (size_t i = 0; i < y_Puk_IFD_DH.size(); i++)
-		Puk_IFD_DH.push_back(y_Puk_IFD_DH[i]);
-
-	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, Puk_IFD_DH)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
 	RAPDU GenralAuthenticate_Result_ = ePA_.sendAPDU(authenticate);
 
@@ -82,16 +80,17 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 
 ECARD_STATUS __STDCALL__ ePAPerformCA(
 	ICard &hCard,
-	const std::vector<unsigned char>& x_Puk_IFD_DH,
-	const std::vector<unsigned char>& y_Puk_IFD_DH,
+	const std::vector<unsigned char>& CA_OID,
+	const std::vector<unsigned char>& Puk_IFD_DH,
 	std::vector<unsigned char>& GeneralAuthenticationResult)
 {
 	ECARD_STATUS status_ = ECARD_SUCCESS;
+	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
 	if (ECARD_SUCCESS != (status_ = perform_CA_Step_B(hCard)))
 		return status_;
 
-	if (ECARD_SUCCESS != (status_ = perform_CA_Step_C(hCard, x_Puk_IFD_DH, y_Puk_IFD_DH, GeneralAuthenticationResult)))
+	if (ECARD_SUCCESS != (status_ = perform_CA_Step_C(hCard, ca_oid, Puk_IFD_DH, GeneralAuthenticationResult)))
 		return status_;
 
 	return ECARD_SUCCESS;

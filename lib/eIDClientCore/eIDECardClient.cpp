@@ -200,8 +200,7 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	const std::string &cvCACHAR,
 	const std::vector<unsigned char>& idPICC,
 	std::vector<std::vector<unsigned char> >& list_certificates,
-	std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-	std::vector<unsigned char>& y_Puk_IFD_DH_CA_
+	std::vector<unsigned char>& Puk_IFD_DH_CA
 )
 {
 	string myEFCardAccess = Byte2Hex(efCardAccess.data(), efCardAccess.size());
@@ -225,23 +224,15 @@ bool eIdECardClient::getTerminalAuthenticationData(
 		list_certificates.push_back(myCert);
 	}
 
-	std::vector<unsigned char> myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
+	Puk_IFD_DH_CA = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
 
-	if (myKey.empty()) return false;
+	if (Puk_IFD_DH_CA.empty()) return false;
 
-	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", myKey.data(), ephPubKey.size() / 2);
+	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", Puk_IFD_DH_CA.data(), Puk_IFD_DH_CA.size());
 
 	if (!(cert1.length() % 2 == 0)) return false;
 
 	if (!(ephPubKey.size() % 4 == 0)) return false;
-
-	size_t half = ephPubKey.size() / 4;
-
-	for (size_t i = 0; i < half; i++)
-		x_Puk_IFD_DH_CA_.push_back(myKey[i]);
-
-	for (size_t i = 0; i < half; i++)
-		y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
 
 	return true;
 }

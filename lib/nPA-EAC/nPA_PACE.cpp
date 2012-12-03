@@ -155,18 +155,8 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 		ECP ecp(Mod, a, b);
 		// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
 		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
-		std::vector<unsigned char> x_;
-		x_.resize(kifd_icc_.x.ByteCount());
-		std::vector<unsigned char> y_;
-		y_.resize(kifd_icc_.y.ByteCount());
-		kifd_icc_.x.Encode(x_.data(), kifd_icc_.x.ByteCount());
-		kifd_icc_.y.Encode(y_.data(), kifd_icc_.y.ByteCount());
-		hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.x", (void *) x_.data(), x_.size());
-		hexdump(DEBUG_LEVEL_CRYPTO, "###-> KIFD/ICC.y", (void *) y_.data(), y_.size());
 
-		while (result_buffer.size() + x_.size() < 0x10)
-			result_buffer.push_back(0x00);
-		result_buffer.insert(result_buffer.end(), x_.begin(), x_.end());
+		result_buffer = get_x(point2vector(kifd_icc_));
 	}
 
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
@@ -387,35 +377,47 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 	ePACard &ePA_,
 	const PaceInput &pace_input,
 	std::vector<unsigned char>& car_cvca,
-	std::vector<unsigned char>& x_Puk_ICC_DH2)
+	std::vector<unsigned char>& idPICC,
+	std::vector<unsigned char>& ca_oid)
 {
+	OBJECT_IDENTIFIER_t PACE_OID_ = {NULL, 0};
+	OBJECT_IDENTIFIER_t CA_OID_ = {NULL, 0};
+
+	// Parse the EF.CardAccess
+	SecurityInfos *secInfos_ = 0x00;
+	if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, ePA_.get_ef_cardaccess().data(), ePA_.get_ef_cardaccess().size()).code != RC_OK) {
+		asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+		return ECARD_EFCARDACCESS_PARSER_ERROR;
+	}
+
+	// Find the algorithm identifiers for PACE and CA...
+	OBJECT_IDENTIFIER_t pace = makeOID(id_PACE);
+	OBJECT_IDENTIFIER_t ca_dh = makeOID(id_CA_DH);
+	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	for (size_t i = 0; i < secInfos_->list.count; i++) {
+		OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
+
+		if (pace < oid) {
+			PACE_OID_ = oid;
+		}
+		if (ca_dh < oid || ca_ecdh < oid) {
+			CA_OID_ = oid;
+		}
+	}
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &pace, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+
+
 	if (ePA_.getSubSystem()->supportsPACE()) {
 		eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
 		PaceOutput output = ePA_.getSubSystem()->establishPACEChannel(pace_input);
 		car_cvca = output.get_car_curr();
-		x_Puk_ICC_DH2 = output.get_id_icc();
+		idPICC = output.get_id_icc();
 
 	} else {
 		eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader does not support PACE. Will establish PACE channel.");
-		// Parse the EF.CardAccess file to get needed information.
-		SecurityInfos   *secInfos_ = 0x00;
 
-		if (ber_decode(0, &asn_DEF_SecurityInfos, (void **)&secInfos_, ePA_.get_ef_cardaccess().data(), ePA_.get_ef_cardaccess().size()).code != RC_OK) {
-			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
-			return ECARD_EFCARDACCESS_PARSER_ERROR;
-		}
-
-		OBJECT_IDENTIFIER_t PACE_OID_ = {NULL, 0};
-
-		// Find the algorithm for PACE ...
-		OBJECT_IDENTIFIER_t PACE = makeOID(id_PACE);
-		for (size_t i = 0; i < secInfos_->list.count; i++) {
-			OBJECT_IDENTIFIER_t oid = secInfos_->list.array[i]->protocol;
-
-			if (PACE < oid)
-				PACE_OID_ = oid;
-		}
-		asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE, 1);
 
 		ECARD_STATUS status = ECARD_SUCCESS;
 
@@ -483,10 +485,14 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 		ePA_.setKeys(kEnc_, kMac_);
 		car_cvca = std::vector<unsigned char> (car_cvca_.begin(), car_cvca_.end());
 
-		x_Puk_ICC_DH2 = calculate_ID_ICC(PACE_OID_, PuK_ICC_DH2_);
+		idPICC = calculate_ID_ICC(PACE_OID_, PuK_ICC_DH2_);
 
-		asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+		hexdump(DEBUG_LEVEL_CRYPTO, "###-> ID ICC", idPICC.data(), idPICC.size());
 	}
+
+	ca_oid.assign(CA_OID_.buf, CA_OID_.buf + CA_OID_.size);
+
+	asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 
 	return ECARD_SUCCESS;
 }

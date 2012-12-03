@@ -84,7 +84,8 @@ ECARD_STATUS __STDCALL__ process_TA_Step_Verify_Certificate(
 
 CAPDU build_TA_Step_E(
 		const std::vector<unsigned char>& keyID,
-		const std::vector<unsigned char>& x_Puk_IFD_DH,
+		const OBJECT_IDENTIFIER_t& CA_OID,
+		const std::vector<unsigned char>& Puk_IFD_DH,
 		const std::vector<unsigned char>& authenticatedAuxiliaryData)
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_AT);
@@ -108,7 +109,20 @@ CAPDU build_TA_Step_E(
 	dataField.insert(dataField.end(), do83.begin(), do83.end());
 
 	// x(Puk.IFD.CA)
+	std::vector<unsigned char> x_Puk_IFD_DH;
+	OBJECT_IDENTIFIER_t ca_dh = makeOID(id_CA_DH);
+	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	if (ca_dh < CA_OID) {
+		x_Puk_IFD_DH = Puk_IFD_DH;
+	} else if (ca_ecdh < CA_OID) {
+		x_Puk_IFD_DH = std::vector<unsigned char>
+			(Puk_IFD_DH.begin(), Puk_IFD_DH.begin()+Puk_IFD_DH.size()/2);
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid CA OID.");
+	}
 	do91 = TLV_encode(0x91, x_Puk_IFD_DH);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
 	dataField.insert(dataField.end(), do91.begin(), do91.end());
 
 	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(),
@@ -171,20 +185,14 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	const std::vector<unsigned char>& carCVCA,
 	const std::vector<std::vector<unsigned char> >& list_certificates,
 	const std::vector<unsigned char>& terminalCertificate,
-	const std::vector<unsigned char>& x_Puk_IFD_DH_CA,
+	const std::vector<unsigned char>& CA_OID,
+	const std::vector<unsigned char>& Puk_IFD_DH_CA,
 	const std::vector<unsigned char>& authenticatedAuxiliaryData,
 	std::vector<unsigned char>& toBeSigned)
 {
 	ECARD_STATUS status = ECARD_SUCCESS;
+	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 	vector<CAPDU> capdus;
-	// TODO Parse the EF.CardAccess file to get needed information.
-
-	// Copy the x part of the public key for chip authentication. This key was created on the server.
-	std::vector<unsigned char> x_Puk_IFD_DH_;
-	while (x_Puk_IFD_DH_.size() + x_Puk_IFD_DH_CA.size() < 32)
-		x_Puk_IFD_DH_.push_back(0x00);
-	x_Puk_IFD_DH_.insert(x_Puk_IFD_DH_.end(), x_Puk_IFD_DH_CA.begin(), x_Puk_IFD_DH_CA.end());
-
 
 	/* build all APDUs */
 
@@ -209,7 +217,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	std::string chrTerm_ = getCHR(terminalCertificate);
 	hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", chrTerm_.data(), chrTerm_.size());
 
-	capdus.push_back(build_TA_Step_E(_current_car, x_Puk_IFD_DH_, authenticatedAuxiliaryData));
+	capdus.push_back(build_TA_Step_E(_current_car, ca_oid, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
 	capdus.push_back(build_TA_Step_F());
 
 

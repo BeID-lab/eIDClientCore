@@ -20,11 +20,12 @@ class ePAClientProtocol
 		/** Handle to a valid ePA card */
 		ICard *m_hCard;
 		/** X part of Puk_ICC_DH2 after PACE */
-		std::vector<unsigned char> m_x_Puk_ICC_DH2;
+		std::vector<unsigned char> m_idPICC;
 		/** CAR of the CVCA for TA after PACE */
 		std::string m_carCVCA;
 		/** Authenticated auxiliary data */
 		std::vector<unsigned char> authenticatedAuxiliaryData;
+		std::vector<unsigned char> m_ca_oid;
 
 		// No copy
 		ePAClientProtocol(
@@ -59,9 +60,9 @@ class ePAClientProtocol
 		 * @param toBeSigned The data which will be signed by the eID server.
 		 */
 		ECARD_STATUS TerminalAuthentication(
-			std::vector<std::vector<unsigned char> >& list_certificates,
+			const std::vector<std::vector<unsigned char> >& list_certificates,
 			const std::vector<unsigned char>& terminalCertificate,
-			const std::vector<unsigned char>& x_PuK_IFD_DH_CA,
+			const std::vector<unsigned char>& PuK_IFD_DH_CA,
 			const std::vector<unsigned char>& authenticatedAuxiliaryData,
 			std::vector<unsigned char>& toBeSigned);
 
@@ -77,8 +78,7 @@ class ePAClientProtocol
 		 * @brief Perform the chip authentication.
 		 */
 		ECARD_STATUS ChipAuthentication(
-			const std::vector<unsigned char>& x_Puk_IFD_DH,
-			const std::vector<unsigned char>& y_Puk_IFD_DH,
+			const std::vector<unsigned char>& Puk_IFD_DH,
 			std::vector<unsigned char>& GeneralAuthenticationResult);
 
 		/**

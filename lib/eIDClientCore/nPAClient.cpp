@@ -461,7 +461,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
 
 	if (!m_Idp->getTerminalAuthenticationData(ePA_.get_ef_cardaccess(), m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates,
-			m_x_Puk_IFD_DH_CA_, m_y_Puk_IFD_DH_CA_)) {
+			m_Puk_IFD_DH_CA)) {
 		return NPACLIENT_ERROR_TA_INITIALIZATION_FAILD;
 	}
 
@@ -481,17 +481,15 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 	}
 
 	// Used in TA and CA
-	std::vector<unsigned char> x_Puk_IFD_DH_;
-	x_Puk_IFD_DH_ = m_x_Puk_IFD_DH_CA_;
+	std::vector<unsigned char> Puk_IFD_DH_;
+	Puk_IFD_DH_ = m_Puk_IFD_DH_CA;
 	// Only used in CA
-	std::vector<unsigned char> y_Puk_IFD_DH_;
-	y_Puk_IFD_DH_ = m_y_Puk_IFD_DH_CA_;
 	std::vector<unsigned char> toBeSigned_;
 	ECARD_STATUS status = ECARD_SUCCESS;
 
 	// Run the Terminal authentication until the signature action.
 	if ((status = m_clientProtocol->TerminalAuthentication(list_certificates,
-				  terminalCertificate_, x_Puk_IFD_DH_, authenticatedAuxiliaryData_, toBeSigned_)) != ECARD_SUCCESS) {
+				  terminalCertificate_, Puk_IFD_DH_, authenticatedAuxiliaryData_, toBeSigned_)) != ECARD_SUCCESS) {
 		return NPACLIENT_ERROR_TA_FAILED;
 	}
 
@@ -533,16 +531,10 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
 	const vector<unsigned char> ef_cardsecurity = ePA_.get_ef_cardsecurity();
-	// Used in TA and CA
-	std::vector<unsigned char> x_Puk_IFD_DH_;
-	x_Puk_IFD_DH_ = m_x_Puk_IFD_DH_CA_;
-	// Only used in CA
-	std::vector<unsigned char> y_Puk_IFD_DH_;
-	y_Puk_IFD_DH_ = m_y_Puk_IFD_DH_CA_;
 	std::vector<unsigned char> GeneralAuthenticationResult;
 
-	if ((status = m_clientProtocol->ChipAuthentication(x_Puk_IFD_DH_,
-				  y_Puk_IFD_DH_, GeneralAuthenticationResult)) != ECARD_SUCCESS) {
+	if ((status = m_clientProtocol->ChipAuthentication(m_Puk_IFD_DH_CA,
+				  GeneralAuthenticationResult)) != ECARD_SUCCESS) {
 		return NPACLIENT_ERROR_CA_FAILED;
 	}
 

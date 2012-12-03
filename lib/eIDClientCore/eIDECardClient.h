@@ -101,8 +101,7 @@ class eIdECardClient : public IIdP
 			const std::string &cvCACHAR,
 			const std::vector<unsigned char>& idPICC,
 			std::vector<std::vector<unsigned char> >& list_certificates,
-			std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-			std::vector<unsigned char>& y_Puk_IFD_DH_CA_);
+			std::vector<unsigned char>& Puk_IFD_DH_CA);
 
 		/**
 		 *
