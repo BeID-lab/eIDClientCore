@@ -33,7 +33,7 @@ extern "C"
 
 	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const hostname, const char *const port, const char *const sid, const char *const pskKey);
 
-	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const pskKey);
+	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const pskKey);
 
 	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection);
 
@@ -43,7 +43,7 @@ extern "C"
 
 	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionStart_t)(P_EIDCLIENT_CONNECTION_HANDLE, const char *const, const char *const, const char *const, const char *const, const char *const);
 
-	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionStart2_t)(P_EIDCLIENT_CONNECTION_HANDLE, const char *const, const char *const, const char *const, const char *const);
+	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionStart2_t)(P_EIDCLIENT_CONNECTION_HANDLE, const char *const, const char *const);
  
 	typedef EID_CLIENT_CONNECTION_ERROR(*eIDClientConnectionEnd_t)(EIDCLIENT_CONNECTION_HANDLE);
 

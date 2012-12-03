@@ -309,6 +309,12 @@ bool eIdECardClient::readAttributes(
 
 bool eIdECardClient::StartConnection(const char *url, const string &strSessionIdentifier, const string &strPSKKey)
 {
+	std::string	strUrl;
+
+	strUrl.assign(url);
+	strUrl.append("/?sessionid=");
+	strUrl.append(strSessionIdentifier);
+
 	if (strPSKKey.length() > 0) {
 		size_t pos1, pos2;
 		pos1 = strPSKKey.find("<PSK>");
@@ -318,7 +324,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 		//PSK-Tags gefunden
 		if (string::npos != pos1 && string::npos != pos2) {
 			std::string strPSKKeyTmp = strPSKKey.substr(pos1, pos2 - pos1);
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, url, strSessionIdentifier.c_str(), strPSKKeyTmp.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, strUrl.c_str(), strPSKKeyTmp.c_str());
 
 			if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -326,7 +332,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 			}
 
 		} else {
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, url, strSessionIdentifier.c_str(), strPSKKey.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection,strUrl.c_str(), strPSKKey.c_str());
 
 			if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -335,7 +341,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 		}
 
 	} else {
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, url, strSessionIdentifier.c_str(), NULL);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, strUrl.c_str(), NULL);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);

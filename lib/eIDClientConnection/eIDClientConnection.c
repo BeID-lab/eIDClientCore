@@ -24,6 +24,7 @@ typedef struct {
 	char *hostname;
 	char *port;
 	char *path;
+	char *param;	
 	char *sid;
 	int fd;
 	int secure;
@@ -51,11 +52,12 @@ void *gnutls_connect(int fd, const unsigned char *const psk, size_t psk_len, con
 ssize_t gnutls_recv(const void *const driver_data, void *const buffer, size_t buffer_size);
 ssize_t gnutls_send(const void *const driver_data, const void *const buffer, size_t buffer_size);
 
-void parse_url( const char* const url, const char* hostname, size_t *nHostnameLength, const char* port, size_t *nPortLength, const char* path, size_t *nPathLength) 
+void parse_url( const char* const url, char* hostname, size_t *nHostnameLength, char* port, size_t *nPortLength, char* path, size_t *nPathLength, char* param, size_t *nParamLength) 
 {
 	const char *p1 = 0x00;
 	const char *p2 = 0x00;
 	const char *p3 = 0x00;
+	const char *p4 = 0x00;
 
 	if (!url || !*url)
 		return;
@@ -63,20 +65,18 @@ void parse_url( const char* const url, const char* hostname, size_t *nHostnameLe
 	memset(hostname, 0x00, *nHostnameLength);
 	memset(port, 0x00, *nPortLength);
 	memset(path, 0x00, *nPathLength);
+	memset(param, 0x00, *nParamLength);
 
 	p1 = strstr(url, "://");
-
 	if (p1) {
-//		strScheme.assign(url, p1 - url);
 		p1 += 3;
 
 	} else {
 		p1 = url;
 	}
-
 	p2 = strchr(p1, ':');
-
-	p3 = strchr(p1, '/');
+	p3 = strchr(p2+1, '/');
+	p4 = strstr(url, "?");
 
 	if (p2) {
 		if( (p2 - p1) < *nHostnameLength)
@@ -84,8 +84,13 @@ void parse_url( const char* const url, const char* hostname, size_t *nHostnameLe
 		if (p3) {
 			if( ( p3 - (p2 + 1)) < *nPortLength)
        		  strncpy(port, p2 + 1, p3 - (p2 + 1));
-			if( strlen(p3) < *nPathLength)
-     		  strcpy(path,p3);
+			if(p4) {
+			  if( (p4-p3) < *nPathLength )
+     		    strncpy(path,p3, p4-p3);
+			} else {
+  		      if( strlen(p3) < *nPathLength)
+     		    strcpy(path, p3);
+			}
 		} else {
 			if( strlen(p2 + 1) < *nPortLength)
      		  strcpy(port, p2 + 1);
@@ -93,10 +98,15 @@ void parse_url( const char* const url, const char* hostname, size_t *nHostnameLe
 
 	} else {
 		if (p3) {
-		    if( (p3 - p1) < *nHostnameLength)
+  		    if( (p3 - p1) < *nHostnameLength)
      		  strncpy(hostname,p1, p3 - p1);
-			if( strlen(p3) < *nPathLength)
-     		  strcpy(path,p3);
+			if(p4) {
+			  if( (p4-p3) < *nPathLength)
+     		    strncpy(path,p3, p4-p3);
+			} else {
+  		      if( strlen(p3) < *nPathLength)
+     		    strcpy(path, p3);
+			}
 		} else {
 			if( strlen(p1) < *nPortLength)
      		  strcpy(port,p1);
@@ -105,9 +115,16 @@ void parse_url( const char* const url, const char* hostname, size_t *nHostnameLe
 	if (strlen(path) < 1)
      	strcpy(path,"");
 
+	if(p4)
+	{
+		if( strlen(p4+1) < *nParamLength)
+     	  strcpy(param,p4+1);
+	}
+	
 	*nHostnameLength = strlen(hostname);
 	*nPortLength = strlen(port);
 	*nPathLength = strlen(path);
+	*nParamLength = strlen(param);
 
 	return;
 }
@@ -135,7 +152,11 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 	sock->hostname = strdup(hostname);
 	sock->port = strdup(port);
 	sock->path = 0x00;
-	sock->sid = strdup(sid);
+	sock->param = 0x00;
+	if (sid)
+		sock->sid = strdup(sid);
+	else
+		sock->sid = NULL;
 	sock->fd = 0x00;
 	sock->secure = 0;
 	sock->ssl_tls_driver_data = 0x00;
@@ -166,22 +187,42 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart(P_EIDCLIENT_CONNECTION_HAND
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const pskKey)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const pskKey)
 {
 	char hostname[100];
 	char port[100];
 	char path[100];
+	char param[1000];
+	char sid[100];
 	size_t nHostnameLength = sizeof(hostname);	
 	size_t nPortLength = sizeof(port);
 	size_t nPathLength = sizeof(path);
+	size_t nParamLength = sizeof(param);
 	socket_st* sock = 0x00;
+	const char *p1 = 0x00;
+	const char *p2 = 0x00;
 
-	memset(hostname, 0x00, sizeof(hostname));
-	memset(port, 0x00, sizeof(port));
-	memset(path, 0x00, sizeof(path));
+	// FIXME add a lenght to url
+	parse_url(url, hostname, &nHostnameLength, port, &nPortLength, path, &nPathLength, param, &nParamLength);
 
-	// möglicher buffer overflow, ggf. Länge mit übergeben
-	 parse_url(url, hostname, &nHostnameLength, port, &nPortLength, path, &nPathLength);
+	p1 = strstr(param, "sessionid=");
+	if(p1)
+	{
+		p2 = strstr(p1, "&");
+		if(p2)
+		{
+			if(p2)
+			{
+  			  if( (p2-p1+10) <  sizeof(sid) )
+			    strncpy(sid, p1+10, p2-p1-10);
+			}
+		}
+		else
+		{
+ 		  if( strlen(p1+10) < sizeof(sid))
+		    strcpy(sid, p1+10);
+		}
+	}
 
 	 if( EID_CLIENT_CONNECTION_SOCKET_ERROR == eIDClientConnectionStart(hConnection,  hostname, port, sid, pskKey) )
 	 {
@@ -194,6 +235,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStart2(P_EIDCLIENT_CONNECTION_HAN
 		return EID_CLIENT_CONNECTION_INVALID_HANDLE;
 
 	sock->path = strdup(path);
+	sock->param = strdup(param);
 
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
@@ -217,6 +259,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE h
 
 	if (sock->path)
 		free(sock->path);
+
+	if (sock->param)
+		free(sock->param);
 
 	if (sock->sid)
 		free(sock->sid);
@@ -266,6 +311,29 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendRequest(EIDCLIENT_CONNECTION_
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
 
+#if !defined(WIN32)
+// _itoa isn't standard compliant :( I think to define _itoa is the best way to
+// solve this problem.
+#include <stdio.h>
+char *_itoa(int value, char *str, int base)
+{
+	switch (base) {
+		case 8:
+			sprintf(str, "%o", value);
+			break;
+		case 10:
+			sprintf(str, "%d", value);
+			break;
+		case 16:
+			sprintf(str, "%x", value);
+			break;
+	}
+
+	return str;
+}
+
+#endif
+
 EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const size_t dataLength, char *const bufResult, size_t *nBufResultLength)
 {
 	ssize_t ret;
@@ -290,12 +358,16 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECT
 	memset(p3, 0x00, sizeof p3);
 	memset(p4, 0x00, sizeof p4);
 
-	itoa((int)dataLength, p4, 10);
+	_itoa((int)dataLength, p4, 10);
 
 	strcat(buf, "POST ");
-	strcat(buf, sock->path);
-	strcat(buf, "/?sessionid="); 
-	strcat(buf, sock->sid);
+	if(sock->path)
+	  strcat(buf, sock->path);
+	if(sock->param)
+	{
+	  strcat(buf, "?");
+	  strcat(buf, sock->param);
+	}
 	strcat(buf, " HTTP/1.1\r\n"); 
 
 	strcat(buf, "Content-Length: "); 
@@ -318,19 +390,26 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECT
 	}
 	bufLength = strlen(buf);
 
-	if( EID_CLIENT_CONNECTION_ERROR_SUCCESS == eIDClientConnectionSendRequest(hConnection, buf,bufLength, result, &resultLength) )
+
+	if( EID_CLIENT_CONNECTION_ERROR_SUCCESS == eIDClientConnectionSendRequest(hConnection, buf, bufLength, result, &resultLength) )
 	{
-	  p1 = strstr(result,"Content-Length:");
- 	  p1 += 15;
-	  p2 = strstr(p1,"\n");
-      strncpy(p3, p1, p2-p1);
-	  contentLength = atoi(p3);
+		p1 = strstr(result, "Content-Length:");
+		if (!p1)
+			return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+		p1 += strlen("Content-Length:");
+		p2 = strstr(p1,"\n");
+		if (!p2)
+			return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+		strncpy(p3, p1, p2-p1);
+		contentLength = atoi(p3);
 
-	  p5 = result;
-	  p5 = p5 + resultLength - contentLength;
-      strncpy(bufResult, p5, contentLength);
+		p5 = strstr(result, "\r\n\r\n");
+		if (!p5)
+			return EID_CLIENT_CONNECTION_SOCKET_ERROR;
+		p5 += strlen("\r\n\r\n");
+		strncpy(bufResult, p5, contentLength);
 
-	  *nBufResultLength = strlen(bufResult);
+		*nBufResultLength = strlen(bufResult);
 	}
 	else
 	{
