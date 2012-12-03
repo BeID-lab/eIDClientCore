@@ -168,6 +168,9 @@ bool PCSCReader::open(
 	long retValue = SCARD_S_SUCCESS;
 	retValue = SCardReconnect(m_hCard, SCARD_SHARE_SHARED, SCARD_PROTOCOL_ANY,
 							  SCARD_LEAVE_CARD, &m_dwProtocol);
+	if(0x00 == m_hCard)
+		return false;
+
 #if !defined(__APPLE__)
 	BYTE atr[512];
 	DWORD len = sizeof(atr);

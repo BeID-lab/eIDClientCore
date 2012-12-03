@@ -40,13 +40,15 @@ class CeIdObject
 		~CeIdObject(void);
 
 	public:
-		void OnPostCreate();
-		void OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs);
-
 		void GetParams(string strToParse);
 
 	protected:
 		static void StartElementHandler(void *pUserData, const XML_Char *pszName, const XML_Char **papszAttrs);
+		static void EndElementHandler(void *pUserData, const XML_Char *pszName);
+		static void CharacterDataHandler(void *pUserData, const XML_Char *pszName, int len);
+		void OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs);
+		void OnEndElement(const XML_Char *pszName);
+		void OnCharacterData(const XML_Char *pszName, int len);
 
 	public:
 		string  m_strAction;
@@ -60,6 +62,9 @@ class CeIdObject
 		string  m_strPSK;
 		string  m_strRefreshAddress;
 		string  m_strServerAddress;
+
+protected:
+	string m_strCurrentElement;
 };
 
 CeIdObject::CeIdObject()
@@ -74,6 +79,7 @@ CeIdObject::CeIdObject()
 	m_strPSK = "";
 	m_strRefreshAddress = "";
 	m_strServerAddress = "";
+	m_strCurrentElement = "";
 }
 
 CeIdObject::~CeIdObject(void)
@@ -88,11 +94,27 @@ void CeIdObject::StartElementHandler(void *pUserData, const XML_Char *pszName, c
 
 void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs)
 {
-	string  strCurrentTag(pszName);
+	m_strCurrentElement.assign(pszName);
 	string  strParamName = "";
 	string  strParamValue = "";
 
-	if (strcmp(strCurrentTag.c_str(), "param") == 0) {
+	//HTML Form
+	if (strcmp(m_strCurrentElement.c_str(), "form") == 0) {
+		for (int i = 0; papszAttrs[i]; i += 2) {
+			string  strParam(papszAttrs[i]);
+
+			if (strcmp(strParam.c_str(), "action") == 0) {
+				m_strAction.assign(papszAttrs[i + 1]);
+
+			} else if (strcmp(strParam.c_str(), "method") == 0) {
+				m_strMethod.assign(papszAttrs[i + 1]);
+			}
+		}
+		return;
+	}
+
+	//Object Tag
+	else if (strcmp(m_strCurrentElement.c_str(), "param") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string  strParam(papszAttrs[i]);
 
@@ -114,22 +136,16 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 				}
 			}
 		}
+		return;
 	}
 
-	if (strcmp(strCurrentTag.c_str(), "form") == 0) {
-		for (int i = 0; papszAttrs[i]; i += 2) {
-			string  strParam(papszAttrs[i]);
-
-			if (strcmp(strParam.c_str(), "action") == 0) {
-				m_strAction.assign(papszAttrs[i + 1]);
-
-			} else if (strcmp(strParam.c_str(), "method") == 0) {
-				m_strMethod.assign(papszAttrs[i + 1]);
-			}
-		}
+	//TCToken	
+	else if (strcmp(m_strCurrentElement.c_str(), "ServerAddress") == 0) {
+		//m_strServerAddress.assign(papszAttrs[0]);
 	}
 
-	if (strcmp(strCurrentTag.c_str(), "input") == 0) {
+	//SP XML
+	if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string  strParam(papszAttrs[i]);
 
@@ -154,8 +170,43 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 			}
 		}
 	}
+}
+
+void CeIdObject::EndElementHandler(void *pUserData, const XML_Char *pszName)
+{
+	CeIdObject *pThis = (CeIdObject *) pUserData;
+	pThis ->OnEndElement(pszName);
+}
+
+void CeIdObject::OnEndElement(const XML_Char *pszName)
+{
+	m_strCurrentElement.assign("");
+}
+
+void CeIdObject::CharacterDataHandler(void *pUserData, const XML_Char *pszName, int len)
+{
+	CeIdObject *pThis = (CeIdObject *) pUserData;
+	pThis ->OnCharacterData(pszName, len);
+}
+
+void CeIdObject::OnCharacterData(const XML_Char *pszName, int len) {
+	if(len == 1) //I often get Character Data of this length
+		return;
+
+	else if(!m_strCurrentElement.compare("ServerAddress"))
+		m_strServerAddress = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("SessionIdentifier"))
+		m_strSessionID = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("RefreshAddress"))
+		m_strRefreshAddress = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("PSK"))
+		m_strPSK = string(pszName, pszName+len);
 
 	return;
+
 }
 
 void CeIdObject::GetParams(string strToParse)
@@ -163,10 +214,11 @@ void CeIdObject::GetParams(string strToParse)
 	XML_Parser parser = XML_ParserCreate(NULL);
 	XML_SetUserData(parser, (void *) this);
 	XML_SetStartElementHandler(parser, StartElementHandler);
+	XML_SetEndElementHandler(parser, EndElementHandler);
+	XML_SetCharacterDataHandler(parser, CharacterDataHandler);
 	XML_Parse(parser, strToParse.c_str(), strToParse.length(), true);
 	XML_ParserFree(parser);
 }
-
 
 string strRefresh = "";
 
