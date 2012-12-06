@@ -69,4 +69,11 @@ std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsign
 std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
 	   	unsigned int *tag, std::vector<unsigned char> &data);
 
+std::vector<unsigned char> calculate_KIFD_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char>& PrK_IFD_DH2,
+	const std::vector<unsigned char>& PuK_ICC_DH2);
+std::vector<unsigned char> calculate_ID_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char>& PuK_ICC_DH2);
 #endif

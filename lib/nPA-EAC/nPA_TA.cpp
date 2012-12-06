@@ -90,7 +90,7 @@ CAPDU build_TA_Step_E(
 {
 	MSE mse(MSE::P1_SET | MSE::P1_VERIFY, MSE::P2_AT);
 	// @TODO Get the right oid for TA
-	std::vector<unsigned char> dataField, do83, do91;
+	std::vector<unsigned char> dataField, do83, do91, encoded_Puk_IFD_DH;
 	dataField.push_back(0x80); // OID for algorithm id_TA_ECDSA_SHA_1
 	dataField.push_back(0x0A);
 	dataField.push_back(0x04);
@@ -109,20 +109,13 @@ CAPDU build_TA_Step_E(
 	dataField.insert(dataField.end(), do83.begin(), do83.end());
 
 	// x(Puk.IFD.CA)
-	std::vector<unsigned char> x_Puk_IFD_DH;
-	OBJECT_IDENTIFIER_t ca_dh = makeOID(id_CA_DH);
 	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
-	if (ca_dh < CA_OID) {
-		x_Puk_IFD_DH = Puk_IFD_DH;
-	} else if (ca_ecdh < CA_OID) {
-		x_Puk_IFD_DH = std::vector<unsigned char>
-			(Puk_IFD_DH.begin(), Puk_IFD_DH.begin()+Puk_IFD_DH.size()/2);
-	} else {
-		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid CA OID.");
-	}
-	do91 = TLV_encode(0x91, x_Puk_IFD_DH);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
+	if (ca_ecdh < CA_OID)
+		encoded_Puk_IFD_DH.push_back(0x04);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+	encoded_Puk_IFD_DH.insert(encoded_Puk_IFD_DH.end(), Puk_IFD_DH.begin(),
+			Puk_IFD_DH.end());
+	do91 = TLV_encode(0x91, calculate_ID_ICC(CA_OID, encoded_Puk_IFD_DH));
 	dataField.insert(dataField.end(), do91.begin(), do91.end());
 
 	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(),

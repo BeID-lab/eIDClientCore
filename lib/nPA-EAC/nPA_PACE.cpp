@@ -131,42 +131,6 @@ std::vector<unsigned char> calculate_PuK_IFD_DH2(
 	return result_buffer;
 }
 
-std::vector<unsigned char> calculate_KIFD_ICC(
-	const OBJECT_IDENTIFIER_t &OID_,
-	const std::vector<unsigned char>& PrK_IFD_DH2,
-	const std::vector<unsigned char>& PuK_ICC_DH2)
-{
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
-
-	std::vector<unsigned char> result_buffer;
-
-	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
-		ECP::Point PuK_ICC_DH2_ = vector2point(PuK_ICC_DH2);
-		Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
-		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
-		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
-		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
-		ECP ecp(Mod, a, b);
-		// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
-		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
-
-		result_buffer = get_x(point2vector(kifd_icc_));
-	}
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-
-	return result_buffer;
-}
-
 ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	const OBJECT_IDENTIFIER_t &PACE_OID_,
 	PaceInput::PinID keyReference,
@@ -345,32 +309,6 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 	}
 
 	return ECARD_SUCCESS;
-}
-
-std::vector<unsigned char> calculate_ID_ICC(
-	const OBJECT_IDENTIFIER_t &OID_,
-	const std::vector<unsigned char>& PuK_ICC_DH2)
-{
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
-
-	std::vector<unsigned char> result_buffer;
-
-	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
-		result_buffer = get_x(PuK_ICC_DH2);
-	}
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-
-	return result_buffer;
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformPACE(

@@ -13,24 +13,13 @@ using namespace Bundesdruckerei::nPA;
 #include "eidasn1/eIDOID.h"
 
 ECARD_STATUS __STDCALL__ perform_CA_Step_B(
-	ICard &ePA_)
+	ICard &ePA_,
+	const OBJECT_IDENTIFIER_t& CA_OID)
 {
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE, MSE::P2_AT);
 	// Build up command data field
-	std::vector<unsigned char> dataPart_;
-	dataPart_.push_back(0x80);
-	dataPart_.push_back(0x0A);
-	dataPart_.push_back(0x04);
-	dataPart_.push_back(0x00);
-	dataPart_.push_back(0x7F);
-	dataPart_.push_back(0x00);
-	dataPart_.push_back(0x07);
-	dataPart_.push_back(0x02);
-	dataPart_.push_back(0x02);
-	dataPart_.push_back(0x03);
-	dataPart_.push_back(0x02);
-	dataPart_.push_back(0x02); // This is id_CA_ECDH_AES_CBC_CMAC_128
-	mse.setData(dataPart_);
+	std::vector<unsigned char> oid(CA_OID.buf, CA_OID.buf+CA_OID.size);;
+	mse.setData(TLV_encode(0x80, oid));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set cryptographic algorithm for CA.");
 	// Do the dirty work.
 	RAPDU MseSetAT_Result_ = ePA_.sendAPDU(mse);
@@ -87,7 +76,7 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 	ECARD_STATUS status_ = ECARD_SUCCESS;
 	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
-	if (ECARD_SUCCESS != (status_ = perform_CA_Step_B(hCard)))
+	if (ECARD_SUCCESS != (status_ = perform_CA_Step_B(hCard, ca_oid)))
 		return status_;
 
 	if (ECARD_SUCCESS != (status_ = perform_CA_Step_C(hCard, ca_oid, Puk_IFD_DH, GeneralAuthenticationResult)))
