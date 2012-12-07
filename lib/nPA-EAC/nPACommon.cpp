@@ -248,6 +248,18 @@ std::vector<unsigned char> generate_compressed_PuK(
 	const std::vector<unsigned char> &PuK_IFD_DH2)
 {
 	std::vector<unsigned char> do06, do86;
+	unsigned int tag_pubkey = 0;
+
+	OBJECT_IDENTIFIER_t pace_ecdh = makeOID(id_PACE_ECDH);
+	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	if (pace_ecdh < OID_ || ca_ecdh < OID_) {
+		tag_pubkey = 0x86;
+	}
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &pace_ecdh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+	if (!tag_pubkey) {
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid pace OID.");
+	}
 
 	do06 = TLV_encode(0x06, vector<unsigned char> (OID_.buf, OID_.buf + OID_.size));
 	do86 = TLV_encode(0x86, PuK_IFD_DH2);
