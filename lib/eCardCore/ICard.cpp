@@ -105,14 +105,28 @@ bool ICard::selectDF(
 
 bool ICard::readFile(
 	unsigned char sfid,
-	size_t size,
+	size_t chunk_size,
 	vector<unsigned char>& result)
 {
 	ReadBinary read = ReadBinary(0, sfid);
-	read.setNe(size);
+	read.setNe(chunk_size);
 	RAPDU response = sendAPDU(read);
-	result = response.getData();
-	return response.isOK();
+
+	while (response.isOK() && response.getData().size() == chunk_size) {
+		result.insert(result.end(), response.getData().begin(), response.getData().end());
+
+		read = ReadBinary(result.size());
+		read.setNe(chunk_size);
+		response = sendAPDU(read);
+	}
+
+	result.insert(result.end(), response.getData().begin(), response.getData().end());
+
+	if (result.empty()) {
+		return response.isOK();
+	}
+
+	return true;
 }
 
 bool ICard::readFile(

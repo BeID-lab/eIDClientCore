@@ -36,8 +36,7 @@ class ICard
 		bool selectEF(unsigned short FID, vector<unsigned char>& fcp);
 
 		bool readFile(vector<unsigned char>& result);
-		bool readFile(unsigned char sfid, size_t size,
-			   	vector<unsigned char>& result);
+		bool readFile(unsigned char sfid, size_t chunk_size, vector<unsigned char>& result);
 
 		virtual RAPDU sendAPDU(const CAPDU &cmd);
 

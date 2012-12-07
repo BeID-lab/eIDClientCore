@@ -266,7 +266,7 @@ class RAPDU
 		unsigned char getSW1(void) const;
 		unsigned char getSW2(void) const;
 		unsigned short getSW(void) const;
-		const vector<unsigned char> getData(void) const;
+		const vector<unsigned char>& getData(void) const;
 		vector<unsigned char> asBuffer(void) const;
 		bool isOK(void) const;
 };
