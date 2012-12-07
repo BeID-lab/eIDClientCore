@@ -54,7 +54,8 @@ const vector<unsigned char> ePACard::get_ef_cardaccess(void) const
 const vector<unsigned char> ePACard::get_ef_cardsecurity(void)
 {
 	if (m_ef_cardsecurity.empty()
-		&& !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
+			/* read EF.CardSecurity in chunks that fit into short length APDU */
+			&& !readFile(SFID_EF_CARDSECURITY, 0xDF, m_ef_cardsecurity))
 		throw WrongHandle();
 
 	return m_ef_cardsecurity;
