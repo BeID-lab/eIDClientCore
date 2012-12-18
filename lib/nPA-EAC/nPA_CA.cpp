@@ -12,32 +12,29 @@ using namespace Bundesdruckerei::nPA;
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 
-ECARD_STATUS __STDCALL__ perform_CA_Step_B(
-	ICard &ePA_,
-	const OBJECT_IDENTIFIER_t& CA_OID)
+static CAPDU build_CA_Step_B(const OBJECT_IDENTIFIER_t& CA_OID)
 {
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE, MSE::P2_AT);
 	// Build up command data field
 	std::vector<unsigned char> oid(CA_OID.buf, CA_OID.buf+CA_OID.size);;
 	mse.setData(TLV_encode(0x80, oid));
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set cryptographic algorithm for CA.");
-	// Do the dirty work.
-	RAPDU MseSetAT_Result_ = ePA_.sendAPDU(mse);
 
-	if (MseSetAT_Result_.getSW() != 0x9000)
+	return mse;
+}
+
+static ECARD_STATUS process_CA_Step_B(const RAPDU& rapdu)
+{
+	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_CA_STEP_B_FAILED;
 
 	return ECARD_SUCCESS;
 }
 
-ECARD_STATUS __STDCALL__ perform_CA_Step_C(
-	ICard &ePA_,
-	const OBJECT_IDENTIFIER_t& CA_OID,
-	const std::vector<unsigned char>& Puk_IFD_DH,
-	std::vector<unsigned char>& GeneralAuthenticationResult)
+static CAPDU build_CA_Step_C(const OBJECT_IDENTIFIER_t& CA_OID,
+	const std::vector<unsigned char>& Puk_IFD_DH)
 {
 	GeneralAuthenticate authenticate = GeneralAuthenticate(
-										   GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
+			GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
 	std::vector<unsigned char> puk;
@@ -56,14 +53,17 @@ ECARD_STATUS __STDCALL__ perform_CA_Step_C(
 
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, puk)));
 
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
-	RAPDU GenralAuthenticate_Result_ = ePA_.sendAPDU(authenticate);
+	return authenticate;
+}
 
-	if (GenralAuthenticate_Result_.getSW() != 0x9000)
+static ECARD_STATUS process_CA_Step_C(const RAPDU rapdu,
+	std::vector<unsigned char>& GeneralAuthenticationResult)
+{
+	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return ECARD_CA_STEP_B_FAILED;
 
-	std::vector<unsigned char> result = GenralAuthenticate_Result_.getData();
-	GeneralAuthenticationResult = result;
+	GeneralAuthenticationResult = rapdu.getData();
+
 	return ECARD_SUCCESS;
 }
 
@@ -76,10 +76,16 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 	ECARD_STATUS status_ = ECARD_SUCCESS;
 	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
-	if (ECARD_SUCCESS != (status_ = perform_CA_Step_B(hCard, ca_oid)))
+	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set cryptographic algorithm for CA.");
+	hCard.send(build_CA_Step_B(ca_oid));
+	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
+	hCard.send(build_CA_Step_C(ca_oid, Puk_IFD_DH));
+
+	if (ECARD_SUCCESS != (status_ = process_CA_Step_B(hCard.receive())))
 		return status_;
 
-	if (ECARD_SUCCESS != (status_ = perform_CA_Step_C(hCard, ca_oid, Puk_IFD_DH, GeneralAuthenticationResult)))
+	if (ECARD_SUCCESS != (status_ = process_CA_Step_C(hCard.receive(),
+					GeneralAuthenticationResult)))
 		return status_;
 
 	return ECARD_SUCCESS;

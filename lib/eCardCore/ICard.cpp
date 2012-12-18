@@ -16,51 +16,90 @@ ICard::~ICard()
 		m_subSystem->close();
 }
 
-RAPDU ICard::sendAPDU(const CAPDU &cmd)
+void ICard::debug_CAPDU(const char *label, const CAPDU& capdu) const
 {
-	eCardCore_info(DEBUG_LEVEL_APDU, "Outgoing APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
-				   cmd.getCLA(), cmd.getINS(), cmd.getP1(), cmd.getP2(),
-				   cmd.getData().size(), cmd.getNe());
+	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sC-APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
+			label, label ? " " : "", capdu.getCLA(), capdu.getINS(), capdu.getP1(),
+			capdu.getP2(), capdu.getData().size(), capdu.getNe());
+	hexdump(DEBUG_LEVEL_APDU, NULL,
+			capdu.getData().data(), capdu.getData().size());
+}
 
-	hexdump(DEBUG_LEVEL_APDU, NULL, cmd.getData().data(), cmd.getData().size());
-
-	RAPDU rapdu = RAPDU(m_subSystem->sendAPDU(cmd.asBuffer()));
-	eCardCore_info(DEBUG_LEVEL_APDU, "Incoming APDU:  SW=%04X  Nr=%u", rapdu.getSW(), rapdu.getData().size());
-
+void ICard::debug_RAPDU(const char *label, const RAPDU& rapdu) const
+{
+	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sR-APDU:  SW=%04X  Nr=%u",
+			label, label ? " " : "", rapdu.getSW(), rapdu.getData().size());
 	if (!rapdu.getData().empty())
-		hexdump(DEBUG_LEVEL_APDU, NULL, rapdu.getData().data(), rapdu.getData().size());
+		hexdump(DEBUG_LEVEL_APDU, NULL,
+				rapdu.getData().data(), rapdu.getData().size());
+}
+
+std::vector<std::vector<unsigned char> >
+ICard::get_buffers(std::vector<CAPDU> apdus)
+{
+	vector<vector<unsigned char> > buffers;
+
+	for (vector<CAPDU>::const_iterator i = apdus.begin(); i < apdus.end(); ++i) {
+		debug_CAPDU("Outgoing", *i);
+		buffers.push_back(i->asBuffer());
+	}
+
+	return buffers;
+}
+
+std::vector<RAPDU>
+ICard::get_rapdus(std::vector<std::vector<unsigned char> > buffers)
+{
+	vector<RAPDU> rapdus;
+
+	for (vector<std::vector<unsigned char> >::const_iterator i = buffers.begin(); i < buffers.end(); ++i) {
+		RAPDU rapdu(*i);
+		debug_RAPDU("Incoming", rapdu);
+		rapdus.push_back(rapdu);
+	}
+
+	return rapdus;
+}
+
+void ICard::send(const CAPDU& capdu)
+{
+	debug_CAPDU("Outgoing", capdu);
+	m_subSystem->send(capdu.asBuffer());
+}
+
+void ICard::send(const std::vector<CAPDU> &cmds)
+{
+	m_subSystem->send(get_buffers(cmds));
+}
+
+RAPDU ICard::receive(void)
+{
+	vector<unsigned char> response = m_subSystem->receive();
+
+	RAPDU rapdu = RAPDU(response);
+	debug_RAPDU("Incoming", response);
 
 	return rapdu;
 }
 
-std::vector<RAPDU> ICard::sendAPDUs(const std::vector<CAPDU> &cmds)
+std::vector<RAPDU> ICard::receive(size_t count)
 {
-	std::vector<vector<unsigned char> > apdus, rapdus;
-	vector<RAPDU> r;
+	return get_rapdus(m_subSystem->receive(count));
+}
 
-	for (size_t i = 0; i < cmds.size(); i++) {
-		eCardCore_info(DEBUG_LEVEL_APDU, "Outgoing APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
-				   cmds[i].getCLA(), cmds[i].getINS(), cmds[i].getP1(), cmds[i].getP2(),
-				   cmds[i].getData().size(), cmds[i].getNe());
+RAPDU ICard::transceive(const CAPDU &cmd)
+{
+	debug_CAPDU("Outgoing", cmd);
+	
+	RAPDU rapdu(m_subSystem->transceive(cmd.asBuffer()));
+	debug_RAPDU("Incoming", rapdu);
 
-		hexdump(DEBUG_LEVEL_APDU, NULL, cmds[i].getData().data(), cmds[i].getData().size());
+	return rapdu;
+}
 
-		apdus.push_back(cmds[i].asBuffer());
-	}
-
-	rapdus = m_subSystem->sendAPDUs(apdus);
-
-	for (size_t i = 0; i < rapdus.size(); i++) {
-		RAPDU response = RAPDU(rapdus[i]);
-
-		eCardCore_info(DEBUG_LEVEL_APDU, "Incoming APDU:  SW=%04X  Nr=%u", response.getSW(), response.getData().size());
-
-		hexdump(DEBUG_LEVEL_APDU, NULL, response.getData().data(), response.getData().size());
-
-		r.push_back(response);
-	}
-
-	return r;
+std::vector<RAPDU> ICard::transceive(const std::vector<CAPDU> &cmds)
+{
+	return get_rapdus(m_subSystem->transceive(get_buffers(cmds)));
 }
 
 const IReader *ICard::getSubSystem(void) const
@@ -72,7 +111,7 @@ bool ICard::selectMF(
 	void)
 {
 	SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
-	RAPDU response = sendAPDU(select);
+	RAPDU response = transceive(select);
 	return response.isOK();
 }
 
@@ -80,7 +119,7 @@ bool ICard::selectEF(
 	unsigned short FID)
 {
 	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
+	RAPDU response = transceive(select);
 	return response.isOK();
 }
 
@@ -90,7 +129,7 @@ bool ICard::selectEF(
 {
 	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
 	select.setNe(CAPDU::DATA_SHORT_MAX);
-	RAPDU response = sendAPDU(select);
+	RAPDU response = transceive(select);
 	fcp = response.getData();
 	return response.isOK();
 }
@@ -99,7 +138,7 @@ bool ICard::selectDF(
 	unsigned short FID)
 {
 	SelectFile select(SelectFile::P1_SELECT_DF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
+	RAPDU response = transceive(select);
 	return response.isOK();
 }
 
@@ -110,14 +149,14 @@ bool ICard::readFile(
 {
 	ReadBinary read = ReadBinary(0, sfid);
 	read.setNe(chunk_size);
-	RAPDU response = sendAPDU(read);
+	RAPDU response = transceive(read);
 
 	while (response.isOK() && response.getData().size() == chunk_size) {
 		result.insert(result.end(), response.getData().begin(), response.getData().end());
 
 		read = ReadBinary(result.size());
 		read.setNe(chunk_size);
-		response = sendAPDU(read);
+		response = transceive(read);
 	}
 
 	result.insert(result.end(), response.getData().begin(), response.getData().end());
@@ -134,7 +173,7 @@ bool ICard::readFile(
 {
 	ReadBinary read = ReadBinary();
 	read.setNe(CAPDU::DATA_EXTENDED_MAX);
-	RAPDU response = sendAPDU(read);
+	RAPDU response = transceive(read);
 	result = response.getData();
 	return response.isOK();
 }

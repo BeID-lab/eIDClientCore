@@ -331,6 +331,9 @@ std::vector<unsigned char> decryptResponse_AES(
 CAPDU ePACard::applySM(const CAPDU &capdu)
 {
 	std::vector<unsigned char> do87_, do8E_, do97_, Le, sm_data;
+
+	debug_CAPDU("Unencrypted", capdu);
+
 	CAPDU sm_apdu = CAPDU(capdu.getCLA() | CAPDU::CLA_SM,
 						  capdu.getINS(), capdu.getP1(), capdu.getP2());
 
@@ -379,30 +382,27 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 
 	response = decryptResponse_AES(m_kEnc, sm_rdata, m_ssc);
 	/* TODO compare DO99 with SW */
-	return RAPDU(response, sm_rapdu.getSW());
+	RAPDU rapdu(response, sm_rapdu.getSW());
+
+	debug_RAPDU("Decrypted", rapdu);
+
+	return rapdu;
 }
 
-RAPDU ePACard::sendAPDU(const CAPDU &cmd)
-{
-	if (!m_kEnc.empty() && !m_kMac.empty() && !cmd.isSecure()) {
-		CAPDU sm_apdu = applySM(cmd);
-		RAPDU sm_rapdu = ICard::sendAPDU(sm_apdu);
-		return removeSM(sm_rapdu);
-	}
-
-	return ICard::sendAPDU(cmd);
-}
-
-vector<RAPDU> ePACard::sendAPDUs(const vector<CAPDU> &cmds)
+vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
 {
 	vector<RAPDU> resps;
 
 	if (!m_kEnc.empty() && !m_kMac.empty()) {
 		unsigned long long start_ssc = m_ssc;
 		size_t i;
+		bool sm = true;
 		vector<CAPDU> sm_cmds;
 		for (i = 0; i < cmds.size(); i++) {
-			if (!cmds[i].isSecure()) {
+			if (cmds[i].isSecure())
+				sm = false;
+
+			if (sm) {
 				sm_cmds.push_back(applySM(cmds[i]));
 				/* increment SSC, to simulate decryption of the APDU */
 				m_ssc++;
@@ -410,22 +410,76 @@ vector<RAPDU> ePACard::sendAPDUs(const vector<CAPDU> &cmds)
 				sm_cmds.push_back(cmds[i]);
 		}
 
-		vector<RAPDU> sm_resps = ICard::sendAPDUs(sm_cmds);
+		vector<RAPDU> sm_resps = ICard::transceive(sm_cmds);
+		if (cmds.size() > sm_resps.size()) {
+			eCardCore_warn(DEBUG_LEVEL_APDU, "Received too few APDUs");
+		}
 
 		m_ssc = start_ssc;
+		sm = true;
 		for (i = 0; i < sm_resps.size() && i < cmds.size(); i++) {
-			if (!cmds[i].isSecure()) {
+			if (cmds[i].isSecure())
+				sm = false;
+			if (sm) {
 				/* increment SSC, to simulate encryption of the APDU */
 				m_ssc++;
 				resps.push_back(removeSM(sm_resps[i]));
 			} else
 				resps.push_back(sm_resps[i]);
 		}
+
+		for (i = 0; i < (cmds.size() - sm_resps.size()); i++) {
+			resps.push_back(RAPDU(vector<unsigned char> (), 0x6d00));
+		}
+
+		if (!sm) {
+			m_kEnc.clear();
+			m_kMac.clear();
+			m_ssc = 0;
+		}
 	} else {
-		resps = ICard::sendAPDUs(cmds);
+		resps = ICard::transceive(cmds);
 	}
 
 	return resps;
+}
+
+RAPDU ePACard::transceive(const CAPDU &cmd)
+{
+	vector<CAPDU> cmds;
+	cmds.push_back(cmd);
+	vector<RAPDU> resps = this->transceive(cmds);
+
+	if (resps.size() != 1)
+		eCardCore_warn(DEBUG_LEVEL_APDU, "Received too %s APDUs (expected 1, got %d).",
+			   	resps.size() < 1 ? "few" : "many", resps.size());
+
+	if (resps.empty())
+		return RAPDU(vector<unsigned char> (), 0x6d00);
+	else
+		return resps.front();
+}
+
+/* TODO use the underlying send/receive operations from the reader
+ * Note that this would need to take special care for SM */
+RAPDU ePACard::receive(void)
+{
+	return SynchronousTransceiver<CAPDU, RAPDU>::receive();
+}
+
+std::vector<RAPDU> ePACard::receive(size_t count)
+{
+	return SynchronousTransceiver<CAPDU, RAPDU>::receive(count);
+}
+
+void ePACard::send(const CAPDU &cmd)
+{
+	SynchronousTransceiver<CAPDU, RAPDU>::send(cmd);
+}
+
+void ePACard::send(const std::vector<CAPDU> &cmds)
+{
+	SynchronousTransceiver<CAPDU, RAPDU>::send(cmds);
 }
 
 void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)
@@ -450,3 +504,4 @@ ICard *ePACardDetector::getCard(IReader *reader)
 
 	return 0x00;
 }
+

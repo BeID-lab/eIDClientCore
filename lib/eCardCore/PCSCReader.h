@@ -14,7 +14,7 @@
  * @class PCSCReader
  */
 
-class PCSCReader : public IReader
+class PCSCReader : public SynchronousReader
 {
 	private:
 		SCARDHANDLE m_hCard;            // Handle to a card
@@ -64,7 +64,7 @@ class PCSCReader : public IReader
 		/*!
 		 * @brief This command uses SCardTransmit to send a command to the card.
 		 */
-		vector<unsigned char> sendAPDU(
+		vector<unsigned char> transceive(
 			const vector<unsigned char>& cmd);
 
 		/*!

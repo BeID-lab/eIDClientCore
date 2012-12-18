@@ -131,11 +131,10 @@ std::vector<unsigned char> calculate_PuK_IFD_DH2(
 	return result_buffer;
 }
 
-ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
+static CAPDU build_PACE_Step_B(
 	const OBJECT_IDENTIFIER_t &PACE_OID_,
-	PaceInput::PinID keyReference,
-	const std::vector<unsigned char>& chat,
-	ICard &card_)
+	const PaceInput::PinID keyReference,
+	const std::vector<unsigned char>& chat)
 {
 	vector<unsigned char> data, do80, do83, key_ref;
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE | MSE::P1_VERIFY, MSE::P2_AT);
@@ -159,34 +158,40 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_B(
 	data.insert(data.end(), chat.begin(), chat.end());
 	mse.setData(data);
 
-	RAPDU rapdu = card_.sendAPDU(mse);
+	return mse;
+}
 
+ECARD_STATUS __STDCALL__ process_PACE_Step_B(
+		const RAPDU& rapdu)
+{
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL) {
 		if ((rapdu.getSW() >> 4) == 0x63C) {
 			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "%u tries left.", rapdu.getSW() & 0xf);
-			return ECARD_SUCCESS;
+		} else {
+			return ECARD_PACE_STEP_B_FAILED;
 		}
-
-		return ECARD_PACE_STEP_B_FAILED;
 	}
 
 	return ECARD_SUCCESS;
 }
 
-ECARD_STATUS __STDCALL__ perform_PACE_Step_C(
-	const OBJECT_IDENTIFIER_t &PACE_OID_,
-	const std::vector<unsigned char>& password,
-	PaceInput::PinID keyReference,
-	ICard &card_,
-	std::vector<unsigned char>& rndICC)
+CAPDU build_PACE_Step_C(void)
 {
 	GeneralAuthenticate authenticate(0x00, 0x00);
 	authenticate.setCLA(CAPDU::CLA_CHAINING);
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 	authenticate.setData(TLV_encode(0x7C, vector<unsigned char> ()));
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to get RND.ICC");
-	RAPDU rapdu = card_.sendAPDU(authenticate);
 
+	return authenticate;
+}
+
+ECARD_STATUS __STDCALL__ process_PACE_Step_C(
+	   	const RAPDU& rapdu,
+		const OBJECT_IDENTIFIER_t &PACE_OID_,
+		const PaceInput::PinID keyReference,
+		const std::vector<unsigned char>& password,
+		std::vector<unsigned char>& rndICC)
+{
 	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_C_FAILED;
 
@@ -230,7 +235,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_D(
 
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x81, PuK_IFD_DH1_)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Map Nonce");
-	RAPDU rapdu = card_.sendAPDU(authenticate);
+	RAPDU rapdu = card_.transceive(authenticate);
 
 	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_D_FAILED;
@@ -259,7 +264,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_E(
 	// Append command data field
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x83, PuK_IFD_DH2_)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to Perform Key Agreement");
-	RAPDU rapdu = card_.sendAPDU(authenticate);
+	RAPDU rapdu = card_.transceive(authenticate);
 
 	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_E_FAILED;
@@ -287,7 +292,7 @@ ECARD_STATUS __STDCALL__ perform_PACE_Step_F(
 
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x85, macedPuk_ICC_DH2)));
 	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to perform explicit authentication");
-	RAPDU rapdu = card_.sendAPDU(authenticate);
+	RAPDU rapdu = card_.transceive(authenticate);
 
 	if (!rapdu.isOK())
 		return ECARD_PACE_STEP_F_FAILED;
@@ -359,14 +364,20 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
 		ECARD_STATUS status = ECARD_SUCCESS;
 
-		if (ECARD_SUCCESS != (status = perform_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat(), ePA_))) {
+		ePA_.send(build_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat()));
+
+		eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to get RND.ICC");
+		ePA_.send(build_PACE_Step_C());
+
+		if (ECARD_SUCCESS != (status = process_PACE_Step_B(ePA_.receive()))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
 
 		std::vector<unsigned char> rndICC_;
-
-		if (ECARD_SUCCESS != (status = perform_PACE_Step_C(PACE_OID_, pace_input.get_pin(), pace_input.get_pin_id(), ePA_, rndICC_))) {
+		if (ECARD_SUCCESS != (status = process_PACE_Step_C(ePA_.receive(),
+						PACE_OID_, pace_input.get_pin_id(),
+						pace_input.get_pin(), rndICC_))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}

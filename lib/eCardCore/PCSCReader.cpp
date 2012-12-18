@@ -50,7 +50,7 @@
  */
 PCSCReader::PCSCReader(
 	const string &readerName,
-	vector<ICardDetector *>& detector) : IReader(readerName, detector),
+	vector<ICardDetector *>& detector) : SynchronousReader(readerName, detector),
 	m_hCard(0x0),
 #if defined(_WIN32)
 	m_dwProtocol(SCARD_PROTOCOL_UNDEFINED),
@@ -197,7 +197,7 @@ void PCSCReader::close(
 	m_hCard = 0x0;
 }
 
-vector <unsigned char> PCSCReader::sendAPDU(
+vector <unsigned char> PCSCReader::transceive(
 	const vector<unsigned char>& cmd)
 {
 	BYTE res[RAPDU::RAPDU_EXTENDED_MAX];

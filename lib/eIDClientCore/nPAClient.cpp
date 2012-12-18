@@ -556,7 +556,7 @@ NPACLIENT_ERROR nPAClient::readAttributed(void)
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
 	try {
-		m_rapdus = m_hCard->sendAPDUs(m_capdus);
+		m_rapdus = m_hCard->transceive(m_capdus);
 
 	} catch (...) {
 		return NPACLIENT_ERROR_TRANSMISSION_ERROR;

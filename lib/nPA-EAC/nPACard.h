@@ -13,7 +13,7 @@ namespace Bundesdruckerei
 	namespace nPA
 	{
 
-		class ePACard : public ICard
+		class ePACard : public ICard, SynchronousTransceiver<CAPDU, RAPDU>
 		{
 			private:
 				std::vector<unsigned char> m_ef_cardaccess;
@@ -84,8 +84,14 @@ namespace Bundesdruckerei
 				const vector<unsigned char> get_ef_cardaccess(void) const;
 				const vector<unsigned char> get_ef_cardsecurity(void);
 
-				RAPDU sendAPDU(const CAPDU &cmd);
-				vector<RAPDU> sendAPDUs(const vector<CAPDU> &cmds);
+				RAPDU receive(void);
+				std::vector<RAPDU> receive(size_t count);
+
+				void send(const CAPDU &cmd);
+				void send(const std::vector<CAPDU> &cmds);
+
+				RAPDU transceive(const CAPDU& cmd);
+				vector<RAPDU> transceive(const vector<CAPDU>& cmds);
 
 				void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
                 void setSSC(unsigned long long ssc);

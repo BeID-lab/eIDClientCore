@@ -12,7 +12,7 @@
 #include <string>
 
 /* ISO 7816 smart card */
-class ICard
+class ICard: public Transceiver<CAPDU, RAPDU>
 {
 	private:
 		ICard(
@@ -21,8 +21,15 @@ class ICard
 		ICard &operator=(
 			const ICard &);
 
+		std::vector<std::vector<unsigned char> > get_buffers(
+				std::vector<CAPDU> apdus);
+		std::vector<RAPDU> get_rapdus(
+				std::vector<std::vector<unsigned char> > buffers);
+
 	protected:
 		IReader *m_subSystem;
+		void debug_CAPDU(const char *label, const CAPDU &cmd) const;
+		void debug_RAPDU(const char *label, const RAPDU &cmd) const;
 
 	public:
 		static const unsigned short FID_MF = 0x3F00;
@@ -38,9 +45,14 @@ class ICard
 		bool readFile(vector<unsigned char>& result);
 		bool readFile(unsigned char sfid, size_t chunk_size, vector<unsigned char>& result);
 
-		virtual RAPDU sendAPDU(const CAPDU &cmd);
+		virtual void send(const CAPDU& cmd);
+		virtual void send(const std::vector<CAPDU>& cmds);
 
-		virtual std::vector<RAPDU> sendAPDUs(const std::vector<CAPDU> &cmds);
+		virtual RAPDU receive(void);
+		virtual std::vector<RAPDU> receive(size_t count);
+
+		virtual RAPDU transceive(const CAPDU& cmd);
+		virtual std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 
 		const IReader *getSubSystem(void) const;
 
