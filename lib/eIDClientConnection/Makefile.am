@@ -36,10 +36,11 @@ $(GNUTLS_LIB_DIR)/Makefile: $(GNUTLS_TAR_BZ2)
 	tar xjf $(GNUTLS_TAR_BZ2)
 	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2_add_rsa_psk.patch
 	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2-fix-autoreconf-with-automake-1.12.patch
+	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2-fix-autoreconf-with-automake-1.13.patch
 	patch -d $(GNUTLS_DIR) -p1 < $(srcdir)/gnutls-2.10.2-fix-compile-with-glibc-2.16.patch
 	( \
 		cd $(GNUTLS_DIR)/lib && \
-		autoreconf && \
+		autoreconf -i -f && \
 		./configure  \
 			--disable-openssl-compatibility \
 			--disable-srp-authentication \
