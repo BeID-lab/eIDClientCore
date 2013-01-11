@@ -76,15 +76,32 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 	ECARD_STATUS status_ = ECARD_SUCCESS;
 	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send MANAGE SECURITY ENVIRONMENT to set cryptographic algorithm for CA.");
-	hCard.send(build_CA_Step_B(ca_oid));
-	eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE for key agreement.");
-	hCard.send(build_CA_Step_C(ca_oid, Puk_IFD_DH));
+	vector<CAPDU> capdus;
+	capdus.push_back(build_CA_Step_B(ca_oid));
+	capdus.push_back(build_CA_Step_C(ca_oid, Puk_IFD_DH));
 
-	if (ECARD_SUCCESS != (status_ = process_CA_Step_B(hCard.receive())))
+	vector<RAPDU> rapdus = hCard.transceive(capdus);
+	vector<RAPDU>::const_iterator it = rapdus.begin();
+
+	switch (rapdus.size()) {
+		case 0:
+			/* step B failed */
+			return ECARD_CA_STEP_B_FAILED;
+		case 1:
+			/* step C failed */
+			return ECARD_CA_STEP_B_FAILED;
+		case 2:
+			/* OK */
+			break;
+		default:
+			/* too many rapdus */
+			return ECARD_CA_STEP_B_FAILED;
+	}
+	if (ECARD_SUCCESS != (status_ = process_CA_Step_B(*it)))
 		return status_;
+	++it;
 
-	if (ECARD_SUCCESS != (status_ = process_CA_Step_C(hCard.receive(),
+	if (ECARD_SUCCESS != (status_ = process_CA_Step_C(*it,
 					GeneralAuthenticationResult)))
 		return status_;
 

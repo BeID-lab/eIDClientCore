@@ -50,7 +50,7 @@
  */
 PCSCReader::PCSCReader(
 	const string &readerName,
-	vector<ICardDetector *>& detector) : SynchronousReader(readerName, detector),
+	vector<ICardDetector *>& detector) : IndividualReader(readerName, detector),
 	m_hCard(0x0),
 #if defined(_WIN32)
 	m_dwProtocol(SCARD_PROTOCOL_UNDEFINED),

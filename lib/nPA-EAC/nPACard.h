@@ -13,7 +13,7 @@ namespace Bundesdruckerei
 	namespace nPA
 	{
 
-		class ePACard : public ICard, SynchronousTransceiver<CAPDU, RAPDU>
+		class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 		{
 			private:
 				std::vector<unsigned char> m_ef_cardaccess;

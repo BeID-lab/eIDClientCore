@@ -61,32 +61,6 @@ ICard::get_rapdus(std::vector<std::vector<unsigned char> > buffers)
 	return rapdus;
 }
 
-void ICard::send(const CAPDU& capdu)
-{
-	debug_CAPDU("Outgoing", capdu);
-	m_subSystem->send(capdu.asBuffer());
-}
-
-void ICard::send(const std::vector<CAPDU> &cmds)
-{
-	m_subSystem->send(get_buffers(cmds));
-}
-
-RAPDU ICard::receive(void)
-{
-	vector<unsigned char> response = m_subSystem->receive();
-
-	RAPDU rapdu = RAPDU(response);
-	debug_RAPDU("Incoming", response);
-
-	return rapdu;
-}
-
-std::vector<RAPDU> ICard::receive(size_t count)
-{
-	return get_rapdus(m_subSystem->receive(count));
-}
-
 RAPDU ICard::transceive(const CAPDU &cmd)
 {
 	debug_CAPDU("Outgoing", cmd);

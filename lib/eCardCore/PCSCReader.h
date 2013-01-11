@@ -14,7 +14,7 @@
  * @class PCSCReader
  */
 
-class PCSCReader : public SynchronousReader
+class PCSCReader : public IndividualReader
 {
 	private:
 		SCARDHANDLE m_hCard;            // Handle to a card

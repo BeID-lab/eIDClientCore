@@ -221,33 +221,26 @@ class IReader : public Transceiver<vector<unsigned char>, vector<unsigned char> 
 		virtual PaceOutput establishPACEChannel(const PaceInput &) const = 0;
 }; // class IReader
 
-class SynchronousReader: public IReader, public SynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >
+class IndividualReader : public IReader, public IndividualTransceiver<vector<unsigned char>, vector<unsigned char> >
 {
 	public:
-		SynchronousReader(const string &readerName,
+		IndividualReader(const string &readerName,
 			   	vector<ICardDetector *>& detector) : IReader(readerName, detector) {};
 
-		virtual void send(const vector<unsigned char>& cmd)
-		{ SynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::send(cmd); };
-        virtual void send(const std::vector<vector<unsigned char> > &cmds)
-		{ SynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::send(cmds); };
-
-		virtual vector<unsigned char> receive(void)
-		{ return SynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::receive(); };
-        virtual std::vector<vector<unsigned char> > receive(size_t count)
-		{ return SynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::receive(count); };
+        virtual vector<vector<unsigned char> > transceive(const vector<vector<unsigned char> > &cmds) {
+			return IndividualTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmds);
+		}
 };
 
-class AsynchronousReader: public IReader, public AsynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >
+class BatchReader : public IReader, public BatchTransceiver<vector<unsigned char>, vector<unsigned char> >
 {
 	public:
-		AsynchronousReader(const string &readerName,
-				vector<ICardDetector *>& detector) : IReader(readerName, detector) {};
+		BatchReader(const string &readerName,
+			   	vector<ICardDetector *>& detector) : IReader(readerName, detector) {};
 
-		virtual vector<unsigned char> transceive(const vector<unsigned char>& cmd)
-		{ return AsynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmd); };
-		virtual std::vector<vector<unsigned char> > transceive(const std::vector<vector<unsigned char> > &cmds)
-		{ return AsynchronousTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmds); };
+		virtual vector<unsigned char> transceive(const vector<unsigned char>& cmd) {
+			return BatchTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmd);
+		}
 };
 
 #endif // #if !defined(__IREADER_INCLUDED__)

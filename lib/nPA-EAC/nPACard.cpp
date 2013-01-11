@@ -446,40 +446,7 @@ vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
 
 RAPDU ePACard::transceive(const CAPDU &cmd)
 {
-	vector<CAPDU> cmds;
-	cmds.push_back(cmd);
-	vector<RAPDU> resps = this->transceive(cmds);
-
-	if (resps.size() != 1)
-		eCardCore_warn(DEBUG_LEVEL_APDU, "Received too %s APDUs (expected 1, got %d).",
-			   	resps.size() < 1 ? "few" : "many", resps.size());
-
-	if (resps.empty())
-		return RAPDU(vector<unsigned char> (), 0x6d00);
-	else
-		return resps.front();
-}
-
-/* TODO use the underlying send/receive operations from the reader
- * Note that this would need to take special care for SM */
-RAPDU ePACard::receive(void)
-{
-	return SynchronousTransceiver<CAPDU, RAPDU>::receive();
-}
-
-std::vector<RAPDU> ePACard::receive(size_t count)
-{
-	return SynchronousTransceiver<CAPDU, RAPDU>::receive(count);
-}
-
-void ePACard::send(const CAPDU &cmd)
-{
-	SynchronousTransceiver<CAPDU, RAPDU>::send(cmd);
-}
-
-void ePACard::send(const std::vector<CAPDU> &cmds)
-{
-	SynchronousTransceiver<CAPDU, RAPDU>::send(cmds);
+	return BatchTransceiver<CAPDU, RAPDU>::transceive(cmd);
 }
 
 void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)

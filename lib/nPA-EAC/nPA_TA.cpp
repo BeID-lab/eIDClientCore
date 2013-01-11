@@ -187,6 +187,7 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
 	/* build all APDUs */
+	vector<CAPDU> capdus;
 
 	/* TODO verify the chain of certificates in the middle ware */
 	std::vector<unsigned char> _current_car = carCVCA;
@@ -194,13 +195,13 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 		std::string current_car;
 		hexdump(DEBUG_LEVEL_CRYPTO, "CAR", _current_car.data(), _current_car.size());
 
-		hCard.send(build_TA_Step_Set_CAR(_current_car));
+		capdus.push_back(build_TA_Step_Set_CAR(_current_car));
 
 		std::vector<unsigned char> cert;
 		cert = list_certificates[i];
 		hexdump(DEBUG_LEVEL_CRYPTO, "certificate", cert.data(), cert.size());
 
-		hCard.send(build_TA_Step_Verify_Certificate(cert));
+		capdus.push_back(build_TA_Step_Verify_Certificate(cert));
 
 		current_car = getCHR(cert);
 		_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
@@ -209,26 +210,35 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	std::string chrTerm_ = getCHR(terminalCertificate);
 	hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", chrTerm_.data(), chrTerm_.size());
 
-	hCard.send(build_TA_Step_E(_current_car, ca_oid, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
-	hCard.send(build_TA_Step_F());
+	capdus.push_back(build_TA_Step_E(_current_car, ca_oid, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
+	capdus.push_back(build_TA_Step_F());
 
 
 	/* process all RAPDUs */
+	vector<RAPDU> rapdus = hCard.transceive(capdus);
+
+	if (rapdus.size() != list_certificates.size()*2 + 2)
+		return ECARD_TA_STEP_A_FAILED;
+
+	vector<RAPDU>::const_iterator it = rapdus.begin();
 
 	for (size_t i = 0; i < list_certificates.size(); i++) {
-		if (ECARD_SUCCESS != (status = process_TA_Step_Set_CAR(hCard.receive())))
+		if (ECARD_SUCCESS != (status = process_TA_Step_Set_CAR(*it)))
 			return status;
+		++it;
 
-		if (ECARD_SUCCESS != (status = process_TA_Step_Verify_Certificate(hCard.receive())))
+		if (ECARD_SUCCESS != (status = process_TA_Step_Verify_Certificate(*it)))
 			return status;
+		++it;
 	}
 
-	if (ECARD_SUCCESS != (status = process_TA_Step_E(hCard.receive())))
+	if (ECARD_SUCCESS != (status = process_TA_Step_E(*it)))
 		return status;
+	++it;
 
 	std::vector<unsigned char> RND_ICC_;
 	if (ECARD_SUCCESS != (status = process_TA_Step_F(RND_ICC_,
-				hCard.receive())))
+				*it)))
 		return status;
 
 	// Copy the data to the output buffer.

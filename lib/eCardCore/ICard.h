@@ -45,12 +45,6 @@ class ICard: public Transceiver<CAPDU, RAPDU>
 		bool readFile(vector<unsigned char>& result);
 		bool readFile(unsigned char sfid, size_t chunk_size, vector<unsigned char>& result);
 
-		virtual void send(const CAPDU& cmd);
-		virtual void send(const std::vector<CAPDU>& cmds);
-
-		virtual RAPDU receive(void);
-		virtual std::vector<RAPDU> receive(size_t count);
-
 		virtual RAPDU transceive(const CAPDU& cmd);
 		virtual std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 

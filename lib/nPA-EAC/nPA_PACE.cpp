@@ -364,18 +364,36 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
 		ECARD_STATUS status = ECARD_SUCCESS;
 
-		ePA_.send(build_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat()));
+		vector<CAPDU> capdus;
+		capdus.push_back(build_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat()));
+		capdus.push_back(build_PACE_Step_C());
 
-		eCardCore_info(DEBUG_LEVEL_CRYPTO, "Send GENERAL AUTHENTICATE to get RND.ICC");
-		ePA_.send(build_PACE_Step_C());
+		vector<RAPDU> rapdus = ePA_.transceive(capdus);
+		vector<RAPDU>::const_iterator it = rapdus.begin();
 
-		if (ECARD_SUCCESS != (status = process_PACE_Step_B(ePA_.receive()))) {
+		switch (rapdus.size()) {
+			case 2:
+				/* everything OK */
+				break;
+			case 1:
+				asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+				return ECARD_PACE_STEP_C_FAILED;
+			case 0:
+				asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+				return ECARD_PACE_STEP_B_FAILED;
+			default:
+				/* too many rapdus */
+				asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
+				return ECARD_PACE_STEP_B_FAILED;
+		}
+		if (ECARD_SUCCESS != (status = process_PACE_Step_B(*it))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
 			return status;
 		}
+		++it;
 
 		std::vector<unsigned char> rndICC_;
-		if (ECARD_SUCCESS != (status = process_PACE_Step_C(ePA_.receive(),
+		if (ECARD_SUCCESS != (status = process_PACE_Step_C(*it,
 						PACE_OID_, pace_input.get_pin_id(),
 						pace_input.get_pin(), rndICC_))) {
 			asn_DEF_SecurityInfos.free_struct(&asn_DEF_SecurityInfos, secInfos_, 0);
