@@ -11,7 +11,7 @@
 # include <pthread.h>
 #endif
 
-#define READ_BUFFER 8192
+#define READ_BUFFER 0x10000
 
 #include <stdio.h>
 #include <iostream>

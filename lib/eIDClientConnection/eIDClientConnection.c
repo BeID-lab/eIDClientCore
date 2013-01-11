@@ -68,14 +68,13 @@ void parse_url( const char* const url, char* hostname, size_t *nHostnameLength, 
 	memset(param, 0x00, *nParamLength);
 
 	p1 = strstr(url, "://");
-	if (p1) {
+	if (p1)
 		p1 += 3;
-
-	} else {
-		p1 = url;
-	}
+	else
+	   	p1 = url;
 	p2 = strchr(p1, ':');
-	p3 = strchr(p2+1, '/');
+	if (p2)
+		p3 = strchr(p2+1, '/');
 	p4 = strstr(url, "?");
 
 	if (p2) {
@@ -425,10 +424,28 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECT
  */
 ssize_t my_recv(const socket_st *const sock, void *buffer, size_t buffer_size)
 {
-	if (sock->secure)
-		return ssl_tls_driver.recv(sock->ssl_tls_driver_data, buffer, buffer_size);
+	ssize_t received = 0;
+	ssize_t r = 0;
+	ssize_t available = buffer_size;
 
-	return recv(sock->fd, (char *) buffer, buffer_size, MSG_WAITALL);
+	if (!buffer_size || !buffer )
+		return 0;
+
+	do {
+		if (sock->secure)
+			r = ssl_tls_driver.recv(sock->ssl_tls_driver_data, buffer, available);
+		else
+			r = recv(sock->fd, buffer, available, 0);
+
+		if (r >= 0) {
+			received += r;
+			buffer += r;
+			available -= r;
+		} else
+			break;
+	} while (available > 0 && /* FIXME should use GNUTLS_NONBLOCK instead */ r == 9000);
+
+	return received ? received : r;
 }
 
 ssize_t my_send(const socket_st *const sock, const void *const buffer, size_t buffer_size)
@@ -441,7 +458,7 @@ ssize_t my_send(const socket_st *const sock, const void *const buffer, size_t bu
 			ret = ssl_tls_driver.send(sock->ssl_tls_driver_data, buffer, buffer_size);
 
 		} else {
-			ret = send(sock->fd, (const char * const) buffer, buffer_size, 0);
+			ret = send(sock->fd, buffer, buffer_size, 0);
 		}
 
 		if (ret < 0)
