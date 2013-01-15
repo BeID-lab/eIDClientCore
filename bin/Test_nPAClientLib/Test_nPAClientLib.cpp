@@ -269,6 +269,14 @@ getSamlResponseThread(void *lpParam)
 	return 0;
 }
 
+#ifdef _WIN32
+HANDLE  hThread;
+DWORD   dwThreadId;
+#else
+/* TODO thread cleanup */
+pthread_t hThread;
+
+#endif
 void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error)
 {
 	switch (state) {
@@ -322,8 +330,6 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			}
 
 #ifdef _WIN32
-			HANDLE  hThread;
-			DWORD   dwThreadId;
 			hThread = CreateThread(
 						  NULL,                   // default security attributes
 						  0,                      // use default stack size
@@ -332,9 +338,6 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 						  0,                      // use default creation flags
 						  &dwThreadId);   // returns the thread identifier
 #else
-			/* TODO thread cleanup */
-			pthread_t hThread;
-
 			if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
 				std::cout << "Could not create getSamlResponseThread" << std::endl;
 
@@ -352,6 +355,22 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			break;
 		default:
 			break;
+	}
+
+	if (error != NPACLIENT_ERROR_SUCCESS) {
+#ifdef _WIN32
+#else
+		if (pthread_cancel(hThread))
+			std::cout << "Could not cancel SamlResponseThread" << std::endl;
+#endif
+	}
+
+	if (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES) {
+#ifdef _WIN32
+#else
+		if (pthread_join(hThread, NULL))
+			std::cout << "Could not clean up SamlResponseThread" << std::endl;
+#endif
 	}
 }
 
