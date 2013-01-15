@@ -12,6 +12,8 @@ using namespace Bundesdruckerei::eIDUtils;
 #include <CVCertificate.h>
 #include <CertificateDescription.h>
 #include <PlainTermsOfUsage.h>
+#include <eIDOID.h>
+#include <eIDHelper.h>
 
 #include "eCardCore/eCardStatus.h"
 #include "nPA-EAC/nPACard.h"
@@ -185,67 +187,288 @@ NPACLIENT_ERROR nPAClient::initialize(
 	return NPACLIENT_ERROR_SUCCESS;
 }
 
-/*
- *
- */
+bool decode_CertificateHolderAuthorizationTemplate_t(const CertificateHolderAuthorizationTemplate_t &chat_in, struct chat &chat_out)
+{
+	OBJECT_IDENTIFIER_t is = makeOID(id_IS);
+	OBJECT_IDENTIFIER_t at = makeOID(id_AT);
+	OBJECT_IDENTIFIER_t st = makeOID(id_ST);
+	bool r = false;
+
+	if (chat_in.authTerminalID == is) {
+		if (chat_in.chat.size != 1) {
+			goto err;
+		}
+
+		chat_out.type = TT_IS;
+		chat_out.authorization.is.read_finger       		= chat_in.chat.buf[0] & 0x01 ? 1 : 0;
+		chat_out.authorization.is.read_iris               	= chat_in.chat.buf[0] & 0x02 ? 1 : 0;
+		chat_out.authorization.is.RFU1     					= chat_in.chat.buf[0] & 0x04 ? 1 : 0;
+		chat_out.authorization.is.RFU2						= chat_in.chat.buf[0] & 0x08 ? 1 : 0;
+		chat_out.authorization.is.RFU3						= chat_in.chat.buf[0] & 0x10 ? 1 : 0;
+		chat_out.authorization.is.read_eid					= chat_in.chat.buf[0] & 0x20 ? 1 : 0;
+		chat_out.authorization.is.role						= chat_in.chat.buf[0] >> 5;
+	} else if (chat_in.authTerminalID == at) {
+		if (chat_in.chat.size != 5) {
+			goto err;
+		}
+
+		chat_out.type = TT_AT;
+		chat_out.authorization.at.age_verification 			= chat_in.chat.buf[4] & 0x01 ? 1 : 0;
+		chat_out.authorization.at.community_id_verification	= chat_in.chat.buf[4] & 0x02 ? 1 : 0;
+		chat_out.authorization.at.restricted_id 			= chat_in.chat.buf[4] & 0x04 ? 1 : 0;
+		chat_out.authorization.at.privileged 				= chat_in.chat.buf[4] & 0x08 ? 1 : 0;
+		chat_out.authorization.at.can_allowed 				= chat_in.chat.buf[4] & 0x10 ? 1 : 0;
+		chat_out.authorization.at.pin_management 			= chat_in.chat.buf[4] & 0x20 ? 1 : 0;
+		chat_out.authorization.at.install_cert 				= chat_in.chat.buf[4] & 0x40 ? 1 : 0;
+		chat_out.authorization.at.install_qualified_cert 	= chat_in.chat.buf[4] & 0x80 ? 1 : 0;
+		chat_out.authorization.at.read_dg1         			= chat_in.chat.buf[3] & 0x01 ? 1 : 0;
+		chat_out.authorization.at.read_dg2                 	= chat_in.chat.buf[3] & 0x02 ? 1 : 0;
+		chat_out.authorization.at.read_dg3      			= chat_in.chat.buf[3] & 0x04 ? 1 : 0;
+		chat_out.authorization.at.read_dg4 					= chat_in.chat.buf[3] & 0x08 ? 1 : 0;
+		chat_out.authorization.at.read_dg5 					= chat_in.chat.buf[3] & 0x10 ? 1 : 0;
+		chat_out.authorization.at.read_dg6 					= chat_in.chat.buf[3] & 0x20 ? 1 : 0;
+		chat_out.authorization.at.read_dg7 					= chat_in.chat.buf[3] & 0x40 ? 1 : 0;
+		chat_out.authorization.at.read_dg8 					= chat_in.chat.buf[3] & 0x80 ? 1 : 0;
+		chat_out.authorization.at.read_dg9        			= chat_in.chat.buf[2] & 0x01 ? 1 : 0;
+		chat_out.authorization.at.read_dg10                	= chat_in.chat.buf[2] & 0x02 ? 1 : 0;
+		chat_out.authorization.at.read_dg11     			= chat_in.chat.buf[2] & 0x04 ? 1 : 0;
+		chat_out.authorization.at.read_dg12					= chat_in.chat.buf[2] & 0x08 ? 1 : 0;
+		chat_out.authorization.at.read_dg13					= chat_in.chat.buf[2] & 0x10 ? 1 : 0;
+		chat_out.authorization.at.read_dg14					= chat_in.chat.buf[2] & 0x20 ? 1 : 0;
+		chat_out.authorization.at.read_dg15					= chat_in.chat.buf[2] & 0x40 ? 1 : 0;
+		chat_out.authorization.at.read_dg16					= chat_in.chat.buf[2] & 0x80 ? 1 : 0;
+		chat_out.authorization.at.read_dg17        			= chat_in.chat.buf[1] & 0x01 ? 1 : 0;
+		chat_out.authorization.at.read_dg18                	= chat_in.chat.buf[1] & 0x02 ? 1 : 0;
+		chat_out.authorization.at.read_dg19     			= chat_in.chat.buf[1] & 0x04 ? 1 : 0;
+		chat_out.authorization.at.read_dg20					= chat_in.chat.buf[1] & 0x08 ? 1 : 0;
+		chat_out.authorization.at.read_dg21					= chat_in.chat.buf[1] & 0x10 ? 1 : 0;
+		chat_out.authorization.at.RFU1						= chat_in.chat.buf[1] & 0x20 ? 1 : 0;
+		chat_out.authorization.at.RFU2						= chat_in.chat.buf[1] & 0x40 ? 1 : 0;
+		chat_out.authorization.at.RFU3						= chat_in.chat.buf[1] & 0x80 ? 1 : 0;
+		chat_out.authorization.at.RFU4						= chat_in.chat.buf[0] & 0x01 ? 1 : 0;
+		chat_out.authorization.at.write_dg21				= chat_in.chat.buf[0] & 0x02 ? 1 : 0;
+		chat_out.authorization.at.write_dg20        		= chat_in.chat.buf[0] & 0x04 ? 1 : 0;
+		chat_out.authorization.at.write_dg19               	= chat_in.chat.buf[0] & 0x08 ? 1 : 0;
+		chat_out.authorization.at.write_dg18    			= chat_in.chat.buf[0] & 0x10 ? 1 : 0;
+		chat_out.authorization.at.write_dg17				= chat_in.chat.buf[0] & 0x20 ? 1 : 0;
+		chat_out.authorization.at.role						= chat_in.chat.buf[0] >> 5;
+	} else if (chat_in.authTerminalID == st) {
+		if (chat_in.chat.size != 1) {
+			goto err;
+		}
+
+		chat_out.type = TT_ST;
+		chat_out.authorization.st.generate_signature 			= chat_in.chat.buf[0] & 0x01 ? 1 : 0;
+		chat_out.authorization.st.generate_qualified_signature 	= chat_in.chat.buf[0] & 0x02 ? 1 : 0;
+		chat_out.authorization.st.RFU1							= chat_in.chat.buf[0] & 0x04 ? 1 : 0;
+		chat_out.authorization.st.RFU2							= chat_in.chat.buf[0] & 0x08 ? 1 : 0;
+		chat_out.authorization.st.RFU3							= chat_in.chat.buf[0] & 0x10 ? 1 : 0;
+		chat_out.authorization.st.RFU4							= chat_in.chat.buf[0] & 0x20 ? 1 : 0;
+		chat_out.authorization.st.role							= chat_in.chat.buf[0] >> 5;
+	}
+
+	r = true;
+
+err:
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &is, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &at, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &st, 1);
+
+	return r;
+}
+
+
+int fill_vector(const void *buffer, size_t size,
+			void *application_specific_key)
+{
+	int r = -1;
+	vector<unsigned char> *v = (vector<unsigned char> *) application_specific_key;
+	const unsigned char *in = (const unsigned char *) buffer;
+
+	if (!v || !in) {
+		printf("%s:%d\n", __FILE__, __LINE__);
+		goto err;
+	}
+
+	while (size) {
+		printf("%s:%d\n", __FILE__, __LINE__);
+		v->push_back(*in);
+		in++;
+		size--;
+	}
+
+	r = in - (unsigned char *) buffer;
+
+err:
+	return r;
+}
+bool encode_CertificateHolderAuthorizationTemplate_t(const struct chat *chat_in, vector<unsigned char> &chat_out)
+{
+	bool r = false;
+	CertificateHolderAuthorizationTemplate_t chat_tmp;
+	chat_tmp.authTerminalID = {NULL, 0};
+	unsigned char buf[5] = {0, 0, 0, 0, 0};
+	chat_tmp.chat.buf = buf;
+	asn_enc_rval_t er;
+
+	if (!chat_in)
+		goto err;
+
+	chat_out.clear();
+
+	switch (chat_in->type) {
+		case TT_IS:
+			chat_tmp.authTerminalID = makeOID(id_IS);
+			chat_tmp.chat.size = 1 * sizeof(unsigned char);
+
+			if (chat_in->authorization.is.read_finger 	) chat_tmp.chat.buf[0] |= 0x01;
+			if (chat_in->authorization.is.read_iris  	) chat_tmp.chat.buf[0] |= 0x02;
+			if (chat_in->authorization.is.RFU1     		) chat_tmp.chat.buf[0] |= 0x04;
+			if (chat_in->authorization.is.RFU2			) chat_tmp.chat.buf[0] |= 0x08;
+			if (chat_in->authorization.is.RFU3			) chat_tmp.chat.buf[0] |= 0x10;
+			if (chat_in->authorization.is.read_eid		) chat_tmp.chat.buf[0] |= 0x20;
+			chat_tmp.chat.buf[0]											   |= ((chat_in->authorization.is.role & 0x03) << 5);
+			break;
+
+		case TT_AT:
+			chat_tmp.authTerminalID = makeOID(id_AT);
+			chat_tmp.chat.size = 5 * sizeof(unsigned char);
+
+			if (chat_in->authorization.at.age_verification 				) chat_tmp.chat.buf[4] |= 0x01;
+			if (chat_in->authorization.at.community_id_verification 	) chat_tmp.chat.buf[4] |= 0x02;
+			if (chat_in->authorization.at.restricted_id 				) chat_tmp.chat.buf[4] |= 0x04;
+			if (chat_in->authorization.at.privileged 					) chat_tmp.chat.buf[4] |= 0x08;
+			if (chat_in->authorization.at.can_allowed 					) chat_tmp.chat.buf[4] |= 0x10;
+			if (chat_in->authorization.at.pin_management 				) chat_tmp.chat.buf[4] |= 0x20;
+			if (chat_in->authorization.at.install_cert 					) chat_tmp.chat.buf[4] |= 0x40;
+			if (chat_in->authorization.at.install_qualified_cert 		) chat_tmp.chat.buf[4] |= 0x80;
+			if (chat_in->authorization.at.read_dg1         				) chat_tmp.chat.buf[3] |= 0x01;
+			if (chat_in->authorization.at.read_dg2                  	) chat_tmp.chat.buf[3] |= 0x02;
+			if (chat_in->authorization.at.read_dg3      				) chat_tmp.chat.buf[3] |= 0x04;
+			if (chat_in->authorization.at.read_dg4 						) chat_tmp.chat.buf[3] |= 0x08;
+			if (chat_in->authorization.at.read_dg5 						) chat_tmp.chat.buf[3] |= 0x10;
+			if (chat_in->authorization.at.read_dg6 						) chat_tmp.chat.buf[3] |= 0x20;
+			if (chat_in->authorization.at.read_dg7 						) chat_tmp.chat.buf[3] |= 0x40;
+			if (chat_in->authorization.at.read_dg8 						) chat_tmp.chat.buf[3] |= 0x80;
+			if (chat_in->authorization.at.read_dg9        				) chat_tmp.chat.buf[2] |= 0x01;
+			if (chat_in->authorization.at.read_dg10                		) chat_tmp.chat.buf[2] |= 0x02;
+			if (chat_in->authorization.at.read_dg11     				) chat_tmp.chat.buf[2] |= 0x04;
+			if (chat_in->authorization.at.read_dg12						) chat_tmp.chat.buf[2] |= 0x08;
+			if (chat_in->authorization.at.read_dg13						) chat_tmp.chat.buf[2] |= 0x10;
+			if (chat_in->authorization.at.read_dg14						) chat_tmp.chat.buf[2] |= 0x20;
+			if (chat_in->authorization.at.read_dg15						) chat_tmp.chat.buf[2] |= 0x40;
+			if (chat_in->authorization.at.read_dg16						) chat_tmp.chat.buf[2] |= 0x80;
+			if (chat_in->authorization.at.read_dg17        				) chat_tmp.chat.buf[1] |= 0x01;
+			if (chat_in->authorization.at.read_dg18             		) chat_tmp.chat.buf[1] |= 0x02;
+			if (chat_in->authorization.at.read_dg19     				) chat_tmp.chat.buf[1] |= 0x04;
+			if (chat_in->authorization.at.read_dg20						) chat_tmp.chat.buf[1] |= 0x08;
+			if (chat_in->authorization.at.read_dg21						) chat_tmp.chat.buf[1] |= 0x10;
+			if (chat_in->authorization.at.RFU1							) chat_tmp.chat.buf[1] |= 0x20;
+			if (chat_in->authorization.at.RFU2							) chat_tmp.chat.buf[1] |= 0x40;
+			if (chat_in->authorization.at.RFU3							) chat_tmp.chat.buf[1] |= 0x80;
+			if (chat_in->authorization.at.RFU4							) chat_tmp.chat.buf[0] |= 0x01;
+			if (chat_in->authorization.at.write_dg21					) chat_tmp.chat.buf[0] |= 0x02;
+			if (chat_in->authorization.at.write_dg20        			) chat_tmp.chat.buf[0] |= 0x04;
+			if (chat_in->authorization.at.write_dg19                	) chat_tmp.chat.buf[0] |= 0x08;
+			if (chat_in->authorization.at.write_dg18    				) chat_tmp.chat.buf[0] |= 0x10;
+			if (chat_in->authorization.at.write_dg17					) chat_tmp.chat.buf[0] |= 0x20;
+			chat_tmp.chat.buf[0] 											  				   |= ((chat_in->authorization.at.role & 0x03) << 5);
+			break;
+
+		case TT_ST:
+			chat_tmp.authTerminalID = makeOID(id_ST);
+			chat_tmp.chat.size = 1 * sizeof(unsigned char);
+
+			if (chat_in->authorization.st.generate_signature 			) chat_tmp.chat.buf[0] |= 0x01;
+			if (chat_in->authorization.st.generate_qualified_signature 	) chat_tmp.chat.buf[0] |= 0x02;
+			if (chat_in->authorization.st.RFU1							) chat_tmp.chat.buf[0] |= 0x04;
+			if (chat_in->authorization.st.RFU2							) chat_tmp.chat.buf[0] |= 0x08;
+			if (chat_in->authorization.st.RFU3							) chat_tmp.chat.buf[0] |= 0x10;
+			if (chat_in->authorization.st.RFU4							) chat_tmp.chat.buf[0] |= 0x20;
+			chat_tmp.chat.buf[0]															   |= ((chat_in->authorization.st.role & 0x03) << 5);
+			break;
+
+		default:
+			goto err;
+	}
+
+	er = der_encode(&asn_DEF_CertificateHolderAuthorizationTemplate, &chat_tmp, fill_vector, &chat_out);
+	if (er.encoded == -1) {
+		goto err;
+	}
+
+	r = true;
+
+err:
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &chat_tmp.authTerminalID, 1);
+
+	return r;
+}
+
 bool nPAClient::getCHAT(
-	nPADataBuffer_t &chatFromCertificate)
+	struct chat &chatFromCertificate)
 {
 	CVCertificate_t *CVCertificate = 0x00;
+	bool r = false;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
 				   m_Idp->getTerminalCertificate().data(), m_Idp->getTerminalCertificate().size()).code != RC_OK) {
 		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getCHAT - Could not parse terminal certificate.");
-		// @TODO: Do logging ...
-		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-		return false;
+		goto err;
 	}
 
-	chatFromCertificate.pDataBuffer = new unsigned char[CVCertificate->certBody.certHolderAuthTemplate.chat.size];
+	r = decode_CertificateHolderAuthorizationTemplate_t(CVCertificate->certBody.certHolderAuthTemplate, chatFromCertificate);
 
-	if (0x00 == chatFromCertificate.pDataBuffer)
-		return false;
-
-	chatFromCertificate.bufferSize = CVCertificate->certBody.certHolderAuthTemplate.chat.size;
-	memcpy(chatFromCertificate.pDataBuffer, CVCertificate->certBody.certHolderAuthTemplate.chat.buf,
-		   chatFromCertificate.bufferSize);
+err:
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-	return true;
+
+	return r;
 }
 
-/*
- *
- */
 bool nPAClient::getRequiredCHAT(
-	nPADataBuffer_t &requiredChat)
+	struct chat &requiredChat)
 {
-	requiredChat.pDataBuffer = new unsigned char[m_Idp->getRequiredChat().size()];
+	CertificateHolderAuthorizationTemplate_t *chat = NULL;
+	bool r = false;
 
-	if (0x00 == requiredChat.pDataBuffer)
-		return false;
+	if (ber_decode(0, &asn_DEF_CertificateHolderAuthorizationTemplate, (void **)&chat,
+				   m_Idp->getRequiredChat().data(), m_Idp->getRequiredChat().size()).code != RC_OK) {
+		eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getRequiredCHAT - Could not parse required chat.");
+		goto err;
+	}
 
-	requiredChat.bufferSize = m_Idp->getRequiredChat().size();
-	memcpy(requiredChat.pDataBuffer, m_Idp->getRequiredChat().data(), m_Idp->getRequiredChat().size());
-	return true;
+	r = decode_CertificateHolderAuthorizationTemplate_t(*chat, requiredChat);
+
+err:
+	asn_DEF_CertificateHolderAuthorizationTemplate.free_struct(&asn_DEF_CertificateHolderAuthorizationTemplate, chat, 0);
+
+	return r;
 }
 
-/*
- *
- */
 bool nPAClient::getOptionalCHAT(
-	nPADataBuffer_t &optionalChat)
+	struct chat &optionalChat)
 {
-	if (0x00 == m_Idp->getOptionalChat().size())
-		return true;
+	CertificateHolderAuthorizationTemplate_t *chat = NULL;
+	bool r = false;
 
-	optionalChat.pDataBuffer = new unsigned char[m_Idp->getOptionalChat().size()];
+	if (m_Idp->getOptionalChat().empty()) {
+		optionalChat.type = TT_invalid;
+		/* optionalChat is optional */
+		r = true;
+	} else {
+		if (ber_decode(0, &asn_DEF_CertificateHolderAuthorizationTemplate, (void **)&chat,
+					m_Idp->getOptionalChat().data(), m_Idp->getOptionalChat().size()).code != RC_OK) {
+			eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAClient::getOptionalChat - Could not parse optional chat.");
+			goto err;
+		}
 
-	if (0x00 == optionalChat.pDataBuffer)
-		return false;
+		r = decode_CertificateHolderAuthorizationTemplate_t(*chat, optionalChat);
+	}
 
-	optionalChat.bufferSize = m_Idp->getOptionalChat().size();
-	memcpy(optionalChat.pDataBuffer, m_Idp->getOptionalChat().data(), m_Idp->getOptionalChat().size());
-	return true;
+err:
+	asn_DEF_CertificateHolderAuthorizationTemplate.free_struct(&asn_DEF_CertificateHolderAuthorizationTemplate, chat, 0);
+
+	return r;
 }
 
 /*
@@ -391,7 +614,7 @@ bool nPAClient::passwordIsRequired(void) const
 
 NPACLIENT_ERROR nPAClient::performPACE(
 	const nPADataBuffer_t *const password,
-	const nPADataBuffer_t *const chatSelectedByUser,
+	const struct chat *chatSelectedByUser,
 	const nPADataBuffer_t *const certificateDescription)
 {
 	// Check the state of the protocol. We can only run PACE if the
@@ -417,8 +640,8 @@ NPACLIENT_ERROR nPAClient::performPACE(
 	std::vector<unsigned char> certificateDescriptionInput
 	(certificateDescription->pDataBuffer,
 	 certificateDescription->pDataBuffer + certificateDescription->bufferSize);
-	m_chatUsed = std::vector<unsigned char> (chatSelectedByUser->pDataBuffer,
-				 chatSelectedByUser->pDataBuffer + chatSelectedByUser->bufferSize);
+	if (!encode_CertificateHolderAuthorizationTemplate_t(chatSelectedByUser, m_chatUsed))
+		return NPACLIENT_ERROR_INVALID_PARAMETER2;
 	PaceInput pace_input = PaceInput(PaceInput::pin, passwordInput, m_chatUsed,
 									 certificateDescriptionInput);
 	// Running the protocol

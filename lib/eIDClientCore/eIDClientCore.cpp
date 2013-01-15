@@ -81,9 +81,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAFinalizeProtocol(
  */
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	NPACLIENT_HANDLE hClient,
-	nPADataBuffer_t *chatFromCertificate,
-	nPADataBuffer_t *chatRequired,
-	nPADataBuffer_t *chatOptional,
+	struct chat *chatFromCertificate,
+	struct chat *chatRequired,
+	struct chat *chatOptional,
 	time_t *certificateValidFrom,
 	time_t *certificateValidTo,
 	nPADataBuffer_t *certificateDescription,
@@ -94,13 +94,13 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	if (!hClient)
 		return NPACLIENT_ERROR_INVALID_PARAMETER1;
 
-	if (!chatFromCertificate || chatFromCertificate->pDataBuffer)
+	if (!chatFromCertificate)
 		return NPACLIENT_ERROR_INVALID_PARAMETER2;
 
-	if (!chatRequired || chatRequired->pDataBuffer)
+	if (!chatRequired)
 		return NPACLIENT_ERROR_INVALID_PARAMETER3;
 
-	if (!chatOptional || chatOptional->pDataBuffer)
+	if (!chatOptional)
 		return NPACLIENT_ERROR_INVALID_PARAMETER4;
 
 	if (!certificateValidFrom)
@@ -109,7 +109,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	if (!certificateValidTo)
 		return NPACLIENT_ERROR_INVALID_PARAMETER6;
 
-	if (!certificateDescription || chatOptional->pDataBuffer)
+	if (!certificateDescription || certificateDescription->pDataBuffer)
 		return NPACLIENT_ERROR_INVALID_PARAMETER7;
 
 	if (!serviceName || serviceName->pDataBuffer)
@@ -183,7 +183,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 	NPACLIENT_HANDLE hClient,
 	const nPADataBuffer_t *password,
-	const nPADataBuffer_t *chatSelectedByUser,
+	const struct chat *chatSelectedByUser,
 	const nPADataBuffer_t *certificateDescription)
 {
 	NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
@@ -294,9 +294,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAFreeDataBuffer(
 	return NPACLIENT_ERROR_SUCCESS;
 }
 
-/*
- *
- */
 extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithParamMap(
 	AuthenticationParams_t paraMap,
 	ECARD_PROTOCOL usedProtocol,
@@ -313,9 +310,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	UserInput_t input = { 0, PI_PIN, NULL, NULL };
 	NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 	NPACLIENT_HANDLE hnPAClient = 0x00;
-	nPADataBuffer_t bufChatFromCertificate = {0x00, 0};
-	nPADataBuffer_t bufChatRequired = {0x00, 0};
-	nPADataBuffer_t bufChatOptional = {0x00, 0};
+	struct chat chatFromCertificate;
+	struct chat chatRequired;
+	struct chat chatOptional;
 	nPADataBuffer_t certificateDescription = {0x00, 0};
 	nPADataBuffer_t serviceName = {0x00, 0};
 	nPADataBuffer_t serviceURL = {0x00, 0};
@@ -342,13 +339,13 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 		return error;
 	}
 
-	if ((error = nPAQueryPACEInfos(hnPAClient, &bufChatFromCertificate,
-								   &bufChatRequired, &bufChatOptional, &certificateValidFrom,
+	if ((error = nPAQueryPACEInfos(hnPAClient, &chatFromCertificate,
+								   &chatRequired, &chatOptional, &certificateValidFrom,
 								   &certificateValidTo, &certificateDescription, &serviceName,
 								   &serviceURL)) == NPACLIENT_ERROR_SUCCESS) {
 		description.description_type = &description_type;
-		description.chat_required = &bufChatRequired;
-		description.chat_optional = &bufChatOptional;
+		description.chat_required = &chatRequired;
+		description.chat_optional = &chatOptional;
 		description.valid_from = &certificateValidFrom;
 		description.valid_to = &certificateValidTo;
 		description.description = &certificateDescription;
@@ -404,9 +401,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	nPAFinalizeProtocol(hnPAClient);
 	// Free temporarily allocated data. May some of this data are not allocated so far,
 	// but we should try to deallocate them anyway.
-	nPAFreeDataBuffer(&bufChatFromCertificate);
-	nPAFreeDataBuffer(&bufChatRequired);
-	nPAFreeDataBuffer(&bufChatOptional);
 	nPAFreeDataBuffer(&certificateDescription);
 	nPAFreeDataBuffer(&serviceName);
 	nPAFreeDataBuffer(&serviceURL);

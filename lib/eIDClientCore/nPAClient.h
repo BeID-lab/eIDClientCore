@@ -214,19 +214,19 @@ namespace Bundesdruckerei
 				 *
 				 */
 				bool getCHAT(
-					nPADataBuffer_t &chatFromCertificate);
+					struct chat &chatFromCertificate);
 
 				/*
 				 *
 				 */
 				bool getRequiredCHAT(
-					nPADataBuffer_t &requiredChat);
+					struct chat &requiredChat);
 
 				/*
 				 *
 				 */
 				bool getOptionalCHAT(
-					nPADataBuffer_t &optionalChat);
+					struct chat &optionalChat);
 
 				/*
 				 *
@@ -265,7 +265,7 @@ namespace Bundesdruckerei
 				 */
 				NPACLIENT_ERROR performPACE(
 					const nPADataBuffer_t *const password,
-					const nPADataBuffer_t *const chatSelectedByUser,
+					const struct chat *const chatSelectedByUser,
 					const nPADataBuffer_t *const certificateDescription);
 
 				/*
