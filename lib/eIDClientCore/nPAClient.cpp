@@ -306,7 +306,9 @@ bool encode_CertificateHolderAuthorizationTemplate_t(const struct chat *chat_in,
 {
 	bool r = false;
 	CertificateHolderAuthorizationTemplate_t chat_tmp;
-	chat_tmp.authTerminalID = {NULL, 0};
+	//chat_tmp.authTerminalID = {NULL, 0}; //Doesnt work with Windows?
+	chat_tmp.authTerminalID.buf = NULL;
+	chat_tmp.authTerminalID.size = 0;
 	unsigned char buf[5] = {0, 0, 0, 0, 0};
 	chat_tmp.chat.buf = buf;
 	asn_enc_rval_t er;

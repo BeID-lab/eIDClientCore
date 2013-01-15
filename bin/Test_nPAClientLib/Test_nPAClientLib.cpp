@@ -442,6 +442,8 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	if (hThread && (error != NPACLIENT_ERROR_SUCCESS)) {
 #ifdef _WIN32
+		if(!TerminateThread(hThread, -1))
+			std::cout << "Could not cancel SamlResponseThread: "<< GetLastError() << std::endl;
 #else
 		if (pthread_cancel(hThread))
 			std::cout << "Could not cancel SamlResponseThread" << std::endl;
@@ -451,6 +453,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	if (hThread && (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES)) {
 #ifdef _WIN32
+		WaitForSingleObject(hThread, INFINITE); //Phew.. I hope we dont get a deadlock here?
 #else
 		if (pthread_join(hThread, NULL))
 			std::cout << "Could not clean up SamlResponseThread" << std::endl;
