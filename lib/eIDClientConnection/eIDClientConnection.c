@@ -438,7 +438,7 @@ ssize_t my_recv(const socket_st *const sock, void *buffer, size_t buffer_size)
 
 		if (r >= 0) {
 			received += r;
-			buffer += r;
+			(char*)buffer += r;
 			available -= r;
 		} else
 			break;
