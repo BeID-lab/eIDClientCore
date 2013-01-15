@@ -33,6 +33,8 @@ using namespace std;
 
 #define HEX(x) setw(2) << setfill('0') << hex << (int)(x)
 
+static string str_replace(string rep, string wit, string in);
+
 class CeIdObject
 {
 	public:
@@ -54,6 +56,7 @@ class CeIdObject
 		string  m_strAction;
 		string  m_strMethod;
 		string  m_strSAMLRequest;
+		string  m_strSAMLResponse;
 		string  m_strSigAlg;
 		string  m_strSignature;
 		string  m_strRelayState;
@@ -145,7 +148,7 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 	}
 
 	//SP XML
-	if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
+	else if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string  strParam(papszAttrs[i]);
 
@@ -166,6 +169,9 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 
 				} else if (strcmp(strParamName.c_str(), "RelayState") == 0) {
 					m_strRelayState.assign(papszAttrs[i + 1]);
+
+				} else if (strcmp(strParamName.c_str(), "SAMLResponse") == 0) {
+					m_strSAMLResponse.assign(papszAttrs[i + 1]);
 				}
 			}
 		}
@@ -253,9 +259,14 @@ getSamlResponseThread(void *lpParam)
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += string(sz, sz_len);
-			size_t found = strResult.find("<html");
-			if (found != string::npos)
-				strResult.substr(found);
+			std::string strTmp = strResult;
+			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
+			size_t found = strTmp.find("<html");
+
+			if (found != string::npos) {
+				strResult = strResult.substr(found);
+			} else
+				std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		} else {
 			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		}
@@ -263,9 +274,81 @@ getSamlResponseThread(void *lpParam)
 	} else {
 		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 	}
-
 	connection_status = eIDClientConnectionEnd(connection);
-	cout << strResult << endl;
+
+
+	CeIdObject      eIdObject;
+	eIdObject.GetParams(strResult);
+	string SAMLResponse = eIdObject.m_strSAMLResponse.c_str();
+	cout << "RelayState\t" << eIdObject.m_strRelayState.c_str() << endl;
+	cout << "SAMLResponse\t" << SAMLResponse << endl;
+	urlIDP = URL(eIdObject.m_strAction.c_str());
+	if (!urlIDP._valid)
+		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+	SAMLResponse = str_replace("=", "%3D", SAMLResponse);
+	SAMLResponse = str_replace("+", "%2B", SAMLResponse);
+	SAMLResponse = str_replace("/", "%2F", SAMLResponse);
+
+	string strContentType = "Content-Type: application/x-www-form-urlencoded";
+	string strData = "RelayState=";
+	strData += eIdObject.m_strRelayState;
+	strData += "&SAMLResponse=";
+	strData += SAMLResponse;
+
+	std::stringstream out;
+	out << strData.length();
+	string strContentLength = "Content-Length: " + out.str();
+	strResult = "";
+	connection = 0x00;
+	string port_hack = /* FIXME urlIDP._port.c_str() */ "8080";
+	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), port_hack.c_str(), NULL, NULL);
+
+	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+		string request;
+		std::transform(eIdObject.m_strMethod.begin(), eIdObject.m_strMethod.end(), eIdObject.m_strMethod.begin(), static_cast<int ( *)(int)>(tolower));
+
+		if (0x00 == eIdObject.m_strMethod.compare("post")) {
+			/* Send a POST request */
+			request += "POST ";
+
+		} else {
+			/* Send a GET request */
+			request += "GET ";
+		}
+
+		request += urlIDP._path + " HTTP/1.1\r\n";
+		request += "Host: " + urlIDP._hostname + ":" + port_hack + "\r\n";
+		//request += "Referer: " + strRefresh + "\r\n";
+		request += strContentType + "\r\n";
+		request += strContentLength + "\r\n\r\n";
+		request += strData;
+		memset(sz, 0x00, READ_BUFFER);
+		sz_len = sizeof sz;
+		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, &sz_len);
+
+		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			strResult += string(sz, sz_len);
+			std::string strTmp = strResult;
+			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
+			size_t found = strTmp.find("<html");
+
+			if (found != string::npos) {
+				strResult = strResult.substr(found);
+			} else
+				std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		} else {
+			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		}
+
+		eIDClientConnectionEnd(connection);
+
+	} else {
+		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+	}
+
+	cout << "Service Provider Login Page:" << std::endl;
+	cout << strResult << std::endl;
+
 	return 0;
 }
 
@@ -683,4 +766,3 @@ int main(int argc, char **argv)
 	std::cout << buffer << std::endl;
 	return retValue;
 }
-
