@@ -407,7 +407,7 @@ unsigned short RAPDU::getSW(void) const
 	return (m_sw1 << 8) | m_sw2;
 }
 
-const vector<unsigned char> RAPDU::getData(void) const
+const vector<unsigned char>& RAPDU::getData(void) const
 {
 	return m_data;
 }

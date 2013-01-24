@@ -50,7 +50,7 @@
  */
 PCSCReader::PCSCReader(
 	const string &readerName,
-	vector<ICardDetector *>& detector) : IReader(readerName, detector),
+	vector<ICardDetector *>& detector) : IndividualReader(readerName, detector),
 	m_hCard(0x0),
 #if defined(_WIN32)
 	m_dwProtocol(SCARD_PROTOCOL_UNDEFINED),
@@ -168,6 +168,9 @@ bool PCSCReader::open(
 	long retValue = SCARD_S_SUCCESS;
 	retValue = SCardReconnect(m_hCard, SCARD_SHARE_SHARED, SCARD_PROTOCOL_ANY,
 							  SCARD_LEAVE_CARD, &m_dwProtocol);
+	if(0x00 == m_hCard)
+		return false;
+
 #if !defined(__APPLE__)
 	BYTE atr[512];
 	DWORD len = sizeof(atr);
@@ -194,7 +197,7 @@ void PCSCReader::close(
 	m_hCard = 0x0;
 }
 
-vector <unsigned char> PCSCReader::sendAPDU(
+vector <unsigned char> PCSCReader::transceive(
 	const vector<unsigned char>& cmd)
 {
 	BYTE res[RAPDU::RAPDU_EXTENDED_MAX];
@@ -437,9 +440,12 @@ PaceOutput PCSCReader::establishPACEChannel(const PaceInput &input) const
 
 	length_CHAT = (uint8_t) input.get_chat().size();
 	length_PIN = (uint8_t) input.get_pin().size();
-	//FIXME input.get_certificate_description().size();
-	// The certificate description we get is in wrong format
+	/* FIXME */
+#if REINERSCT_ACCEPTS_TESTDESCRIPTION
+	lengthCertificateDescription = (unsigned int) input.get_certificate_description().size();
+#else
 	lengthCertificateDescription = 0;
+#endif
 	lengthInputData = sizeof PinID
 					  + sizeof length_CHAT + length_CHAT
 					  + sizeof length_PIN + length_PIN

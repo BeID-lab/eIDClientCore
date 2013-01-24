@@ -1,6 +1,8 @@
 #ifndef _URL_H
 #define _URL_H
 
+#include <algorithm>
+#include <string.h>
 #include <string>
 
 class URL

@@ -11,10 +11,8 @@
 
 #include <string>
 
-/*!
- * @class ICard
- */
-class ICard
+/* ISO 7816 smart card */
+class ICard: public Transceiver<CAPDU, RAPDU>
 {
 	private:
 		ICard(
@@ -23,42 +21,32 @@ class ICard
 		ICard &operator=(
 			const ICard &);
 
+		std::vector<std::vector<unsigned char> > get_buffers(
+				std::vector<CAPDU> apdus);
+		std::vector<RAPDU> get_rapdus(
+				std::vector<std::vector<unsigned char> > buffers);
+
 	protected:
 		IReader *m_subSystem;
+		void debug_CAPDU(const char *label, const CAPDU &cmd) const;
+		void debug_RAPDU(const char *label, const RAPDU &cmd) const;
 
 	public:
 		static const unsigned short FID_MF = 0x3F00;
 
-		/*!
-		 *
-		 */
-		ICard(
-			IReader *subSystem);
+		ICard(IReader *subSystem);
+		virtual ~ICard(void);
 
-		/*!
-		 *
-		 */
-		virtual ~ICard(
-			void);
+		bool selectMF(void);
+		bool selectDF(unsigned short FID);
+		bool selectEF(unsigned short FID);
+		bool selectEF(unsigned short FID, vector<unsigned char>& fcp);
 
-		bool selectEF(
-			unsigned short FID);
+		bool readFile(vector<unsigned char>& result);
+		bool readFile(unsigned char sfid, size_t chunk_size, vector<unsigned char>& result);
 
-		bool selectEF(
-			unsigned short FID,
-			vector<unsigned char>& fcp);
-
-		bool selectDF(
-			unsigned short FID);
-
-		bool selectMF(
-			void);
-
-		virtual RAPDU sendAPDU(
-			const CAPDU &cmd);
-
-		virtual std::vector<RAPDU> sendAPDUs(
-			const std::vector<CAPDU> &cmds);
+		virtual RAPDU transceive(const CAPDU& cmd);
+		virtual std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 
 		const IReader *getSubSystem(void) const;
 
@@ -66,11 +54,7 @@ class ICard
 		// Pure virtuals
 		// -------------------------------------------------------------------------
 
-		/*!
-		 *
-		 */
-		virtual string getCardDescription(
-			void) = 0;
+		virtual string getCardDescription(void) = 0;
 
 }; // class ICard
 

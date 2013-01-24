@@ -135,6 +135,78 @@ extern "C"
 		PI_PUK,
 	};
 
+	enum TerminalType {
+		TT_AT,
+		TT_IS,
+		TT_ST,
+		TT_invalid,
+	};
+
+	struct chat {
+		enum TerminalType type;
+		union {
+			struct {
+				char age_verification;
+				char community_id_verification;
+				char restricted_id;
+				char privileged;
+				char can_allowed;
+				char pin_management;
+				char install_cert;
+				char install_qualified_cert;
+				char read_dg1;
+				char read_dg2;
+				char read_dg3;
+				char read_dg4;
+				char read_dg5;
+				char read_dg6;
+				char read_dg7;
+				char read_dg8;
+				char read_dg9;
+				char read_dg10;
+				char read_dg11;
+				char read_dg12;
+				char read_dg13;
+				char read_dg14;
+				char read_dg15;
+				char read_dg16;
+				char read_dg17;
+				char read_dg18;
+				char read_dg19;
+				char read_dg20;
+				char read_dg21;
+				char write_dg17;
+				char write_dg18;
+				char write_dg19;
+				char write_dg20;
+				char write_dg21;
+				char RFU1;
+				char RFU2;
+				char RFU3;
+				char RFU4;
+				char role;
+			} at;
+			struct {
+				char read_finger;
+				char read_iris;
+				char RFU1;
+				char RFU2;
+				char RFU3;
+				char read_eid;
+				char role;
+			} is;
+			struct {
+				char generate_signature;
+				char generate_qualified_signature;
+				char RFU1;
+				char RFU2;
+				char RFU3;
+				char RFU4;
+				char role;
+			} st;
+		} authorization;
+	};
+
 	typedef struct {
 		unsigned char *pDataBuffer;
 		unsigned long bufferSize;
@@ -145,8 +217,8 @@ extern "C"
 		const nPADataBuffer_t *description;
 		const nPADataBuffer_t *name;
 		const nPADataBuffer_t *url;
-		const nPADataBuffer_t *chat_required;
-		const nPADataBuffer_t *chat_optional;
+		const struct chat *chat_required;
+		const struct chat *chat_optional;
 		const time_t *valid_from;
 		const time_t *valid_to;
 	} SPDescription_t;
@@ -155,7 +227,7 @@ extern "C"
 		char pin_required;
 		enum PinID pin_id;
 
-		const nPADataBuffer_t *chat_selected;
+		const struct chat *chat_selected;
 		const nPADataBuffer_t *pin;
 	} UserInput_t;
 

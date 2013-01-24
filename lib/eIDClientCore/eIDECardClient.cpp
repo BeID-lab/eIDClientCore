@@ -61,7 +61,7 @@ eIdECardClient::eIdECardClient()
 	m_strEphemeralPublicKey = "";
 	m_strSignature = "";
 	m_strCurrentTag = "";
-	m_strSessionIdentifier = "";
+//	m_strSessionIdentifier = "";
 	m_hConnection = 0x00;
 }
 
@@ -78,7 +78,6 @@ eIdECardClient::eIdECardClient(CharMap *paraMap)
 	m_strEphemeralPublicKey = "";
 	m_strSignature = "";
 	m_strCurrentTag = "";
-	m_strSessionIdentifier = "";
 	m_hConnection = 0x00;
 	m_strServerAddress = "";
 	CharMapIt   it;
@@ -96,7 +95,7 @@ eIdECardClient::eIdECardClient(CharMap *paraMap)
 	if (it != paraMap->end()) {
 		if (it->second != 0x00) {
 			if (*(it->second) != 0x00)
-				m_strSessionIdentifierN = *(it->second);
+				m_strSessionIdentifier = *(it->second);
 		}
 	}
 
@@ -130,7 +129,7 @@ eIdECardClient *eIdECardClient::createInstance(
 
 bool eIdECardClient::open(void)
 {
-	return StartConnection(m_strServerAddress.c_str(), m_strSessionIdentifierN, m_strPathSecurityParameter);
+	return StartConnection(m_strServerAddress.c_str(), m_strSessionIdentifier, m_strPathSecurityParameter);
 }
 
 /*
@@ -201,8 +200,7 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	const std::string &cvCACHAR,
 	const std::vector<unsigned char>& idPICC,
 	std::vector<std::vector<unsigned char> >& list_certificates,
-	std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-	std::vector<unsigned char>& y_Puk_IFD_DH_CA_
+	std::vector<unsigned char>& Puk_IFD_DH_CA
 )
 {
 	string myEFCardAccess = Byte2Hex(efCardAccess.data(), efCardAccess.size());
@@ -226,23 +224,15 @@ bool eIdECardClient::getTerminalAuthenticationData(
 		list_certificates.push_back(myCert);
 	}
 
-	std::vector<unsigned char> myKey = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
+	Puk_IFD_DH_CA = Hex2Byte(ephPubKey.c_str(), ephPubKey.size());
 
-	if (myKey.empty()) return false;
+	if (Puk_IFD_DH_CA.empty()) return false;
 
-	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", myKey.data(), ephPubKey.size() / 2);
+	hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", Puk_IFD_DH_CA.data(), Puk_IFD_DH_CA.size());
 
 	if (!(cert1.length() % 2 == 0)) return false;
 
 	if (!(ephPubKey.size() % 4 == 0)) return false;
-
-	size_t half = ephPubKey.size() / 4;
-
-	for (size_t i = 0; i < half; i++)
-		x_Puk_IFD_DH_CA_.push_back(myKey[i]);
-
-	for (size_t i = 0; i < half; i++)
-		y_Puk_IFD_DH_CA_.push_back(myKey[i + half]);
 
 	return true;
 }
@@ -310,8 +300,11 @@ bool eIdECardClient::readAttributes(
 
 bool eIdECardClient::StartConnection(const char *url, const string &strSessionIdentifier, const string &strPSKKey)
 {
-	m_strSessionIdentifier = strSessionIdentifier;
-	parse_url(url);
+	std::string	strUrl;
+
+	strUrl.assign(url);
+	strUrl.append("/?sessionid=");
+	strUrl.append(strSessionIdentifier);
 
 	if (strPSKKey.length() > 0) {
 		size_t pos1, pos2;
@@ -322,7 +315,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 		//PSK-Tags gefunden
 		if (string::npos != pos1 && string::npos != pos2) {
 			std::string strPSKKeyTmp = strPSKKey.substr(pos1, pos2 - pos1);
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), strPSKKeyTmp.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, strUrl.c_str(), strPSKKeyTmp.c_str());
 
 			if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -330,7 +323,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 			}
 
 		} else {
-			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str());
+			EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection,strUrl.c_str(), strPSKKey.c_str());
 
 			if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 				eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -339,7 +332,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 		}
 
 	} else {
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart(&m_hConnection, m_strHostname.c_str(), m_strPort.c_str(), strSessionIdentifier.c_str(), NULL);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStart2(&m_hConnection, strUrl.c_str(), NULL);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -365,91 +358,17 @@ string eIdECardClient::request_post(const string &in)
 {
 	string  strContent = "";
 
-	ostringstream buffer;
-	buffer << "POST" << " " << m_strPath.c_str() << "/?" << "sessionid=" << m_strSessionIdentifier << " HTTP/1.1\r\n";
-	buffer << "Content-Length: " << in.length() << "\r\n";
-	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
-	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
-	buffer << "Host: " << m_strHostname.c_str() << ":" <<  m_strPort.c_str() << "\r\n";
-	buffer << "\r\n";
-
-	if (in.length() > 0) {
-		buffer << in;
-	}
-
-	const string   &strToSend = buffer.str();
-
 	char buf[10000];
 	memset(buf, 0x00, sizeof buf);
 	size_t buf_len = sizeof buf;
 
-	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
-			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
-				strToSend.size(), buf, &buf_len)) {
+	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS != eIDClientConnectionSendReceivePAOS(m_hConnection, in.c_str(), in.size(), buf, &buf_len))
+	{
 		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
 		return strContent;
 	}
+	strContent.assign(buf, buf_len);
 
-	string strResult(buf, buf_len);
-	string  strLength = "";
-	int     content_length = 0;
-	size_t pos1 = 0;
-	size_t pos2 = 0;
-
-	if (((pos1 = strResult.find("Content-Length:")) != string::npos) || ((pos1 = strResult.find("content-length:")) != string::npos)) {
-		pos2 = strResult.find_first_of('\n', pos1 + 15);
-
-		if (pos2 > 0) {
-			strLength = strResult.substr(pos1 + 15, pos2 - pos1 - 15);
-			content_length = atoi(strLength.c_str());
-		}
-	}
-
-	strContent = strResult.substr(strResult.length() - content_length);
-	return strContent;
-}
-
-// send a HTTP GET with PAOS-header
-string eIdECardClient::request_get_PAOS()
-{
-	string  strContent = "";
-
-	ostringstream buffer;
-	buffer << "GET" << " " << m_strPath.c_str() << " HTTP/1.1\r\n";
-	buffer << "Accept: text/html; application/vnd.paos+xml\r\n";
-	buffer << "PAOS: ver=\"urn:liberty:2006-08\";http://www.bsi.bund.de/ecard/api/1.0/PAOS/GetNextCommand\r\n";
-	buffer << "Host: " << m_strHostname.c_str() << ":" << m_strPort.c_str() << "\r\n";
-	buffer << "\r\n";
-
-	const string   &strToSend = buffer.str();
-
-	char buf[10000];
-	memset(buf, 0x00, sizeof buf);
-	size_t buf_len = sizeof buf;
-
-	if (EID_CLIENT_CONNECTION_ERROR_SUCCESS !=
-			eIDClientConnectionSendRequest(m_hConnection, strToSend.c_str(),
-				strToSend.size(), buf, &buf_len)) {
-		eCardCore_warn(DEBUG_LEVEL_PAOS, "Error while transmit");
-		return strContent;
-	}
-
-	string strResult(buf, buf_len);
-	string  strLength = "";
-	int     content_length = 0;
-	size_t pos1 = 0;
-	size_t pos2 = 0;
-
-	if (((pos1 = strResult.find("Content-Length:")) != string::npos) || ((pos1 = strResult.find("content-length:")) != string::npos)) {
-		pos2 = strResult.find_first_of('\n', pos1 + 15);
-
-		if (pos2 > 0) {
-			strLength = strResult.substr(pos1 + 15, pos2 - pos1 - 15);
-			content_length = atoi(strLength.c_str());
-		}
-	}
-
-	strContent = strResult.substr(strResult.length() - content_length);
 	return strContent;
 }
 
@@ -795,53 +714,3 @@ string eIdECardClient::getRandomStringID(size_t nCount)
 	free(buffer);
 	return strRandomStringID;
 }
-
-bool eIdECardClient::parse_url(const char *str, const char *default_port)
-{
-	if (!str || !*str)
-		return false;
-
-	const char *p1 = strstr(str, "://");
-
-	if (p1) {
-		m_strScheme.assign(str, p1 - str);
-		p1 += 3;
-
-	} else {
-		p1 = str;
-	}
-
-	const char *p2 = strchr(p1, ':');
-
-	//      const char* p3 = p2 ? strchr(p2+1, '/'): p2;
-	const char *p3 = strchr(p1, '/');
-
-	if (p2) {
-		m_strHostname.assign(p1, p2 - p1);
-
-		if (p3) {
-			m_strPort.assign(p2 + 1, p3 - (p2 + 1));
-			m_strPath = p3;
-
-		} else {
-			m_strPort.assign(p2 + 1);
-		}
-
-	} else {
-		m_strPort = default_port;
-
-		if (p3) {
-			m_strHostname.assign(p1, p3 - p1);
-			m_strPath = p3;
-
-		} else {
-			m_strHostname = p1;
-		}
-	}
-
-	if (m_strPath.empty())
-		m_strPath = "";
-
-	return true;
-}
-
