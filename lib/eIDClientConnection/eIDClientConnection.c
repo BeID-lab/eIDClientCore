@@ -426,19 +426,20 @@ ssize_t my_recv(const socket_st *const sock, void *buffer, size_t buffer_size)
 	ssize_t received = 0;
 	ssize_t r = 0;
 	ssize_t available = buffer_size;
+	char *buf = buffer;
 
 	if (!buffer_size || !buffer )
 		return 0;
 
 	do {
 		if (sock->secure)
-			r = ssl_tls_driver.recv(sock->ssl_tls_driver_data, buffer, available);
+			r = ssl_tls_driver.recv(sock->ssl_tls_driver_data, buf, available);
 		else
-			r = recv(sock->fd, buffer, available, 0);
+			r = recv(sock->fd, buf, available, 0);
 
 		if (r >= 0) {
 			received += r;
-			(char*)buffer += r;
+			buf += r;
 			available -= r;
 		} else
 			break;
