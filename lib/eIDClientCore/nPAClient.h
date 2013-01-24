@@ -249,6 +249,12 @@ namespace Bundesdruckerei
 				/*
 				 *
 				 */
+				bool getCertificateDescriptionRaw(
+					nPADataBuffer_t &certificateDescriptionRaw);
+
+				/*
+				 *
+				 */
 				bool getServiceName(
 					nPADataBuffer_t &serviceName);
 

@@ -440,9 +440,12 @@ PaceOutput PCSCReader::establishPACEChannel(const PaceInput &input) const
 
 	length_CHAT = (uint8_t) input.get_chat().size();
 	length_PIN = (uint8_t) input.get_pin().size();
-	//FIXME input.get_certificate_description().size();
-	// The certificate description we get is in wrong format
+	/* FIXME */
+#if REINERSCT_ACCEPTS_TESTDESCRIPTION
+	lengthCertificateDescription = (unsigned int) input.get_certificate_description().size();
+#else
 	lengthCertificateDescription = 0;
+#endif
 	lengthInputData = sizeof PinID
 					  + sizeof length_CHAT + length_CHAT
 					  + sizeof length_PIN + length_PIN

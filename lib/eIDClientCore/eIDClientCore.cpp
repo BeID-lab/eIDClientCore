@@ -88,7 +88,8 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	time_t *certificateValidTo,
 	nPADataBuffer_t *certificateDescription,
 	nPADataBuffer_t *serviceName,
-	nPADataBuffer_t *serviceURL)
+	nPADataBuffer_t *serviceURL,
+	nPADataBuffer_t *certificateDescriptionRaw)
 {
 	// Check for the validity of the parameters.
 	if (!hClient)
@@ -117,6 +118,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 
 	if (!serviceURL || serviceURL->pDataBuffer)
 		return NPACLIENT_ERROR_INVALID_PARAMETER9;
+
+	if (!certificateDescriptionRaw || certificateDescriptionRaw->pDataBuffer)
+		return NPACLIENT_ERROR_INVALID_PARAMETER7;
 
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
@@ -170,10 +174,8 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	}
 
 	// Query the certificate description of the requesting service.
-	// The certificate description should be displayed to the user
-	// by the UI component.
-	//  if (!pnPAClient->getCertificateDescriptionRaw(*certificateDescription))
-	if (!pnPAClient->getCertificateDescription(*certificateDescription)) {  // terms of usage
+	// The certificate description should be displayed on the reader
+	if (!pnPAClient->getCertificateDescriptionRaw(*certificateDescriptionRaw)) {
 		return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
 	}
 
@@ -314,6 +316,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	struct chat chatRequired;
 	struct chat chatOptional;
 	nPADataBuffer_t certificateDescription = {0x00, 0};
+	nPADataBuffer_t certificateDescriptionRaw = {0x00, 0};
 	nPADataBuffer_t serviceName = {0x00, 0};
 	nPADataBuffer_t serviceURL = {0x00, 0};
 	//  nPAeIdPACEParams_t paramPACE;
@@ -342,7 +345,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	if ((error = nPAQueryPACEInfos(hnPAClient, &chatFromCertificate,
 								   &chatRequired, &chatOptional, &certificateValidFrom,
 								   &certificateValidTo, &certificateDescription, &serviceName,
-								   &serviceURL)) == NPACLIENT_ERROR_SUCCESS) {
+								   &serviceURL, &certificateDescriptionRaw)) == NPACLIENT_ERROR_SUCCESS) {
 		description.description_type = &description_type;
 		description.chat_required = &chatRequired;
 		description.chat_optional = &chatOptional;
@@ -362,7 +365,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	}
 
 	fnUserInteractionCallback(&description, &input);
-	error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescription);
+	error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescriptionRaw);
 	fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
 
 	if (error != NPACLIENT_ERROR_SUCCESS) {
@@ -402,6 +405,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	// Free temporarily allocated data. May some of this data are not allocated so far,
 	// but we should try to deallocate them anyway.
 	nPAFreeDataBuffer(&certificateDescription);
+	nPAFreeDataBuffer(&certificateDescriptionRaw);
 	nPAFreeDataBuffer(&serviceName);
 	nPAFreeDataBuffer(&serviceURL);
 	return NPACLIENT_ERROR_SUCCESS;

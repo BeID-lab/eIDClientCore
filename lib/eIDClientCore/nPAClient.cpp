@@ -549,6 +549,22 @@ bool nPAClient::getCertificateDescription(
 	return true;
 }
 
+bool nPAClient::getCertificateDescriptionRaw(
+	nPADataBuffer_t &certificateDescriptionRaw)
+{
+	certificateDescriptionRaw.pDataBuffer = new unsigned char[m_Idp->getCertificateDescription().size()];
+
+	if (0x00 == certificateDescriptionRaw.pDataBuffer)
+		return false;
+
+	certificateDescriptionRaw.bufferSize =
+		m_Idp->getCertificateDescription().size();
+	memcpy(certificateDescriptionRaw.pDataBuffer,
+			m_Idp->getCertificateDescription().data(),
+			certificateDescriptionRaw.bufferSize);
+	return true;
+}
+
 bool nPAClient::getServiceName(
 	nPADataBuffer_t &serviceName)
 {
