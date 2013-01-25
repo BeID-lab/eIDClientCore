@@ -84,6 +84,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	struct chat *chatOptional,
 	time_t *certificateValidFrom,
 	time_t *certificateValidTo,
+	enum DescriptionType *certificateDescriptionType,
 	nPADataBuffer_t *certificateDescription,
 	nPADataBuffer_t *serviceName,
 	nPADataBuffer_t *serviceURL,
@@ -108,24 +109,27 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAQueryPACEInfos(
 	if (!certificateValidTo)
 		return NPACLIENT_ERROR_INVALID_PARAMETER6;
 
-	if (!certificateDescription || certificateDescription->pDataBuffer)
+	if (!certificateDescriptionType)
 		return NPACLIENT_ERROR_INVALID_PARAMETER7;
 
-	if (!serviceName || serviceName->pDataBuffer)
+	if (!certificateDescription || certificateDescription->pDataBuffer)
 		return NPACLIENT_ERROR_INVALID_PARAMETER8;
+
+	if (!serviceName || serviceName->pDataBuffer)
+		return NPACLIENT_ERROR_INVALID_PARAMETER9;
 
 	if (!serviceURL || serviceURL->pDataBuffer)
 		return NPACLIENT_ERROR_INVALID_PARAMETER9;
 
 	if (!certificateDescriptionRaw || certificateDescriptionRaw->pDataBuffer)
-		return NPACLIENT_ERROR_INVALID_PARAMETER7;
+		return NPACLIENT_ERROR_INVALID_PARAMETER9;
 
 	nPAClient *pnPAClient = (nPAClient *) hClient;
 
 	// Query the certificate description of the requesting service.
 	// The certificate description should be displayed to the user
 	// by the UI component.
-	if (!pnPAClient->getCertificateDescription(*certificateDescription)) {
+	if (!pnPAClient->getCertificateDescription(*certificateDescriptionType, *certificateDescription)) {
 		return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
 	}
 
@@ -306,8 +310,14 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	if (!fnCurrentStateCallback)
 		return NPACLIENT_ERROR_INVALID_PARAMETER4;
 
-	SPDescription_t description;
-	UserInput_t input = { 0, PI_PIN, NULL, NULL };
+
+	struct chat chat_invalid;
+	chat_invalid.type = TT_invalid;
+	unsigned char p[MAX_PIN_SIZE];
+	char pin_required = 0;
+	/* FIXME get the right type of secret (PI_PIN may not be correct) */
+	enum PinID pin_id = PI_PIN;
+
 	NPACLIENT_ERROR error = NPACLIENT_ERROR_SUCCESS;
 	NPACLIENT_HANDLE hnPAClient = 0x00;
 	struct chat chatFromCertificate;
@@ -320,7 +330,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	//  nPAeIdPACEParams_t paramPACE;
 	time_t certificateValidFrom = 0;
 	time_t certificateValidTo = 0;
-	enum DescriptionType description_type = DT_PLAIN;
+	enum DescriptionType description_type = DT_UNDEF;
 	// Initialize the nPA access
 	error = nPAInitializeProtocol(&paraMap, usedProtocol, &hnPAClient);
 
@@ -328,10 +338,10 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 		nPAClient *pnPAClient = (nPAClient *) hnPAClient;
 
 		if (pnPAClient->passwordIsRequired())
-			input.pin_required = 1;
+			pin_required = 1;
 
 		else
-			input.pin_required = 0;
+			pin_required = 0;
 	}
 
 	fnCurrentStateCallback(NPACLIENT_STATE_INITIALIZE, error);
@@ -342,17 +352,12 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 
 	if ((error = nPAQueryPACEInfos(hnPAClient, &chatFromCertificate,
 								   &chatRequired, &chatOptional, &certificateValidFrom,
-								   &certificateValidTo, &certificateDescription, &serviceName,
+								   &certificateValidTo, &description_type, &certificateDescription, &serviceName,
 								   &serviceURL, &certificateDescriptionRaw)) == NPACLIENT_ERROR_SUCCESS) {
-		description.description_type = &description_type;
-		description.chat_required = &chatRequired;
-		description.chat_optional = &chatOptional;
-		description.valid_from = &certificateValidFrom;
-		description.valid_to = &certificateValidTo;
-		description.description = &certificateDescription;
-		description.name = &serviceName;
-		description.url = &serviceURL;
 	}
+
+	/* TODO fail early:
+	 * check chatFromCertificate with description.chat_required */
 
 	fnCurrentStateCallback(NPACLIENT_STATE_GOT_PACE_INFO, error);
 
@@ -362,8 +367,26 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 		return error;
 	}
 
+	SPDescription_t description = {
+		description_type,
+		certificateDescription,
+		serviceName,
+		serviceURL,
+		chatRequired,
+		chatOptional,
+		certificateValidFrom,
+		certificateValidTo,
+	};
+
+	UserInput_t input = {
+	   	pin_required,
+	   	pin_id,
+	   	chatRequired,
+	   	{p, 0}
+   	};
+
 	fnUserInteractionCallback(&description, &input);
-	error = nPAPerformPACE(hnPAClient, input.pin, input.chat_selected, &certificateDescriptionRaw);
+	error = nPAPerformPACE(hnPAClient, &input.pin, &input.chat_selected, &certificateDescriptionRaw);
 	fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
 
 	if (error != NPACLIENT_ERROR_SUCCESS) {

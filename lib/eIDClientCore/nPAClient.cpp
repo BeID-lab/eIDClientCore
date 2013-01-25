@@ -517,6 +517,7 @@ bool nPAClient::getValidToDate(
 }
 
 bool nPAClient::getCertificateDescription(
+	enum DescriptionType &certificateDescriptionType,
 	nPADataBuffer_t &certificateDescription)
 {
 	CertificateDescription_t *certificateDescription_ = 0x00;
@@ -542,6 +543,8 @@ bool nPAClient::getCertificateDescription(
 	if (0x00 == certificateDescription.pDataBuffer)
 		return false;
 
+	/* FIXME add logic to parse the description type */
+	certificateDescriptionType = DT_PLAIN;
 	certificateDescription.bufferSize = usage->size;
 	memcpy(certificateDescription.pDataBuffer, usage->buf,
 		   usage->size);

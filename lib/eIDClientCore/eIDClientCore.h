@@ -72,6 +72,8 @@ typedef unsigned long NPACLIENT_STATE;
 #define NPACLIENT_STATE_CA_PERFORMED      (NPACLIENT_STATE) 0x00000005
 #define NPACLIENT_STATE_READ_ATTRIBUTES   (NPACLIENT_STATE) 0x00000006
 
+#define MAX_PIN_SIZE 0xff
+
 /**
  *
  */
@@ -213,22 +215,32 @@ extern "C"
 	} nPADataBuffer_t;
 
 	typedef struct {
-		const enum DescriptionType *description_type;
-		const nPADataBuffer_t *description;
-		const nPADataBuffer_t *name;
-		const nPADataBuffer_t *url;
-		const struct chat *chat_required;
-		const struct chat *chat_optional;
-		const time_t *valid_from;
-		const time_t *valid_to;
+		const enum DescriptionType description_type;
+		const nPADataBuffer_t description;
+		const nPADataBuffer_t name;
+		const nPADataBuffer_t url;
+		const struct chat chat_required;
+		const struct chat chat_optional;
+		const time_t valid_from;
+		const time_t valid_to;
 	} SPDescription_t;
 
 	typedef struct {
-		char pin_required;
-		enum PinID pin_id;
+		const char pin_required;
+		const enum PinID pin_id;
 
-		const struct chat *chat_selected;
-		const nPADataBuffer_t *pin;
+		/** The CHAT selected by the user. To be filled by the application.
+		 *
+		 *  \c chat_selected is initialized with data from \c chat_required */
+		struct chat chat_selected;
+		/** The actual secret (PIN/PUK/CAN/MRZ). To be filled by the application.
+		 *
+		 *  The buffer is already allocated with \c MAX_PIN_SIZE bytes
+		 *  (although pin.bufferSize will be initialized with \c 0). The
+		 *  application shall copy the secret and set pin.bufferSize
+		 *  appropriately. If pin_required is set because of an PACE-enabled
+		 *  reader the application may not pass a secret to eIDClientCore */
+		nPADataBuffer_t pin;
 	} UserInput_t;
 
 	typedef NPACLIENT_ERROR(*nPAeIdUserInteractionCallback_t)

@@ -240,6 +240,7 @@ typedef std::list<std::string>  certificateList_t;
 				 *
 				 */
 				bool getCertificateDescription(
+					enum DescriptionType &certificateDescriptionType,
 					nPADataBuffer_t &certificateDescription);
 
 				/*
