@@ -3,7 +3,6 @@
  */
 
 #include "nPAClient.h"
-using namespace Bundesdruckerei::nPA;
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;
@@ -626,7 +625,7 @@ bool nPAClient::passwordIsRequired(void) const
 		return false;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 	return !(ePA_.getSubSystem()->supportsPACE());
 }
 
@@ -699,7 +698,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	if (!m_Idp->getTerminalAuthenticationData(ePA_.get_ef_cardaccess(), m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates,
 			m_Puk_IFD_DH_CA)) {
@@ -766,7 +765,7 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	if (TA_Done != m_protocolState)
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;

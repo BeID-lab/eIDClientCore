@@ -9,8 +9,6 @@
 typedef void *NPACLIENT_HANDLE;
 typedef NPACLIENT_HANDLE *PNPACLIENT_HANDLE;
 
-using namespace Bundesdruckerei::nPA;
-
 /*
  *
  */

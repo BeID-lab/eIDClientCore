@@ -7,8 +7,6 @@
 #include "nPACard.h"
 #include <debug.h>
 
-using namespace Bundesdruckerei::nPA;
-
 #include "eCardCore/ICard.h"
 #include <SecurityInfos.h>
 #include <PACEDomainParameterInfo.h>
@@ -18,6 +16,16 @@ using namespace Bundesdruckerei::nPA;
 #include "nPACommon.h"
 
 #include <cstdio>
+
+ECARD_STATUS __STDCALL__ ePAGetRandom(
+	size_t size, vector<unsigned char>& random_bytes)
+{
+	/* TODO only initialize rng once, then use the pseudo random bits */
+	AutoSeededRandomPool rng;
+	random_bytes.resize(size);
+	rng.GenerateBlock(random_bytes.data(), random_bytes.size());
+	return ECARD_SUCCESS;
+}
 
 std::vector<unsigned char> generateSKPACE_FromPassword(
 	const std::vector<unsigned char>& password,

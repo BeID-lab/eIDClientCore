@@ -44,7 +44,7 @@
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformPACE(
-	Bundesdruckerei::nPA::ePACard &hCard,
+	ePACard &hCard,
 	const PaceInput &pace_input,
 	std::vector<unsigned char>& car_cvca,
 	std::vector<unsigned char>& idPICC,
@@ -67,7 +67,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
  * @since 1.0
  */
 ECARD_STATUS __STDCALL__ ePAPerformTA(
-	Bundesdruckerei::nPA::ePACard &hCard,
+	ePACard &hCard,
 	const std::vector<unsigned char>& car_cvca,
 	const std::vector<std::vector<unsigned char> >& list_certificates,
 	const std::vector<unsigned char>& terminalCertificate,

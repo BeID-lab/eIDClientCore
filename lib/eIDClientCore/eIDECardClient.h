@@ -13,7 +13,6 @@
 #include <expat.h>
 
 #include "nPAClient.h"
-using namespace Bundesdruckerei::nPA;
 
 #include "eIDClientCore.h"
 
