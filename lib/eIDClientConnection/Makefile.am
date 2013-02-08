@@ -8,14 +8,15 @@ lib_LTLIBRARIES = libeIDClientConnection.la
 noinst_HEADERS = eIDClientConnection.h
 
 libeIDClientConnection_la_SOURCES = eIDClientConnection.c gnutls.c socket.c
+libeIDClientConnection_la_CFLAGS = $(GNUTLS_CFLAGS)
 libeIDClientConnection_la_LIBADD = $(GNUTLS_LIBS)
+libeIDClientConnection_la_LDFLAGS = $(AM_LDFLAGS)
+libeIDClientConnection_la_DEPENDENCIES = 
 if WIN32
 libeIDClientConnection_la_LIBADD += -lws2_32
+libeIDClientConnection_la_LDFLAGS += -export-symbols $(EXPORTS) -no-undefined
+libeIDClientConnection_la_DEPENDENCIES += $(EXPORTS)
 endif
-libeIDClientConnection_la_LDFLAGS = $(AM_LDFLAGS) \
-									-export-symbols $(EXPORTS) -no-undefined
-libeIDClientConnection_la_CFLAGS = $(GNUTLS_CFLAGS)
-libeIDClientConnection_la_DEPENDENCIES = $(EXPORTS)
 
 $(EXPORTS): $(DEFS)
 	cat $^ | grep -v LIBRARY | grep -v EXPORTS | grep eID > $@
