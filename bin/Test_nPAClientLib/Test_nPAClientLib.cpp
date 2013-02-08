@@ -715,7 +715,7 @@ int main(int argc, char **argv)
 	std::vector<double> diffv;
 
 	const char default_serviceURL[] = "https://eidservices.bundesdruckerei.de"
-		":433"
+		":443"
 		"/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI";
 	const char *serviceURL = default_serviceURL;
 
