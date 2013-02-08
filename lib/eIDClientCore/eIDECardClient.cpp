@@ -690,8 +690,6 @@ void eIdECardClient::TransmitResponse(const string &strMessageID,
 string eIdECardClient::getRandomStringID(size_t nCount)
 {
 	string  strRandomStringID;
-	char *buffer = (char *) malloc(nCount + 1);
-	memset(buffer, '\0', nCount + 1);
 	vector<unsigned char> random_bytes;
 
 	if (ECARD_SUCCESS != ePAGetRandom(nCount, random_bytes))
@@ -707,10 +705,8 @@ string eIdECardClient::getRandomStringID(size_t nCount)
 			ran += 87;
 		}
 
-		buffer[i] = (char) ran;
+		strRandomStringID.push_back(ran);
 	}
 
-	strRandomStringID = buffer;
-	free(buffer);
 	return strRandomStringID;
 }
