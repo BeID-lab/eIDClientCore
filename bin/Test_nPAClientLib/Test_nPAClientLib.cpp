@@ -11,7 +11,7 @@
 # include <pthread.h>
 #endif
 
-#define READ_BUFFER 8192
+#define READ_BUFFER 0x10000
 
 #include <stdio.h>
 #include <iostream>
@@ -33,6 +33,8 @@ using namespace std;
 
 #define HEX(x) setw(2) << setfill('0') << hex << (int)(x)
 
+static string str_replace(string rep, string wit, string in);
+
 class CeIdObject
 {
 	public:
@@ -40,18 +42,21 @@ class CeIdObject
 		~CeIdObject(void);
 
 	public:
-		void OnPostCreate();
-		void OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs);
-
 		void GetParams(string strToParse);
 
 	protected:
 		static void StartElementHandler(void *pUserData, const XML_Char *pszName, const XML_Char **papszAttrs);
+		static void EndElementHandler(void *pUserData, const XML_Char *pszName);
+		static void CharacterDataHandler(void *pUserData, const XML_Char *pszName, int len);
+		void OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs);
+		void OnEndElement(const XML_Char *pszName);
+		void OnCharacterData(const XML_Char *pszName, int len);
 
 	public:
 		string  m_strAction;
 		string  m_strMethod;
 		string  m_strSAMLRequest;
+		string  m_strSAMLResponse;
 		string  m_strSigAlg;
 		string  m_strSignature;
 		string  m_strRelayState;
@@ -60,6 +65,9 @@ class CeIdObject
 		string  m_strPSK;
 		string  m_strRefreshAddress;
 		string  m_strServerAddress;
+
+protected:
+	string m_strCurrentElement;
 };
 
 CeIdObject::CeIdObject()
@@ -74,6 +82,7 @@ CeIdObject::CeIdObject()
 	m_strPSK = "";
 	m_strRefreshAddress = "";
 	m_strServerAddress = "";
+	m_strCurrentElement = "";
 }
 
 CeIdObject::~CeIdObject(void)
@@ -88,11 +97,27 @@ void CeIdObject::StartElementHandler(void *pUserData, const XML_Char *pszName, c
 
 void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs)
 {
-	string  strCurrentTag(pszName);
+	m_strCurrentElement.assign(pszName);
 	string  strParamName = "";
 	string  strParamValue = "";
 
-	if (strcmp(strCurrentTag.c_str(), "param") == 0) {
+	//HTML Form
+	if (strcmp(m_strCurrentElement.c_str(), "form") == 0) {
+		for (int i = 0; papszAttrs[i]; i += 2) {
+			string  strParam(papszAttrs[i]);
+
+			if (strcmp(strParam.c_str(), "action") == 0) {
+				m_strAction.assign(papszAttrs[i + 1]);
+
+			} else if (strcmp(strParam.c_str(), "method") == 0) {
+				m_strMethod.assign(papszAttrs[i + 1]);
+			}
+		}
+		return;
+	}
+
+	//Object Tag
+	else if (strcmp(m_strCurrentElement.c_str(), "param") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string  strParam(papszAttrs[i]);
 
@@ -114,22 +139,16 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 				}
 			}
 		}
+		return;
 	}
 
-	if (strcmp(strCurrentTag.c_str(), "form") == 0) {
-		for (int i = 0; papszAttrs[i]; i += 2) {
-			string  strParam(papszAttrs[i]);
-
-			if (strcmp(strParam.c_str(), "action") == 0) {
-				m_strAction.assign(papszAttrs[i + 1]);
-
-			} else if (strcmp(strParam.c_str(), "method") == 0) {
-				m_strMethod.assign(papszAttrs[i + 1]);
-			}
-		}
+	//TCToken	
+	else if (strcmp(m_strCurrentElement.c_str(), "ServerAddress") == 0) {
+		//m_strServerAddress.assign(papszAttrs[0]);
 	}
 
-	if (strcmp(strCurrentTag.c_str(), "input") == 0) {
+	//SP XML
+	else if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string  strParam(papszAttrs[i]);
 
@@ -150,12 +169,50 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 
 				} else if (strcmp(strParamName.c_str(), "RelayState") == 0) {
 					m_strRelayState.assign(papszAttrs[i + 1]);
+
+				} else if (strcmp(strParamName.c_str(), "SAMLResponse") == 0) {
+					m_strSAMLResponse.assign(papszAttrs[i + 1]);
 				}
 			}
 		}
 	}
+}
+
+void CeIdObject::EndElementHandler(void *pUserData, const XML_Char *pszName)
+{
+	CeIdObject *pThis = (CeIdObject *) pUserData;
+	pThis ->OnEndElement(pszName);
+}
+
+void CeIdObject::OnEndElement(const XML_Char *pszName)
+{
+	m_strCurrentElement.assign("");
+}
+
+void CeIdObject::CharacterDataHandler(void *pUserData, const XML_Char *pszName, int len)
+{
+	CeIdObject *pThis = (CeIdObject *) pUserData;
+	pThis ->OnCharacterData(pszName, len);
+}
+
+void CeIdObject::OnCharacterData(const XML_Char *pszName, int len) {
+	if(len == 1) //I often get Character Data of this length
+		return;
+
+	else if(!m_strCurrentElement.compare("ServerAddress"))
+		m_strServerAddress = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("SessionIdentifier"))
+		m_strSessionID = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("RefreshAddress"))
+		m_strRefreshAddress = string(pszName, pszName+len);
+
+	else if(!m_strCurrentElement.compare("PSK"))
+		m_strPSK = string(pszName, pszName+len);
 
 	return;
+
 }
 
 void CeIdObject::GetParams(string strToParse)
@@ -163,10 +220,11 @@ void CeIdObject::GetParams(string strToParse)
 	XML_Parser parser = XML_ParserCreate(NULL);
 	XML_SetUserData(parser, (void *) this);
 	XML_SetStartElementHandler(parser, StartElementHandler);
+	XML_SetEndElementHandler(parser, EndElementHandler);
+	XML_SetCharacterDataHandler(parser, CharacterDataHandler);
 	XML_Parse(parser, strToParse.c_str(), strToParse.length(), true);
 	XML_ParserFree(parser);
 }
-
 
 string strRefresh = "";
 
@@ -201,9 +259,14 @@ getSamlResponseThread(void *lpParam)
 
 		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			strResult += string(sz, sz_len);
-			size_t found = strResult.find("<html");
-			if (found != string::npos)
-				strResult.substr(found);
+			std::string strTmp = strResult;
+			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
+			size_t found = strTmp.find("<html");
+
+			if (found != string::npos) {
+				strResult = strResult.substr(found);
+			} else
+				std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		} else {
 			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 		}
@@ -211,12 +274,92 @@ getSamlResponseThread(void *lpParam)
 	} else {
 		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 	}
-
 	connection_status = eIDClientConnectionEnd(connection);
-	cout << strResult << endl;
+
+
+	CeIdObject      eIdObject;
+	eIdObject.GetParams(strResult);
+	string SAMLResponse = eIdObject.m_strSAMLResponse.c_str();
+	cout << "RelayState\t" << eIdObject.m_strRelayState.c_str() << endl;
+	cout << "SAMLResponse\t" << SAMLResponse << endl;
+	urlIDP = URL(eIdObject.m_strAction.c_str());
+	if (!urlIDP._valid)
+		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+	SAMLResponse = str_replace("=", "%3D", SAMLResponse);
+	SAMLResponse = str_replace("+", "%2B", SAMLResponse);
+	SAMLResponse = str_replace("/", "%2F", SAMLResponse);
+
+	string strContentType = "Content-Type: application/x-www-form-urlencoded";
+	string strData = "RelayState=";
+	strData += eIdObject.m_strRelayState;
+	strData += "&SAMLResponse=";
+	strData += SAMLResponse;
+
+	std::stringstream out;
+	out << strData.length();
+	string strContentLength = "Content-Length: " + out.str();
+	strResult = "";
+	connection = 0x00;
+	string port_hack = /* FIXME urlIDP._port.c_str() */ "8080";
+	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), port_hack.c_str(), NULL, NULL);
+
+	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+		string request;
+		std::transform(eIdObject.m_strMethod.begin(), eIdObject.m_strMethod.end(), eIdObject.m_strMethod.begin(), static_cast<int ( *)(int)>(tolower));
+
+		if (0x00 == eIdObject.m_strMethod.compare("post")) {
+			/* Send a POST request */
+			request += "POST ";
+
+		} else {
+			/* Send a GET request */
+			request += "GET ";
+		}
+
+		request += urlIDP._path + " HTTP/1.1\r\n";
+		request += "Host: " + urlIDP._hostname + ":" + port_hack + "\r\n";
+		//request += "Referer: " + strRefresh + "\r\n";
+		request += strContentType + "\r\n";
+		request += strContentLength + "\r\n\r\n";
+		request += strData;
+		memset(sz, 0x00, READ_BUFFER);
+		sz_len = sizeof sz;
+		connection_status = eIDClientConnectionSendRequest(connection, request.c_str(), request.size(), sz, &sz_len);
+
+		if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			strResult += string(sz, sz_len);
+			std::string strTmp = strResult;
+			std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
+			size_t found = strTmp.find("<html");
+
+			if (found != string::npos) {
+				strResult = strResult.substr(found);
+			} else
+				std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		} else {
+			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+		}
+
+		eIDClientConnectionEnd(connection);
+
+	} else {
+		std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+	}
+
+	cout << "Service Provider Login Page:" << std::endl;
+	cout << strResult << std::endl;
+
 	return 0;
 }
 
+#ifdef _WIN32
+HANDLE  hThread;
+DWORD   dwThreadId;
+#else
+/* TODO thread cleanup */
+pthread_t hThread;
+
+#endif
 void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error)
 {
 	switch (state) {
@@ -270,8 +413,6 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			}
 
 #ifdef _WIN32
-			HANDLE  hThread;
-			DWORD   dwThreadId;
 			hThread = CreateThread(
 						  NULL,                   // default security attributes
 						  0,                      // use default stack size
@@ -280,9 +421,6 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 						  0,                      // use default creation flags
 						  &dwThreadId);   // returns the thread identifier
 #else
-			/* TODO thread cleanup */
-			pthread_t hThread;
-
 			if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
 				std::cout << "Could not create getSamlResponseThread" << std::endl;
 
@@ -301,13 +439,34 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 		default:
 			break;
 	}
+
+	if (error != NPACLIENT_ERROR_SUCCESS) {
+#ifdef _WIN32
+#else
+		if (pthread_cancel(hThread))
+			std::cout << "Could not cancel SamlResponseThread" << std::endl;
+#endif
+	}
+
+	if (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES) {
+#ifdef _WIN32
+#else
+		if (pthread_join(hThread, NULL))
+			std::cout << "Could not clean up SamlResponseThread" << std::endl;
+#endif
+	}
 }
 
-static string p("123456");
-static nPADataBuffer_t pin = {(unsigned char *) p.data(), p.length()};
+static const char default_pin[] = "123456";
+static const char *pin = default_pin;
+
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
 {
+	static nPADataBuffer_t p;
+	p.pDataBuffer = (unsigned char *) pin;
+	p.bufferSize = strlen(default_pin);
+
 	std::cout << "serviceName: ";
 	std::cout.write((char *) description->name->pDataBuffer, description->name->bufferSize);
 	std::cout << std::endl;
@@ -317,10 +476,67 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	std::cout << "certificateDescription:" << std::endl;
 	std::cout.write((char *) description->description->pDataBuffer, description->description->bufferSize);
 	std::cout << std::endl;
+
+	switch (description->chat_required->type) {
+		case TT_IS:
+			std::cout << "Inspection System:" << std::endl;
+			if (description->chat_required->authorization.is.read_finger 	) std::cout << "\tRead Fingerprint" << std::endl;
+			if (description->chat_required->authorization.is.read_iris  	) std::cout << "\tRead Iris" << std::endl;
+			if (description->chat_required->authorization.is.read_eid		) std::cout << "\tRead eID" << std::endl;
+			break;
+
+		case TT_AT:
+			std::cout << "Authentication Terminal:" << std::endl;
+			if (description->chat_required->authorization.at.age_verification 				) std::cout << "\tVerify Age" << std::endl;
+			if (description->chat_required->authorization.at.community_id_verification 		) std::cout << "\tVerify Community ID" << std::endl;
+			if (description->chat_required->authorization.at.restricted_id 					) std::cout << "\tRestricted ID" << std::endl;
+			if (description->chat_required->authorization.at.privileged 					) std::cout << "\tPrivileged Terminal" << std::endl;
+			if (description->chat_required->authorization.at.can_allowed 					) std::cout << "\tCAN allowed" << std::endl;
+			if (description->chat_required->authorization.at.pin_management 				) std::cout << "\tPIN Management" << std::endl;
+			if (description->chat_required->authorization.at.install_cert 					) std::cout << "\tInstall Certificate" << std::endl;
+			if (description->chat_required->authorization.at.install_qualified_cert 		) std::cout << "\tInstall Qualified Certificate" << std::endl;
+			if (description->chat_required->authorization.at.read_dg1         				) std::cout << "\tRead Document Type" << std::endl;
+			if (description->chat_required->authorization.at.read_dg2                  		) std::cout << "\tRead Issuing State" << std::endl;
+			if (description->chat_required->authorization.at.read_dg3      					) std::cout << "\tRead Date of Expiry" << std::endl;
+			if (description->chat_required->authorization.at.read_dg4 						) std::cout << "\tRead Given Names" << std::endl;
+			if (description->chat_required->authorization.at.read_dg5 						) std::cout << "\tRead Family Names" << std::endl;
+			if (description->chat_required->authorization.at.read_dg6 						) std::cout << "\tRead Religious/Artistic Name" << std::endl;
+			if (description->chat_required->authorization.at.read_dg7 						) std::cout << "\tRead Academic Title" << std::endl;
+			if (description->chat_required->authorization.at.read_dg8 						) std::cout << "\tRead Date of Birth" << std::endl;
+			if (description->chat_required->authorization.at.read_dg9        				) std::cout << "\tRead Place of Birth" << std::endl;
+			if (description->chat_required->authorization.at.read_dg10                		) std::cout << "\tRead Nationality" << std::endl;
+			if (description->chat_required->authorization.at.read_dg11     					) std::cout << "\tRead Sex" << std::endl;
+			if (description->chat_required->authorization.at.read_dg12						) std::cout << "\tRead OptionalDataR" << std::endl;
+			if (description->chat_required->authorization.at.read_dg13						) std::cout << "\tRead DG 13" << std::endl;
+			if (description->chat_required->authorization.at.read_dg14						) std::cout << "\tRead DG 14" << std::endl;
+			if (description->chat_required->authorization.at.read_dg15						) std::cout << "\tRead DG 15" << std::endl;
+			if (description->chat_required->authorization.at.read_dg16						) std::cout << "\tRead DG 16" << std::endl;
+			if (description->chat_required->authorization.at.read_dg17        				) std::cout << "\tRead Normal Place of Residence" << std::endl;
+			if (description->chat_required->authorization.at.read_dg18             			) std::cout << "\tRead Community ID" << std::endl;
+			if (description->chat_required->authorization.at.read_dg19     					) std::cout << "\tRead Residence Permit I" << std::endl;
+			if (description->chat_required->authorization.at.read_dg20						) std::cout << "\tRead Residence Permit II" << std::endl;
+			if (description->chat_required->authorization.at.read_dg21						) std::cout << "\tRead OptionalDataRW" << std::endl;
+			if (description->chat_required->authorization.at.write_dg21						) std::cout << "\tWrite OptionalDataRW" << std::endl;
+			if (description->chat_required->authorization.at.write_dg20        				) std::cout << "\tWrite Residence Permit I" << std::endl;
+			if (description->chat_required->authorization.at.write_dg19                		) std::cout << "\tWrite Residence Permit II" << std::endl;
+			if (description->chat_required->authorization.at.write_dg18    					) std::cout << "\tWrite Community ID" << std::endl;
+			if (description->chat_required->authorization.at.write_dg17						) std::cout << "\tWrite Normal Place of Residence" << std::endl;
+			break;
+
+		case TT_ST:
+			std::cout << "Signature Terminal:" << std::endl;
+			if (description->chat_required->authorization.st.generate_signature 			) cout << "\tGenerate electronic signature" << std::endl;
+			if (description->chat_required->authorization.st.generate_qualified_signature 	) cout << "\tGenerate qualified electronic signature" << std::endl;
+			break;
+
+		default:
+			std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
+	}
+
 	input->chat_selected = description->chat_required;
 
 	if (input->pin_required)
-		input->pin = &pin;
+		input->pin = &p;
 
 	return NPACLIENT_ERROR_SUCCESS;
 }
@@ -344,9 +560,7 @@ string str_replace(string rep, string wit, string in)
 	return in;
 }
 
-int getAuthenticationParams(const char *const cServerName,
-							const char *const pPort,
-							const char *const cPath,
+int getAuthenticationParams(const char *const SP_URL,
 							string &strIdpAddress,
 							string &strSessionIdentifier,
 							string &strPathSecurityParameters)
@@ -356,17 +570,22 @@ int getAuthenticationParams(const char *const cServerName,
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-	connection_status = eIDClientConnectionStart(&connection, cServerName, pPort, 0, NULL);
+
+	URL urlSP(SP_URL);
+	if (!urlSP._valid)
+		return 0;
+
+	connection_status = eIDClientConnectionStart(&connection, urlSP._hostname.c_str(), urlSP._port.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		/* Send a GET request */
 		string get("GET ");
-		get += cPath;
+		get += urlSP._path.c_str();
 		get += " HTTP/1.1\r\n";
 		get += "Host: ";
-		get += cServerName;
+		get += urlSP._hostname.c_str();
 		get += ":";
-		get += pPort;
+		get += urlSP._port.c_str();
 		get += "\r\n\r\n";
 		memset(sz, 0x00, READ_BUFFER);
 		connection_status = eIDClientConnectionSendRequest(connection, get.c_str(), get.size(), sz, &sz_len);
@@ -424,7 +643,7 @@ int getAuthenticationParams(const char *const cServerName,
 	string strContentLength = "Content-Length: " + out.str();
 	strResult = "";
 	connection = 0x00;
-	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), 0, NULL);
+	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), urlIDP._port.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		string request;
@@ -456,7 +675,6 @@ int getAuthenticationParams(const char *const cServerName,
 
 			if (found != std::string::npos) {
 				strResult = strResult.substr(found);
-
 			} else {
 				std::cout << __FILE__ << __LINE__ << ": Error" << std::endl;
 			}
@@ -490,11 +708,34 @@ int getAuthenticationParams(const char *const cServerName,
 
 int main(int argc, char **argv)
 {
-	int loopCount = 1;
+	int loopCount = 10;
 	int retValue = 0;
 	int serverErrorCounter = 0;
 	char buffer[500];
 	std::vector<double> diffv;
+
+	const char default_serviceURL[] = "https://eidservices.bundesdruckerei.de"
+		":433"
+		"/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI";
+	const char *serviceURL = default_serviceURL;
+
+	switch (argc) {
+		case 3:
+			pin = argv[2];
+
+		case 2:
+			serviceURL = argv[1];
+
+		case 1:
+
+			cout << "Connection Parameters:" << std::endl;
+			cout << "SP URL\t\t" << serviceURL << std::endl;
+			cout << "eID PIN\t\t" << pin << std::endl;
+			break;
+
+		default:
+			cout << "Usage: " << argv[0] << "[\"Service Provider URL\" [\"eID PIN\"]]" << std::endl;
+	}
 
 	while (0 == retValue) {
 		time_t start;
@@ -503,7 +744,7 @@ int main(int argc, char **argv)
 		string strSessionIdentifier("");
 		string strPathSecurityParameters("");
 		string strRef("");
-        getAuthenticationParams("eidservices.bundesdruckerei.de", "443", "/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI", strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+        getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);
@@ -525,4 +766,3 @@ int main(int argc, char **argv)
 	std::cout << buffer << std::endl;
 	return retValue;
 }
-

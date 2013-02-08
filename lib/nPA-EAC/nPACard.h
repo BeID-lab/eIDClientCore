@@ -13,10 +13,7 @@ namespace Bundesdruckerei
 	namespace nPA
 	{
 
-		/**
-		 *
-		 */
-		class ePACard : public ICard
+		class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 		{
 			private:
 				std::vector<unsigned char> m_ef_cardaccess;
@@ -75,78 +72,35 @@ namespace Bundesdruckerei
 				static const unsigned char  SFID_DG20 = 0x14;
 				static const unsigned char  SFID_DG21 = 0x15;
 
-				ePACard(
-					IReader *);
+				ePACard(IReader *);
 
-				ePACard(
-					IReader *, const std::vector<unsigned char> ef_cardaccess);
+				ePACard(IReader *, const std::vector<unsigned char> ef_cardaccess);
 
 				CAPDU applySM(const CAPDU &apdu);
 				RAPDU removeSM(const RAPDU &apdu);
 
-				/*!
-				 *
-				 */
-				string getCardDescription(
-					void);
+				string getCardDescription(void);
 
-				const vector<unsigned char> get_ef_cardaccess() const;
-				const vector<unsigned char> get_ef_cardsecurity();
+				const vector<unsigned char> get_ef_cardaccess(void) const;
+				const vector<unsigned char> get_ef_cardsecurity(void);
 
-				/*!
-				 * Select an EF on the ePA.
-				 */
-				bool selectEF(
-					unsigned short FID);
+				RAPDU receive(void);
+				std::vector<RAPDU> receive(size_t count);
 
-				/*!
-				 * Select an EF on the ePA and return the FCP.
-				 */
-				bool selectEF(
-					unsigned short FID,
-					vector<unsigned char>& fcp);
+				void send(const CAPDU &cmd);
+				void send(const std::vector<CAPDU> &cmds);
 
-				bool selectDF(
-					unsigned short FID);
-
-				/*!
-				 * Select the MF of the ePA
-				 */
-				bool selectMF(
-					void);
-
-				/*!
-				 * Return the allocated size for the file specified by FID.
-				 */
-				unsigned short getFileSize(
-					unsigned short FID);
-
-				bool readFile(
-					unsigned char sfid,
-					size_t size,
-					vector<unsigned char>& result);
-
-				bool readFile(
-					vector<unsigned char>& result);
-
-				RAPDU sendAPDU(
-					const CAPDU &cmd);
+				RAPDU transceive(const CAPDU& cmd);
+				vector<RAPDU> transceive(const vector<CAPDU>& cmds);
 
 				void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
                 void setSSC(unsigned long long ssc);
-
 		};
 
 
-		/**
-		 *
-		 */
 		class ePACardDetector : public ICardDetector
 		{
 			public:
-				/**
-				 *
-				 */
 				ICard *getCard(IReader *);
 		}; // class ePACardDetector : public ICardDetector
 

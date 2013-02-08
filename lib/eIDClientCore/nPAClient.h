@@ -135,8 +135,7 @@ namespace Bundesdruckerei
 					const std::string &cvCACHAR,
 					const std::vector<unsigned char>& idPICC,
 					std::vector<std::vector<unsigned char> >& list_certificates,
-					std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-					std::vector<unsigned char>& y_Puk_IFD_DH_CA_) = 0;
+					std::vector<unsigned char>& Puk_IFD_DH_CA) = 0;
 
 				/**
 				 *
@@ -177,8 +176,7 @@ namespace Bundesdruckerei
 				std::vector<unsigned char>  m_requiredCHAT;
 				std::vector<unsigned char>  m_optionalCHAT;
 				Procolstate_t               m_protocolState;
-				std::vector<unsigned char>  m_x_Puk_IFD_DH_CA_;
-				std::vector<unsigned char>  m_y_Puk_IFD_DH_CA_;
+				std::vector<unsigned char>  m_Puk_IFD_DH_CA;
 				std::vector<unsigned char>  m_chatUsed;
 				std::vector<CAPDU>  m_capdus;
 				std::vector<RAPDU>  m_rapdus;
@@ -216,19 +214,19 @@ namespace Bundesdruckerei
 				 *
 				 */
 				bool getCHAT(
-					nPADataBuffer_t &chatFromCertificate);
+					struct chat &chatFromCertificate);
 
 				/*
 				 *
 				 */
 				bool getRequiredCHAT(
-					nPADataBuffer_t &requiredChat);
+					struct chat &requiredChat);
 
 				/*
 				 *
 				 */
 				bool getOptionalCHAT(
-					nPADataBuffer_t &optionalChat);
+					struct chat &optionalChat);
 
 				/*
 				 *
@@ -251,6 +249,12 @@ namespace Bundesdruckerei
 				/*
 				 *
 				 */
+				bool getCertificateDescriptionRaw(
+					nPADataBuffer_t &certificateDescriptionRaw);
+
+				/*
+				 *
+				 */
 				bool getServiceName(
 					nPADataBuffer_t &serviceName);
 
@@ -267,7 +271,7 @@ namespace Bundesdruckerei
 				 */
 				NPACLIENT_ERROR performPACE(
 					const nPADataBuffer_t *const password,
-					const nPADataBuffer_t *const chatSelectedByUser,
+					const struct chat *const chatSelectedByUser,
 					const nPADataBuffer_t *const certificateDescription);
 
 				/*

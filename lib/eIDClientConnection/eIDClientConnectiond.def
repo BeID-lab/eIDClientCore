@@ -2,6 +2,8 @@ LIBRARY	"eIDClientConnectiond"
 
 EXPORTS
 	eIDClientConnectionStart
+	eIDClientConnectionStart2
 	eIDClientConnectionEnd
 	eIDClientConnectionSendRequest
-	
+	eIDClientConnectionSendReceivePAOS
+

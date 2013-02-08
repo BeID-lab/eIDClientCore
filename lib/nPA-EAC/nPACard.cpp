@@ -28,103 +28,46 @@ static std::vector<unsigned char> decryptResponse_AES(
 	const std::vector<unsigned char>& returnedData,
 	unsigned long long ssc);
 
-ePACard::ePACard(
-	IReader *hSubSystem) : ICard(hSubSystem)
+ePACard::ePACard(IReader *hSubSystem) : ICard(hSubSystem)
 {
 	if (!selectMF()
 		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
 		throw WrongHandle();
 }
 
-ePACard::ePACard(
-	IReader *hSubSystem, const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
+ePACard::ePACard(IReader *hSubSystem,
+	   	const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
 {
     m_ef_cardaccess = ef_cardaccess;
 }
 
-string ePACard::getCardDescription(
-	void)
+string ePACard::getCardDescription(void)
 {
 	return "German nPA";
 }
 
-const vector<unsigned char> ePACard::get_ef_cardaccess() const
+const vector<unsigned char> ePACard::get_ef_cardaccess(void) const
 {
 	return m_ef_cardaccess;
 }
 
-const vector<unsigned char> ePACard::get_ef_cardsecurity()
+const vector<unsigned char> ePACard::get_ef_cardsecurity(void)
 {
 	if (m_ef_cardsecurity.empty()
-		&& !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
+			/* read EF.CardSecurity in chunks that fit into short length APDU */
+			&& !readFile(SFID_EF_CARDSECURITY, 0xDF, m_ef_cardsecurity))
 		throw WrongHandle();
 
 	return m_ef_cardsecurity;
 }
 
-bool ePACard::selectMF(
-	void)
-{
-	SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
 
-bool ePACard::selectEF(
-	unsigned short FID)
-{
-	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
-
-bool ePACard::selectEF(
-	unsigned short FID,
-	vector<unsigned char>& fcp)
-{
-	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
-	select.setNe(CAPDU::DATA_SHORT_MAX);
-	RAPDU response = sendAPDU(select);
-	fcp = response.getData();
-	return response.isOK();
-}
-
-bool ePACard::selectDF(
-	unsigned short FID)
-{
-	SelectFile select(SelectFile::P1_SELECT_DF, SelectFile::P2_NO_RESPONSE, FID);
-	RAPDU response = sendAPDU(select);
-	return response.isOK();
-}
-
-bool ePACard::readFile(
-	unsigned char sfid,
-	size_t size,
-	vector<unsigned char>& result)
-{
-	ReadBinary read = ReadBinary(0, sfid);
-	read.setNe(size);
-	RAPDU response = sendAPDU(read);
-	result = response.getData();
-	return response.isOK();
-}
-
-bool ePACard::readFile(
-	vector<unsigned char>& result)
-{
-	ReadBinary read = ReadBinary();
-	read.setNe(CAPDU::DATA_EXTENDED_MAX);
-	RAPDU response = sendAPDU(read);
-	result = response.getData();
-	return response.isOK();
-}
-
+#define BIT_PADDING 0x01
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,
 	const std::vector<unsigned char>& data,
 	unsigned long long ssc)
 {
-	std::vector<unsigned char> do87;
 	std::vector<unsigned char> data_ = static_cast<std::vector<unsigned char> >(data);
 	data_.push_back(0x80);
 
@@ -166,29 +109,11 @@ static std::vector<unsigned char> buildDO87_AES(
 	encryptedData_.resize(data_.size());
 	AESCBC_encryption1.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
 	AESCBC_encryption1.ProcessData(encryptedData_.data(), data_.data(), data_.size());
-	do87.push_back(0x87);
-	size_t encryptedSize = encryptedData_.size() + 1; // +1 because of padding content indicator
+   
+	// Append padding content indicator
+	encryptedData_.insert(encryptedData_.begin(), BIT_PADDING);
 
-	if (encryptedSize <= 0x80) {
-		do87.push_back((unsigned char) encryptedSize);
-
-	} else if (encryptedSize > 0x80 && encryptedSize <= 0xFF) {
-		do87.push_back(0x81);
-		do87.push_back((unsigned char) encryptedSize);
-
-	} else if (encryptedSize > 0xFF && encryptedSize <= 0xFFFF) {
-		do87.push_back(0x82);
-		do87.push_back((encryptedSize & 0xFF00) >> 8);
-		do87.push_back(encryptedSize & 0xFF);
-	}
-
-	// Append ISO padding byte
-	do87.push_back(0x01);
-
-	for (size_t z = 0; z < encryptedData_.size(); z++)
-		do87.push_back(encryptedData_[z]);
-
-	return do87;
+	return TLV_encode(0x87, encryptedData_);
 }
 
 static std::vector<unsigned char> buildDO8E_AES(
@@ -261,14 +186,8 @@ static std::vector<unsigned char> buildDO8E_AES(
 	cmac.Update(vssc.data(), vssc.size());
 	cmac.Final(result_.data());
 	result_.resize(8);
-	std::vector<unsigned char> do8E;
-	do8E.push_back(0x8E);
-	do8E.push_back(0x08);
 
-	for (size_t o = 0; o < result_.size(); o++)
-		do8E.push_back(result_[o]);
-
-	return do8E;
+	return TLV_encode(0x8E, result_);
 }
 
 bool verifyResponse_AES(
@@ -412,6 +331,9 @@ std::vector<unsigned char> decryptResponse_AES(
 CAPDU ePACard::applySM(const CAPDU &capdu)
 {
 	std::vector<unsigned char> do87_, do8E_, do97_, Le, sm_data;
+
+	debug_CAPDU("Unencrypted", capdu);
+
 	CAPDU sm_apdu = CAPDU(capdu.getCLA() | CAPDU::CLA_SM,
 						  capdu.getINS(), capdu.getP1(), capdu.getP2());
 
@@ -424,14 +346,10 @@ CAPDU ePACard::applySM(const CAPDU &capdu)
 	Le = capdu.encodedLe();
 
 	if (!Le.empty()) {
-		do97_.push_back(0x97);
-
 		if (Le.size() > 2) {
 			Le.erase(Le.begin());
 		}
-
-		do97_.push_back((unsigned char) Le.size());
-		do97_.insert(do97_.end(), Le.begin(), Le.end());
+		do97_ = TLV_encode(0x97, Le);
 	}
 
 	/* here, sm_apdu is still a case 1 APDU with header only. */
@@ -464,19 +382,71 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 
 	response = decryptResponse_AES(m_kEnc, sm_rdata, m_ssc);
 	/* TODO compare DO99 with SW */
-	return RAPDU(response, sm_rapdu.getSW());
+	RAPDU rapdu(response, sm_rapdu.getSW());
+
+	debug_RAPDU("Decrypted", rapdu);
+
+	return rapdu;
 }
 
-RAPDU ePACard::sendAPDU(const CAPDU &cmd)
+vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
 {
-	if (!m_kEnc.empty() && !m_kMac.empty()
-		&& !cmd.isSecure()) {
-		CAPDU sm_apdu = applySM(cmd);
-		RAPDU sm_rapdu = ICard::sendAPDU(sm_apdu);
-		return removeSM(sm_rapdu);
+	vector<RAPDU> resps;
+
+	if (!m_kEnc.empty() && !m_kMac.empty()) {
+		unsigned long long start_ssc = m_ssc;
+		size_t i;
+		bool sm = true;
+		vector<CAPDU> sm_cmds;
+		for (i = 0; i < cmds.size(); i++) {
+			if (cmds[i].isSecure())
+				sm = false;
+
+			if (sm) {
+				sm_cmds.push_back(applySM(cmds[i]));
+				/* increment SSC, to simulate decryption of the APDU */
+				m_ssc++;
+			} else
+				sm_cmds.push_back(cmds[i]);
+		}
+
+		vector<RAPDU> sm_resps = ICard::transceive(sm_cmds);
+		if (cmds.size() > sm_resps.size()) {
+			eCardCore_warn(DEBUG_LEVEL_APDU, "Received too few APDUs");
+		}
+
+		m_ssc = start_ssc;
+		sm = true;
+		for (i = 0; i < sm_resps.size() && i < cmds.size(); i++) {
+			if (cmds[i].isSecure())
+				sm = false;
+			if (sm) {
+				/* increment SSC, to simulate encryption of the APDU */
+				m_ssc++;
+				resps.push_back(removeSM(sm_resps[i]));
+			} else
+				resps.push_back(sm_resps[i]);
+		}
+
+		for (i = 0; i < (cmds.size() - sm_resps.size()); i++) {
+			resps.push_back(RAPDU(vector<unsigned char> (), 0x6d00));
+		}
+
+		if (!sm) {
+			m_kEnc.clear();
+			m_kMac.clear();
+			m_ssc = 0;
+		}
+	} else {
+		resps = ICard::transceive(cmds);
 	}
 
-	return ICard::sendAPDU(cmd);
+	return resps;
+}
+
+RAPDU ePACard::transceive(const CAPDU &cmd)
+{
+	return BatchTransceiver<CAPDU, RAPDU>::transceive(cmd);
 }
 
 void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)

@@ -7,6 +7,7 @@
 
 #include "CardCommand.h"
 #include "ICardDetector.h"
+#include "Transceiver.h"
 
 #include <exception>
 #include <string>
@@ -145,7 +146,7 @@ class PaceOutput
  * @brief
  */
 
-class IReader
+class IReader : public Transceiver<vector<unsigned char>, vector<unsigned char> >
 {
 	protected:
 		string m_readerName;
@@ -181,15 +182,6 @@ class IReader
 			return m_readerName;
 		}
 
-		virtual vector<vector<unsigned char> > sendAPDUs(
-			const vector<vector<unsigned char> > &cmds) {
-				vector<vector<unsigned char> > resp;
-				for (size_t i = 0; i < cmds.size(); i++) {
-					resp.push_back(sendAPDU(cmds[i]));
-				}
-				return resp;
-			}
-
 		// -------------------------------------------------------------------------
 		// Pure virtuals
 		// -------------------------------------------------------------------------
@@ -219,9 +211,6 @@ class IReader
 				return card;
 			};
 
-		virtual vector<unsigned char> sendAPDU(
-			const vector<unsigned char>& cmd) = 0;
-
 		/*!
 		 *
 		 */
@@ -231,5 +220,27 @@ class IReader
 
 		virtual PaceOutput establishPACEChannel(const PaceInput &) const = 0;
 }; // class IReader
+
+class IndividualReader : public IReader, public IndividualTransceiver<vector<unsigned char>, vector<unsigned char> >
+{
+	public:
+		IndividualReader(const string &readerName,
+			   	vector<ICardDetector *>& detector) : IReader(readerName, detector) {};
+
+        virtual vector<vector<unsigned char> > transceive(const vector<vector<unsigned char> > &cmds) {
+			return IndividualTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmds);
+		}
+};
+
+class BatchReader : public IReader, public BatchTransceiver<vector<unsigned char>, vector<unsigned char> >
+{
+	public:
+		BatchReader(const string &readerName,
+			   	vector<ICardDetector *>& detector) : IReader(readerName, detector) {};
+
+		virtual vector<unsigned char> transceive(const vector<unsigned char>& cmd) {
+			return BatchTransceiver<vector <unsigned char>, vector<unsigned char> >::transceive(cmd);
+		}
+};
 
 #endif // #if !defined(__IREADER_INCLUDED__)

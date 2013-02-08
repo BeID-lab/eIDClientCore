@@ -101,8 +101,7 @@ class eIdECardClient : public IIdP
 			const std::string &cvCACHAR,
 			const std::vector<unsigned char>& idPICC,
 			std::vector<std::vector<unsigned char> >& list_certificates,
-			std::vector<unsigned char>& x_Puk_IFD_DH_CA_,
-			std::vector<unsigned char>& y_Puk_IFD_DH_CA_);
+			std::vector<unsigned char>& Puk_IFD_DH_CA);
 
 		/**
 		 *
@@ -130,7 +129,7 @@ class eIdECardClient : public IIdP
 		IClient                    *m_pClient;
 
 		std::string m_strServerAddress;
-		std::string m_strSessionIdentifierN;
+		std::string m_strSessionIdentifier;
 		std::string m_strPathSecurityParameter;
 
 		// The terminal certificate of the relying party.
@@ -210,7 +209,6 @@ class eIdECardClient : public IIdP
 		string  request_get_PAOS();
 
 		string getRandomStringID(size_t nCount);
-		bool parse_url(const char *str, const char *default_port = "80");
 
 		bool doParse(const string &strXML);
 
@@ -230,13 +228,6 @@ class eIdECardClient : public IIdP
 		APDUList_t          m_APDUList;
 
 		string  m_strCurrentTag;
-
-		string      m_strSessionIdentifier;
-
-		string  m_strScheme;
-		string  m_strHostname;
-		string  m_strPort;
-		string  m_strPath;
 
 		EIDCLIENT_CONNECTION_HANDLE m_hConnection;
 };

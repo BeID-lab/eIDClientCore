@@ -112,9 +112,7 @@ std::string getCAR(
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
 				   certificate.data(), certificate.size()).code != RC_OK) {
-#if defined(WIN32)
-		OutputDebugStringA("getCAR failed ...\n");
-#endif
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCAR failed ...");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		return car_;
 	}
@@ -134,9 +132,7 @@ std::string getCHR(
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
 				   certificate.data(), certificate.size()).code != RC_OK) {
-#if defined(WIN32)
-		OutputDebugStringA("getCHR failed ...\n");
-#endif
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCHR failed ...");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		return chr_;
 	}
@@ -251,38 +247,201 @@ std::vector<unsigned char> generate_compressed_PuK(
 	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char> &PuK_IFD_DH2)
 {
-	std::vector<unsigned char> result_;
+	std::vector<unsigned char> do06, do86;
+	unsigned int tag_pubkey = 0;
 
-	std::vector<unsigned char> tempResult_;
-	// Build 86||L||04||x(G')||y(G') (G' == temporary base point)
-	tempResult_.push_back(0x86);
-	tempResult_.push_back((unsigned char)(PuK_IFD_DH2.size()));
-
-	tempResult_.insert(tempResult_.end(), PuK_IFD_DH2.begin(), PuK_IFD_DH2.end());
-
-	result_.push_back(0x7f);
-	result_.push_back(0x49);
-
-	if (tempResult_.size() <= 0x80) {
-		result_.push_back((unsigned char)(tempResult_.size() + 2 + OID_.size));
-
-	} else if (tempResult_.size() > 0x80 && tempResult_.size() <= 0xFF) {
-		result_.push_back(0x81);
-		result_.push_back((unsigned char)(tempResult_.size() + 2 + OID_.size));
-
-	} else if (tempResult_.size() > 0xFF && tempResult_.size() <= 0xFFFF) {
-		result_.push_back(0x82);
-		result_.push_back((tempResult_.size() + 2 + OID_.size & 0xFF00) >> 8);
-		result_.push_back(tempResult_.size() + 2 + OID_.size & 0xFF);
+	OBJECT_IDENTIFIER_t pace_ecdh = makeOID(id_PACE_ECDH);
+	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	if (pace_ecdh < OID_ || ca_ecdh < OID_) {
+		tag_pubkey = 0x86;
+	}
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &pace_ecdh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+	if (!tag_pubkey) {
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid pace OID.");
 	}
 
-	result_.push_back(0x06);
-	result_.push_back((unsigned char)OID_.size);
-	for (size_t i = 0; i < OID_.size; i++)
-		result_.push_back(OID_.buf[i]);
+	do06 = TLV_encode(0x06, vector<unsigned char> (OID_.buf, OID_.buf + OID_.size));
+	do86 = TLV_encode(0x86, PuK_IFD_DH2);
 
-	for (size_t i = 0; i < tempResult_.size(); i++)
-		result_.push_back(tempResult_[i]);
+	do06.insert(do06.end(), do86.begin(), do86.end());
 
-	return result_;
+	return TLV_encode(0x7F49, do06);
+}
+
+std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsigned char> &data)
+{
+	/* XXX use asn1c instead of doing TLV by hand */
+	vector<unsigned char> encoded, t, l;
+
+	if (tag == 0x00 || tag == 0xFF)
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid tag.");
+
+	while (tag > 0) {
+		t.insert(t.begin(), (unsigned char) (tag & 0xff));
+		tag >>= 8;
+	}
+
+	if (data.size() < 0x7F) {
+		l.push_back((unsigned char) data.size());
+	} else {
+		size_t length = data.size();
+		while (length > 0) {
+			l.insert(l.begin(), (unsigned char) (length & 0xff));
+			length >>= 8;
+		}
+		if (l.size() >= 0x7F)
+			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Input data too long.");
+		l.insert(l.begin(), (unsigned char) (0x80|l.size()));
+	}
+
+	encoded.insert(encoded.end(), t.begin(), t.end());
+	encoded.insert(encoded.end(), l.begin(), l.end());
+	encoded.insert(encoded.end(), data.begin(), data.end());
+
+	return encoded;
+}
+
+std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
+	   	unsigned int *tag, std::vector<unsigned char> &data)
+{
+	/* XXX use asn1c instead of doing TLV by hand */
+	size_t l;
+	unsigned int t;
+	vector<unsigned char> rest;
+	vector<unsigned char>::const_iterator i;
+
+	if (tlv.empty() || !tag)
+		goto err;
+
+	i = tlv.begin();
+
+	t = i[0];
+	i++;
+	if ((t & 0x1F) == 0x1F) {
+		t <<= 8 | i[0];
+		while (i[0] & 0x80 == 0x80) {
+			i++;
+			t <<= 8 | i[0];
+		}
+		i++;
+	}
+
+	l = i[0];
+	i++;
+	if (l >= 0x80) {
+		unsigned int l_ = 0;
+		l &= 0x7F;
+		while (l > 0) {
+			l_ = l_*256 + i[0];
+			i++;
+			l--;
+		}
+		l = l_;
+	}
+
+	if (i+l > tlv.end())
+		goto err;
+
+	*tag = t;
+
+	data.resize(l);
+	copy(i, i+l, data.begin());
+
+	i += l;
+	rest.resize(tlv.end() - i);
+	copy(i, i+rest.size(), rest.begin());
+
+	return rest;
+
+err:
+	if (tag)
+		tag = 0x00;
+
+	return rest;
+}
+
+std::vector<unsigned char> calculate_KIFD_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char>& PrK_IFD_DH2,
+	const std::vector<unsigned char>& PuK_ICC_DH2)
+{
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	   = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_ECDH_3DES_CBC_CBC	 = makeOID(id_CA_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	std::vector<unsigned char> result_buffer;
+
+	if (       OID_ == PACE_ECDH_3DES_CBC_CBC
+			|| OID_ == PACE_ECDH_AES_CBC_CMAC_128
+			|| OID_ == PACE_ECDH_AES_CBC_CMAC_192
+			|| OID_ == PACE_ECDH_AES_CBC_CMAC_256
+			|| OID_ == CA_ECDH_3DES_CBC_CBC
+			|| OID_ == CA_ECDH_AES_CBC_CMAC_128
+			|| OID_ == CA_ECDH_AES_CBC_CMAC_192
+			|| OID_ == CA_ECDH_AES_CBC_CMAC_256) {
+		ECP::Point PuK_ICC_DH2_ = vector2point(PuK_ICC_DH2);
+		Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
+		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
+		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
+		ECP ecp(Mod, a, b);
+		// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
+		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
+
+		result_buffer = get_x(point2vector(kifd_icc_));
+	}
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
+
+	return result_buffer;
+}
+
+std::vector<unsigned char> calculate_ID_ICC(
+	const OBJECT_IDENTIFIER_t &OID_,
+	const std::vector<unsigned char>& PuK_ICC_DH2)
+{
+	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	   = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_ECDH_3DES_CBC_CBC	 = makeOID(id_CA_ECDH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	std::vector<unsigned char> result_buffer;
+
+	if (       OID_ == PACE_ECDH_3DES_CBC_CBC
+		   	|| OID_ == PACE_ECDH_AES_CBC_CMAC_128
+			|| OID_ == PACE_ECDH_AES_CBC_CMAC_192
+			|| OID_ == PACE_ECDH_AES_CBC_CMAC_256
+			|| OID_ == CA_ECDH_3DES_CBC_CBC
+		   	|| OID_ == CA_ECDH_AES_CBC_CMAC_128
+			|| OID_ == CA_ECDH_AES_CBC_CMAC_192
+			|| OID_ == CA_ECDH_AES_CBC_CMAC_256) {
+		result_buffer = get_x(PuK_ICC_DH2);
+	}
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	return result_buffer;
 }
