@@ -36,6 +36,7 @@ static void _gnutls_log_func(int level, const char *const msg)
 void
 gnutls_disconnect(const void *const driver_data)
 {
+
 	struct gnutls_data *data;
 	ssize_t ret;
 	data = (struct gnutls_data *) driver_data;
@@ -54,6 +55,8 @@ gnutls_disconnect(const void *const driver_data)
 		gnutls_certificate_free_credentials(data->certificate_credentials);
 
 	gnutls_deinit(data->session);
+
+	free(data);
 
 err:
 	gnutls_global_deinit();
