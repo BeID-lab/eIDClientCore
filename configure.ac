@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.67])
+AC_PREREQ([2.65])
 AC_INIT([eIDClientCore], [0.1])
 AC_CONFIG_SRCDIR([bin/Test_nPAClientLib/Test_nPAClientLib.cpp])
 AC_CONFIG_HEADERS([config.h])
