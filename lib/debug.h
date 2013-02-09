@@ -74,7 +74,7 @@ extern "C" {
 			while (length > done) {
 				pline = line;
 				/* Address */
-				printed = sprintf(pline, "%0*lX ", ADDRESS_LENGTH, p - (unsigned char *) buffer);
+				printed = sprintf(pline, "%0*zX ", ADDRESS_LENGTH, p - (unsigned char *) buffer);
 
 				if (printed < 0)
 					return;
