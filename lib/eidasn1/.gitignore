@@ -1,0 +1,8 @@
+# generated files
+*.c
+*.h
+Makefile.am.sample
+# except
+!GeneralizedTime-putenv.c
+!eIDHelper.h
+!eIDOID.h
