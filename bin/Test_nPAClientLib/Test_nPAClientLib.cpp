@@ -735,6 +735,7 @@ int main(int argc, char **argv)
 
 		default:
 			cout << "Usage: " << argv[0] << "[\"Service Provider URL\" [\"eID PIN\"]]" << std::endl;
+			return 1;
 	}
 
 	while (0 == retValue) {
