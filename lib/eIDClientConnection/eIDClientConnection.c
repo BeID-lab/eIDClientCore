@@ -335,7 +335,6 @@ char *_itoa(int value, char *str, int base)
 
 EID_CLIENT_CONNECTION_ERROR eIDClientConnectionSendReceivePAOS(EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const data, const size_t dataLength, char *const bufResult, size_t *nBufResultLength)
 {
-	ssize_t ret;
 	socket_st *sock = (socket_st *) hConnection;
 	char buf[10000];
 	char result[10000];
