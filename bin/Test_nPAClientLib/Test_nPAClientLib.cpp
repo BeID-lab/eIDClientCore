@@ -440,19 +440,21 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 			break;
 	}
 
-	if (error != NPACLIENT_ERROR_SUCCESS) {
+	if (hThread && (error != NPACLIENT_ERROR_SUCCESS)) {
 #ifdef _WIN32
 #else
 		if (pthread_cancel(hThread))
 			std::cout << "Could not cancel SamlResponseThread" << std::endl;
+		hThread = 0;
 #endif
 	}
 
-	if (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES) {
+	if (hThread && (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES)) {
 #ifdef _WIN32
 #else
 		if (pthread_join(hThread, NULL))
 			std::cout << "Could not clean up SamlResponseThread" << std::endl;
+		hThread = 0;
 #endif
 	}
 }
