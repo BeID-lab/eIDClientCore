@@ -555,7 +555,7 @@ void eIdECardClient::WriteInitializeFrameworkResponse(::stringstream &oss, const
 	ss << "<dss:Result><dss:ResultMajor>http://www.bsi.bund.de/ecard/api/1.1/resultmajor#ok</dss:ResultMajor></dss:Result>";
 	ss << "<ec:Version>";
 	ss << "<ec:Major>1</ec:Major>";
-	ss << "<ec:Minor>3</ec:Minor>";
+	ss << "<ec:Minor>9</ec:Minor>";
 	ss << "<ec:SubMinor>0</ec:SubMinor>";
 	ss << "</ec:Version>";
 	ss << "</ec:InitializeFrameworkResponse>";
