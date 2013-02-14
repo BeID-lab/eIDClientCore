@@ -213,7 +213,8 @@ bool eIdECardClient::getTerminalAuthenticationData(
 	string ephPubKey = "";
 	certificateList_t CertList;
 	string strNewMessageID = "";
-	PACEResponse(m_strLastMsgUUID, myChat, cvCACHAR, myEFCardAccess, myIDPICC, ephPubKey, CertList, strNewMessageID);
+	if(!PACEResponse(m_strLastMsgUUID, myChat, cvCACHAR, myEFCardAccess, myIDPICC, ephPubKey, CertList, strNewMessageID))
+		return false;
 	m_strLastMsgUUID = strNewMessageID;
 	string cert1;
 
@@ -623,7 +624,7 @@ void eIdECardClient::StartPAOS(const string &strSessionID,
 	return;
 }
 
-void eIdECardClient::PACEResponse(const string &strMessageID,
+bool eIdECardClient::PACEResponse(const string &strMessageID,
 								  const string &strUserChat,
 								  const string &strCertRef,
 								  const string &strEFCardAccess,
@@ -638,10 +639,13 @@ void eIdECardClient::PACEResponse(const string &strMessageID,
 	WriteEAC1Output(ioss, strMessageID, strUserChat, strCertRef, strEFCardAccess, strIDPICC);
 	string xml_str = ioss.str();
 	string ret = request_post(xml_str);
+	if(ret.empty())
+		return false;
 	doParse(ret);
 	strEphemeralPublicKey = m_strEphemeralPublicKey;
 	CertList = m_certificateList;
 	strNewMessageID = m_strMessageID;
+	return true;
 }
 
 void eIdECardClient::TAResponse(const string &strMessageID,
