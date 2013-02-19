@@ -488,10 +488,15 @@ bool nPAClient::getValidFromDate(
 		return false;
 	}
 
-	std::vector<unsigned char> validFromBuffer(
-		CVCertificate->certBody.certEffectiveDate.buf,
-		CVCertificate->certBody.certEffectiveDate.buf + CVCertificate->certBody.certEffectiveDate.size);
-	certificateValidFrom = BDRDate::timeFromBCD(validFromBuffer);
+	if (CVCertificate->certBody.certEffectiveDate.buf && CVCertificate->certBody.certEffectiveDate.size) {
+		std::vector<unsigned char> validFromBuffer(
+			CVCertificate->certBody.certEffectiveDate.buf,
+			CVCertificate->certBody.certEffectiveDate.buf + CVCertificate->certBody.certEffectiveDate.size);
+		certificateValidFrom = BDRDate::timeFromBCD(validFromBuffer);
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - certificate's effective date missing.");
+		certificateValidFrom = 0;
+	}
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return true;
 }
@@ -508,10 +513,15 @@ bool nPAClient::getValidToDate(
 		return false;
 	}
 
-	std::vector<unsigned char> validFromBuffer(
-		CVCertificate->certBody.certExpirationDate.buf,
-		CVCertificate->certBody.certExpirationDate.buf + CVCertificate->certBody.certExpirationDate.size);
-	certificateValidTo = BDRDate::timeFromBCD(validFromBuffer);
+	if (CVCertificate->certBody.certExpirationDate.buf && CVCertificate->certBody.certExpirationDate.size) {
+		std::vector<unsigned char> validFromBuffer(
+			CVCertificate->certBody.certExpirationDate.buf,
+			CVCertificate->certBody.certExpirationDate.buf + CVCertificate->certBody.certExpirationDate.size);
+		certificateValidTo = BDRDate::timeFromBCD(validFromBuffer);
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - certificate's expiration date missing.");
+		certificateValidTo = -1;
+	}
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return true;
 }
