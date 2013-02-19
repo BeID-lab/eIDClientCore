@@ -711,7 +711,7 @@ int getAuthenticationParams(const char *const SP_URL,
 
 int main(int argc, char **argv)
 {
-	int loopCount = 10;
+	int loopCount = 2;
 	int retValue = 0;
 	int serverErrorCounter = 0;
 	char buffer[500];
