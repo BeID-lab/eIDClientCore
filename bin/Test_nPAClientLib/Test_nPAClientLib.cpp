@@ -300,7 +300,7 @@ getSamlResponseThread(void *lpParam)
 	string strContentLength = "Content-Length: " + out.str();
 	strResult = "";
 	connection = 0x00;
-	string port_hack = /* FIXME urlIDP._port.c_str() */ "8080";
+	string port_hack = urlIDP._port.c_str();
 	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), port_hack.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
