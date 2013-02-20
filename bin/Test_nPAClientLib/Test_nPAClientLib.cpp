@@ -300,7 +300,7 @@ getSamlResponseThread(void *lpParam)
 	string strContentLength = "Content-Length: " + out.str();
 	strResult = "";
 	connection = 0x00;
-	string port_hack = /* FIXME urlIDP._port.c_str() */ "8080";
+	string port_hack = urlIDP._port.c_str();
 	connection_status = eIDClientConnectionStart(&connection, urlIDP._hostname.c_str(), port_hack.c_str(), NULL, NULL);
 
 	if (connection_status == EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -442,6 +442,8 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	if (hThread && (error != NPACLIENT_ERROR_SUCCESS)) {
 #ifdef _WIN32
+		if(!TerminateThread(hThread, -1))
+			std::cout << "Could not cancel SamlResponseThread: "<< GetLastError() << std::endl;
 #else
 		if (pthread_cancel(hThread))
 			std::cout << "Could not cancel SamlResponseThread" << std::endl;
@@ -451,6 +453,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	if (hThread && (error != NPACLIENT_ERROR_SUCCESS || state == NPACLIENT_STATE_READ_ATTRIBUTES)) {
 #ifdef _WIN32
+		WaitForSingleObject(hThread, INFINITE); //Phew.. I hope we dont get a deadlock here?
 #else
 		if (pthread_join(hThread, NULL))
 			std::cout << "Could not clean up SamlResponseThread" << std::endl;
@@ -465,70 +468,66 @@ static const char *pin = default_pin;
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
 {
-	static nPADataBuffer_t p;
-	p.pDataBuffer = (unsigned char *) pin;
-	p.bufferSize = strlen(default_pin);
-
 	std::cout << "serviceName: ";
-	std::cout.write((char *) description->name->pDataBuffer, description->name->bufferSize);
+	std::cout.write((char *) description->name.pDataBuffer, description->name.bufferSize);
 	std::cout << std::endl;
 	std::cout << "serviceURL:  ";
-	std::cout.write((char *) description->url->pDataBuffer, description->url->bufferSize);
+	std::cout.write((char *) description->url.pDataBuffer, description->url.bufferSize);
 	std::cout << std::endl;
 	std::cout << "certificateDescription:" << std::endl;
-	std::cout.write((char *) description->description->pDataBuffer, description->description->bufferSize);
+	std::cout.write((char *) description->description.pDataBuffer, description->description.bufferSize);
 	std::cout << std::endl;
 
-	switch (description->chat_required->type) {
+	switch (description->chat_required.type) {
 		case TT_IS:
 			std::cout << "Inspection System:" << std::endl;
-			if (description->chat_required->authorization.is.read_finger 	) std::cout << "\tRead Fingerprint" << std::endl;
-			if (description->chat_required->authorization.is.read_iris  	) std::cout << "\tRead Iris" << std::endl;
-			if (description->chat_required->authorization.is.read_eid		) std::cout << "\tRead eID" << std::endl;
+			if (description->chat_required.authorization.is.read_finger 	) std::cout << "\tRead Fingerprint" << std::endl;
+			if (description->chat_required.authorization.is.read_iris  	) std::cout << "\tRead Iris" << std::endl;
+			if (description->chat_required.authorization.is.read_eid		) std::cout << "\tRead eID" << std::endl;
 			break;
 
 		case TT_AT:
 			std::cout << "Authentication Terminal:" << std::endl;
-			if (description->chat_required->authorization.at.age_verification 				) std::cout << "\tVerify Age" << std::endl;
-			if (description->chat_required->authorization.at.community_id_verification 		) std::cout << "\tVerify Community ID" << std::endl;
-			if (description->chat_required->authorization.at.restricted_id 					) std::cout << "\tRestricted ID" << std::endl;
-			if (description->chat_required->authorization.at.privileged 					) std::cout << "\tPrivileged Terminal" << std::endl;
-			if (description->chat_required->authorization.at.can_allowed 					) std::cout << "\tCAN allowed" << std::endl;
-			if (description->chat_required->authorization.at.pin_management 				) std::cout << "\tPIN Management" << std::endl;
-			if (description->chat_required->authorization.at.install_cert 					) std::cout << "\tInstall Certificate" << std::endl;
-			if (description->chat_required->authorization.at.install_qualified_cert 		) std::cout << "\tInstall Qualified Certificate" << std::endl;
-			if (description->chat_required->authorization.at.read_dg1         				) std::cout << "\tRead Document Type" << std::endl;
-			if (description->chat_required->authorization.at.read_dg2                  		) std::cout << "\tRead Issuing State" << std::endl;
-			if (description->chat_required->authorization.at.read_dg3      					) std::cout << "\tRead Date of Expiry" << std::endl;
-			if (description->chat_required->authorization.at.read_dg4 						) std::cout << "\tRead Given Names" << std::endl;
-			if (description->chat_required->authorization.at.read_dg5 						) std::cout << "\tRead Family Names" << std::endl;
-			if (description->chat_required->authorization.at.read_dg6 						) std::cout << "\tRead Religious/Artistic Name" << std::endl;
-			if (description->chat_required->authorization.at.read_dg7 						) std::cout << "\tRead Academic Title" << std::endl;
-			if (description->chat_required->authorization.at.read_dg8 						) std::cout << "\tRead Date of Birth" << std::endl;
-			if (description->chat_required->authorization.at.read_dg9        				) std::cout << "\tRead Place of Birth" << std::endl;
-			if (description->chat_required->authorization.at.read_dg10                		) std::cout << "\tRead Nationality" << std::endl;
-			if (description->chat_required->authorization.at.read_dg11     					) std::cout << "\tRead Sex" << std::endl;
-			if (description->chat_required->authorization.at.read_dg12						) std::cout << "\tRead OptionalDataR" << std::endl;
-			if (description->chat_required->authorization.at.read_dg13						) std::cout << "\tRead DG 13" << std::endl;
-			if (description->chat_required->authorization.at.read_dg14						) std::cout << "\tRead DG 14" << std::endl;
-			if (description->chat_required->authorization.at.read_dg15						) std::cout << "\tRead DG 15" << std::endl;
-			if (description->chat_required->authorization.at.read_dg16						) std::cout << "\tRead DG 16" << std::endl;
-			if (description->chat_required->authorization.at.read_dg17        				) std::cout << "\tRead Normal Place of Residence" << std::endl;
-			if (description->chat_required->authorization.at.read_dg18             			) std::cout << "\tRead Community ID" << std::endl;
-			if (description->chat_required->authorization.at.read_dg19     					) std::cout << "\tRead Residence Permit I" << std::endl;
-			if (description->chat_required->authorization.at.read_dg20						) std::cout << "\tRead Residence Permit II" << std::endl;
-			if (description->chat_required->authorization.at.read_dg21						) std::cout << "\tRead OptionalDataRW" << std::endl;
-			if (description->chat_required->authorization.at.write_dg21						) std::cout << "\tWrite OptionalDataRW" << std::endl;
-			if (description->chat_required->authorization.at.write_dg20        				) std::cout << "\tWrite Residence Permit I" << std::endl;
-			if (description->chat_required->authorization.at.write_dg19                		) std::cout << "\tWrite Residence Permit II" << std::endl;
-			if (description->chat_required->authorization.at.write_dg18    					) std::cout << "\tWrite Community ID" << std::endl;
-			if (description->chat_required->authorization.at.write_dg17						) std::cout << "\tWrite Normal Place of Residence" << std::endl;
+			if (description->chat_required.authorization.at.age_verification 				) std::cout << "\tVerify Age" << std::endl;
+			if (description->chat_required.authorization.at.community_id_verification 		) std::cout << "\tVerify Community ID" << std::endl;
+			if (description->chat_required.authorization.at.restricted_id 					) std::cout << "\tRestricted ID" << std::endl;
+			if (description->chat_required.authorization.at.privileged 					) std::cout << "\tPrivileged Terminal" << std::endl;
+			if (description->chat_required.authorization.at.can_allowed 					) std::cout << "\tCAN allowed" << std::endl;
+			if (description->chat_required.authorization.at.pin_management 				) std::cout << "\tPIN Management" << std::endl;
+			if (description->chat_required.authorization.at.install_cert 					) std::cout << "\tInstall Certificate" << std::endl;
+			if (description->chat_required.authorization.at.install_qualified_cert 		) std::cout << "\tInstall Qualified Certificate" << std::endl;
+			if (description->chat_required.authorization.at.read_dg1         				) std::cout << "\tRead Document Type" << std::endl;
+			if (description->chat_required.authorization.at.read_dg2                  		) std::cout << "\tRead Issuing State" << std::endl;
+			if (description->chat_required.authorization.at.read_dg3      					) std::cout << "\tRead Date of Expiry" << std::endl;
+			if (description->chat_required.authorization.at.read_dg4 						) std::cout << "\tRead Given Names" << std::endl;
+			if (description->chat_required.authorization.at.read_dg5 						) std::cout << "\tRead Family Names" << std::endl;
+			if (description->chat_required.authorization.at.read_dg6 						) std::cout << "\tRead Religious/Artistic Name" << std::endl;
+			if (description->chat_required.authorization.at.read_dg7 						) std::cout << "\tRead Academic Title" << std::endl;
+			if (description->chat_required.authorization.at.read_dg8 						) std::cout << "\tRead Date of Birth" << std::endl;
+			if (description->chat_required.authorization.at.read_dg9        				) std::cout << "\tRead Place of Birth" << std::endl;
+			if (description->chat_required.authorization.at.read_dg10                		) std::cout << "\tRead Nationality" << std::endl;
+			if (description->chat_required.authorization.at.read_dg11     					) std::cout << "\tRead Sex" << std::endl;
+			if (description->chat_required.authorization.at.read_dg12						) std::cout << "\tRead OptionalDataR" << std::endl;
+			if (description->chat_required.authorization.at.read_dg13						) std::cout << "\tRead DG 13" << std::endl;
+			if (description->chat_required.authorization.at.read_dg14						) std::cout << "\tRead DG 14" << std::endl;
+			if (description->chat_required.authorization.at.read_dg15						) std::cout << "\tRead DG 15" << std::endl;
+			if (description->chat_required.authorization.at.read_dg16						) std::cout << "\tRead DG 16" << std::endl;
+			if (description->chat_required.authorization.at.read_dg17        				) std::cout << "\tRead Normal Place of Residence" << std::endl;
+			if (description->chat_required.authorization.at.read_dg18             			) std::cout << "\tRead Community ID" << std::endl;
+			if (description->chat_required.authorization.at.read_dg19     					) std::cout << "\tRead Residence Permit I" << std::endl;
+			if (description->chat_required.authorization.at.read_dg20						) std::cout << "\tRead Residence Permit II" << std::endl;
+			if (description->chat_required.authorization.at.read_dg21						) std::cout << "\tRead OptionalDataRW" << std::endl;
+			if (description->chat_required.authorization.at.write_dg21						) std::cout << "\tWrite OptionalDataRW" << std::endl;
+			if (description->chat_required.authorization.at.write_dg20        				) std::cout << "\tWrite Residence Permit I" << std::endl;
+			if (description->chat_required.authorization.at.write_dg19                		) std::cout << "\tWrite Residence Permit II" << std::endl;
+			if (description->chat_required.authorization.at.write_dg18    					) std::cout << "\tWrite Community ID" << std::endl;
+			if (description->chat_required.authorization.at.write_dg17						) std::cout << "\tWrite Normal Place of Residence" << std::endl;
 			break;
 
 		case TT_ST:
 			std::cout << "Signature Terminal:" << std::endl;
-			if (description->chat_required->authorization.st.generate_signature 			) cout << "\tGenerate electronic signature" << std::endl;
-			if (description->chat_required->authorization.st.generate_qualified_signature 	) cout << "\tGenerate qualified electronic signature" << std::endl;
+			if (description->chat_required.authorization.st.generate_signature 			) cout << "\tGenerate electronic signature" << std::endl;
+			if (description->chat_required.authorization.st.generate_qualified_signature 	) cout << "\tGenerate qualified electronic signature" << std::endl;
 			break;
 
 		default:
@@ -537,8 +536,10 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 
 	input->chat_selected = description->chat_required;
 
-	if (input->pin_required)
-		input->pin = &p;
+	if (input->pin_required) {
+		strncpy((char *) input->pin.pDataBuffer, pin, MAX_PIN_SIZE);
+		input->pin.bufferSize = strlen(pin);
+	}
 
 	return NPACLIENT_ERROR_SUCCESS;
 }
@@ -710,7 +711,7 @@ int getAuthenticationParams(const char *const SP_URL,
 
 int main(int argc, char **argv)
 {
-	int loopCount = 10;
+	int loopCount = 2;
 	int retValue = 0;
 	int serverErrorCounter = 0;
 	char buffer[500];
@@ -748,7 +749,7 @@ int main(int argc, char **argv)
 		string strPathSecurityParameters("");
 		string strRef("");
         getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+		retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);
 		std::cout << "########## Error Code: " << HEX(retValue) << buffer << std::endl;

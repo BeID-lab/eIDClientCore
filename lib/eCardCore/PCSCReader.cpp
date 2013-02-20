@@ -225,11 +225,15 @@ vector<BYTE> PCSCReader::getATRForPresentCard()
 		return atr;
 
 #if !defined(__APPLE__)
-	DWORD atrSize;
-	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, 0x00, &atrSize);
+	DWORD atrSize = 0;
+	if (SCARD_S_SUCCESS != SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, 0x00, &atrSize))
+		goto err;
 	atr.reserve(atrSize);
 	atr.resize(atrSize);
-	SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, atr.data(), &atrSize);
+	if (SCARD_S_SUCCESS != SCardGetAttrib(m_hCard, SCARD_ATTR_ATR_STRING, atr.data(), &atrSize)) {
+		atr.clear();
+		goto err;
+	}
 #else
 	unsigned char atr_[512];
 	uint32_t len = sizeof(atr_);
@@ -237,12 +241,14 @@ vector<BYTE> PCSCReader::getATRForPresentCard()
 	uint32_t cch = 128;
 	uint32_t dwState;
 	uint32_t dwProtocol;
-	SCardStatus(m_hCard, szReader, &cch, &dwState, &dwProtocol, (unsigned char *)&atr_, &len);
+	if (SCARD_S_SUCCESS != SCardStatus(m_hCard, szReader, &cch, &dwState, &dwProtocol, (unsigned char *)&atr_, &len))
+		goto err;
 
 	for (int i = 0; i < len; i++)
 		atr.push_back(atr_[i]);
 
 #endif
+err:
 	return atr;
 }
 

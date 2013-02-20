@@ -4,7 +4,6 @@
 
 #include "nPACard.h"
 #include "nPACommon.h"
-using namespace Bundesdruckerei::nPA;
 
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,

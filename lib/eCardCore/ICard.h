@@ -7,7 +7,6 @@
 
 #include "CardCommand.h"
 #include "IReaderManager.h"
-#include "eCardTypes.h"
 
 #include <string>
 

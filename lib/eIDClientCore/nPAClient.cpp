@@ -3,7 +3,6 @@
  */
 
 #include "nPAClient.h"
-using namespace Bundesdruckerei::nPA;
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;
@@ -306,7 +305,9 @@ bool encode_CertificateHolderAuthorizationTemplate_t(const struct chat *chat_in,
 {
 	bool r = false;
 	CertificateHolderAuthorizationTemplate_t chat_tmp;
-	chat_tmp.authTerminalID = {NULL, 0};
+	//chat_tmp.authTerminalID = {NULL, 0}; //Doesnt work with Windows?
+	chat_tmp.authTerminalID.buf = NULL;
+	chat_tmp.authTerminalID.size = 0;
 	unsigned char buf[5] = {0, 0, 0, 0, 0};
 	chat_tmp.chat.buf = buf;
 	asn_enc_rval_t er;
@@ -487,10 +488,15 @@ bool nPAClient::getValidFromDate(
 		return false;
 	}
 
-	std::vector<unsigned char> validFromBuffer(
-		CVCertificate->certBody.certEffectiveDate.buf,
-		CVCertificate->certBody.certEffectiveDate.buf + CVCertificate->certBody.certEffectiveDate.size);
-	certificateValidFrom = BDRDate::timeFromBCD(validFromBuffer);
+	if (CVCertificate->certBody.certEffectiveDate.buf && CVCertificate->certBody.certEffectiveDate.size) {
+		std::vector<unsigned char> validFromBuffer(
+			CVCertificate->certBody.certEffectiveDate.buf,
+			CVCertificate->certBody.certEffectiveDate.buf + CVCertificate->certBody.certEffectiveDate.size);
+		certificateValidFrom = BDRDate::timeFromBCD(validFromBuffer);
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - certificate's effective date missing.");
+		certificateValidFrom = 0;
+	}
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return true;
 }
@@ -507,15 +513,21 @@ bool nPAClient::getValidToDate(
 		return false;
 	}
 
-	std::vector<unsigned char> validFromBuffer(
-		CVCertificate->certBody.certExpirationDate.buf,
-		CVCertificate->certBody.certExpirationDate.buf + CVCertificate->certBody.certExpirationDate.size);
-	certificateValidTo = BDRDate::timeFromBCD(validFromBuffer);
+	if (CVCertificate->certBody.certExpirationDate.buf && CVCertificate->certBody.certExpirationDate.size) {
+		std::vector<unsigned char> validFromBuffer(
+			CVCertificate->certBody.certExpirationDate.buf,
+			CVCertificate->certBody.certExpirationDate.buf + CVCertificate->certBody.certExpirationDate.size);
+		certificateValidTo = BDRDate::timeFromBCD(validFromBuffer);
+	} else {
+		eCardCore_warn(DEBUG_LEVEL_CLIENT, "nPAClient::getValidFromDate - certificate's expiration date missing.");
+		certificateValidTo = -1;
+	}
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return true;
 }
 
 bool nPAClient::getCertificateDescription(
+	enum DescriptionType &certificateDescriptionType,
 	nPADataBuffer_t &certificateDescription)
 {
 	CertificateDescription_t *certificateDescription_ = 0x00;
@@ -541,6 +553,8 @@ bool nPAClient::getCertificateDescription(
 	if (0x00 == certificateDescription.pDataBuffer)
 		return false;
 
+	/* FIXME add logic to parse the description type */
+	certificateDescriptionType = DT_PLAIN;
 	certificateDescription.bufferSize = usage->size;
 	memcpy(certificateDescription.pDataBuffer, usage->buf,
 		   usage->size);
@@ -624,7 +638,7 @@ bool nPAClient::passwordIsRequired(void) const
 		return false;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 	return !(ePA_.getSubSystem()->supportsPACE());
 }
 
@@ -697,7 +711,7 @@ NPACLIENT_ERROR nPAClient::performTerminalAuthentication(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	if (!m_Idp->getTerminalAuthenticationData(ePA_.get_ef_cardaccess(), m_chatUsed, m_clientProtocol->GetCARCVCA(), idPICC, list_certificates,
 			m_Puk_IFD_DH_CA)) {
@@ -764,7 +778,7 @@ NPACLIENT_ERROR nPAClient::performChipAuthentication(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	if (TA_Done != m_protocolState)
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
