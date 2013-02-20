@@ -63,6 +63,8 @@ typedef unsigned long NPACLIENT_ERROR;
 #define NPACLIENT_ERROR_NO_TERMINAL_CERTIFICATE       (NPACLIENT_ERROR) (NPACLIENT_ERROR_FLAG | 0x00000301)
 #define NPACLIENT_ERROR_NO_CERTIFICATE_DESCRIPTION    (NPACLIENT_ERROR) (NPACLIENT_ERROR_FLAG | 0x00000302)
 
+#define NPACLIENT_ERROR_UNKNOWN_READER_TYPE           (NPACLIENT_ERROR) (NPACLIENT_ERROR_FLAG | 0x00000400)
+
 typedef unsigned long NPACLIENT_STATE;
 
 #define NPACLIENT_STATE_INITIALIZE        (NPACLIENT_STATE) 0x00000001
@@ -117,6 +119,13 @@ extern "C"
 #endif
 
 #include <time.h>
+/*!
+ * @enum ECARD_READER
+ */
+	enum ECARD_READER {
+		READER_PCSC,
+	};
+
 
 	typedef void (*nPAeIdProtocolStateCallback_t)(
 		const NPACLIENT_STATE state,
@@ -246,14 +255,16 @@ extern "C"
 	typedef NPACLIENT_ERROR(*nPAeIdUserInteractionCallback_t)
 	(const SPDescription_t *description, UserInput_t *input);
 
-	NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
+	NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocol(
+		const enum ECARD_READER reader,
 		const char *const IdpAddress,
 		const char *const SessionIdentifier,
 		const char *const PathSecurityParameters,
 		const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
 		const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
 
-	typedef NPACLIENT_ERROR(*nPAeIdPerformAuthenticationProtocolPcSc_t)(
+	typedef NPACLIENT_ERROR(*nPAeIdPerformAuthenticationProtocol_t)(
+		const enum ECARD_READER reader,
 		const char *const IdpAddress,
 		const char *const SessionIdentifier,
 		const char *const PathSecurityParameters,

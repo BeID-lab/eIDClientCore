@@ -749,7 +749,7 @@ int main(int argc, char **argv)
 		string strPathSecurityParameters("");
 		string strRef("");
         getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-		retValue = nPAeIdPerformAuthenticationProtocolPcSc(strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+		retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		diffv.push_back(difftime(time(0x00), start));
 		sprintf(buffer, " - Read Count: %u - Server Errors: %d\n", (unsigned int) diffv.size(), serverErrorCounter);
 		std::cout << "########## Error Code: " << HEX(retValue) << buffer << std::endl;

@@ -432,7 +432,8 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	return NPACLIENT_ERROR_SUCCESS;
 }
 
-extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
+extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocol(
+	const enum ECARD_READER reader,
 	const char *const IdpAddress,
 	const char *const SessionIdentifier,
 	const char *const PathSecurityParameters,
@@ -443,5 +444,10 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolPcSc(
 	authParams_.m_serverAddress     = IdpAddress;
 	authParams_.m_sessionIdentifier = SessionIdentifier;
 	authParams_.m_pathSecurityParameters = PathSecurityParameters;
-	return nPAeIdPerformAuthenticationProtocolWithParamMap(authParams_, PROTOCOL_PCSC, fnUserInteractionCallback, fnCurrentStateCallback);
+	switch(reader)
+	{
+		case READER_PCSC:
+			return nPAeIdPerformAuthenticationProtocolWithParamMap(authParams_, PROTOCOL_PCSC, fnUserInteractionCallback, fnCurrentStateCallback);
+	}
+	return NPACLIENT_ERROR_UNKNOWN_READER_TYPE;
 }
