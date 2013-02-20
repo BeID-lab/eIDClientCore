@@ -455,10 +455,10 @@ ssize_t my_send(const socket_st *const sock, const void *const buffer, size_t bu
 
 	for (sent = 0; sent < buffer_size; sent += ret) {
 		if (sock->secure) {
-			ret = ssl_tls_driver.send(sock->ssl_tls_driver_data, buffer, buffer_size);
+			ret = ssl_tls_driver.send(sock->ssl_tls_driver_data, buffer+sent, buffer_size-sent);
 
 		} else {
-			ret = send(sock->fd, buffer, buffer_size, 0);
+			ret = send(sock->fd, buffer+sent, buffer_size-sent, 0);
 		}
 
 		if (ret < 0)
