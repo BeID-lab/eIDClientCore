@@ -354,6 +354,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 void eIdECardClient::EndConnection()
 {
 	eIDClientConnectionEnd(m_hConnection);
+	m_hConnection = NULL;
 }
 
 // send a HTTP POST request
