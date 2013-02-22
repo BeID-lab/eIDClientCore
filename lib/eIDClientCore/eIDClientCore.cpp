@@ -385,7 +385,13 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	   	{p, 0}
    	};
 
-	fnUserInteractionCallback(&description, &input);
+	error = fnUserInteractionCallback(&description, &input);
+	if (error != NPACLIENT_ERROR_SUCCESS) {
+		// We have to call this here, because  we have to free all the allocated resources.
+		nPAFinalizeProtocol(hnPAClient);
+		return error;
+	}
+
 	error = nPAPerformPACE(hnPAClient, &input.pin, &input.chat_selected, &certificateDescriptionRaw);
 	fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
 

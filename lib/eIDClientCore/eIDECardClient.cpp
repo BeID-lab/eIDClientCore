@@ -111,6 +111,7 @@ eIdECardClient::eIdECardClient(CharMap *paraMap)
 
 eIdECardClient::~eIdECardClient(void)
 {
+	this->close();
 	m_instance = 0x00;
 }
 
@@ -137,6 +138,7 @@ bool eIdECardClient::open(void)
  */
 bool eIdECardClient::close()
 {
+	//Todo: Add Error Checking
 	EndConnection();
 	return true;
 }
