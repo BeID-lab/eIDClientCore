@@ -447,6 +447,7 @@ PaceOutput PCSCReader::establishPACEChannel(const PaceInput &input) const
 	length_CHAT = (uint8_t) input.get_chat().size();
 	length_PIN = (uint8_t) input.get_pin().size();
 	/* FIXME */
+#define REINERSCT_ACCEPTS_TESTDESCRIPTION 1
 #if REINERSCT_ACCEPTS_TESTDESCRIPTION
 	lengthCertificateDescription = (unsigned int) input.get_certificate_description().size();
 #else
