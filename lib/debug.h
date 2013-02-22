@@ -35,7 +35,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdarg.h>
 
-#if defined(WIN32) && !defined(_WIN32_WCE)
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 #include <windows.h>
 #define my_puts(s) { OutputDebugStringA(s); OutputDebugStringA("\n"); }
 #else

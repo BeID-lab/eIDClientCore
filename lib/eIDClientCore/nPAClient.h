@@ -28,10 +28,6 @@ typedef std::map<char *, char **, CmpChar>::const_iterator CharMapConstIt;
 
 typedef std::list<std::string>  certificateList_t;
 
-namespace Bundesdruckerei
-{
-	namespace nPA
-	{
 		typedef enum ProtocolState {
 			Unauthenticated,
 			PACE_Running,
@@ -244,6 +240,7 @@ namespace Bundesdruckerei
 				 *
 				 */
 				bool getCertificateDescription(
+					enum DescriptionType &certificateDescriptionType,
 					nPADataBuffer_t &certificateDescription);
 
 				/*
@@ -291,7 +288,5 @@ namespace Bundesdruckerei
 				 */
 				NPACLIENT_ERROR readAttributed(void);
 		}; // class nPAClient
-	}
-}
 
 #endif

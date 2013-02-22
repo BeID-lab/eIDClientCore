@@ -13,7 +13,6 @@
 #include <expat.h>
 
 #include "nPAClient.h"
-using namespace Bundesdruckerei::nPA;
 
 #include "eIDClientCore.h"
 
@@ -161,7 +160,7 @@ class eIdECardClient : public IIdP
 					   string &strCertificate,
 					   string &strCertificateDescription,
 					   string &strNewMessageID);
-		void PACEResponse(const string &strMessageID,
+		bool PACEResponse(const string &strMessageID,
 						  const string &strUserChat,
 						  const string &strCertRef,
 						  const string &strEFCardAccess,

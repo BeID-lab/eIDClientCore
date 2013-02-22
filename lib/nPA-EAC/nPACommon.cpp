@@ -2,11 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
-#include "eCardCore/eCardTypes.h"
-#include "eCardCore/eCardStatus.h"
 #include "eCardCore/ICard.h"
 #include "nPACommon.h"
-#include "nPAAPI.h"
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 
@@ -142,16 +139,6 @@ std::string getCHR(
 
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return chr_;
-}
-
-ECARD_STATUS __STDCALL__ ePAGetRandom(
-	size_t size, vector<unsigned char>& random_bytes)
-{
-	/* TODO only initialize rng once, then use the pseudo random bits */
-	AutoSeededRandomPool rng;
-	random_bytes.resize(size);
-	rng.GenerateBlock(random_bytes.data(), random_bytes.size());
-	return ECARD_SUCCESS;
 }
 
 std::vector<unsigned char> generate_PrK_IFD_DHx(
@@ -442,6 +429,11 @@ std::vector<unsigned char> calculate_ID_ICC(
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
 
 	return result_buffer;
 }

@@ -31,7 +31,7 @@ ECARD_STATUS ePAClientProtocol::PACE(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	// Run the PACE protocol.
 	if (ECARD_SUCCESS != (status_ = ePAPerformPACE(ePA_, pace_input,
@@ -60,7 +60,7 @@ ECARD_STATUS ePAClientProtocol::TerminalAuthentication(
 		return ECARD_ERROR;
 
 	// Try to get ePA card
-	Bundesdruckerei::nPA::ePACard &ePA_ = dynamic_cast<Bundesdruckerei::nPA::ePACard &>(*m_hCard);
+	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
 
 	// Run the CA protocol.
 	return ePAPerformTA(ePA_, carCVCA_, list_certificates, terminalCertificate,

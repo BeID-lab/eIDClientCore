@@ -6,7 +6,6 @@
 #include "nPAStatus.h"
 #include "nPACard.h"
 #include <debug.h>
-using namespace Bundesdruckerei::nPA;
 
 #include "nPACommon.h"
 #include "eidasn1/eIDHelper.h"

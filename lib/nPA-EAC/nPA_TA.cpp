@@ -6,7 +6,6 @@
 #include "nPAStatus.h"
 #include "nPACard.h"
 #include <debug.h>
-using namespace Bundesdruckerei::nPA;
 
 #include "eCardCore/ICard.h"
 #include <SecurityInfos.h>

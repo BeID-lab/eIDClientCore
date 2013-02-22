@@ -6,6 +6,7 @@
 #define __IREADERMANAGER_INCLUDED__
 
 #include "IReader.h"
+#include "eCardTypes.h"
 
 #include <string>
 #include <vector>
