@@ -1,8 +1,8 @@
 bin_PROGRAMS = Test_nPAClientLib
 
-noinst_HEADERS = url.h
+noinst_HEADERS = url.h eidui_cli.h
 
-Test_nPAClientLib_SOURCES = Test_nPAClientLib.cpp
+Test_nPAClientLib_SOURCES = Test_nPAClientLib.cpp eidui_cli.cpp
 Test_nPAClientLib_CXXFLAGS = $(EXPAT_CFLAGS) \
 							 -I$(top_srcdir)/lib/eIDClientConnection \
 							 -I$(top_srcdir)/lib/eIDClientCore
