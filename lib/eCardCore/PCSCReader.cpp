@@ -317,6 +317,12 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
 		case 0xF0100001:
 			eCardCore_warn(DEBUG_LEVEL_CARD, "Kommunikationsabbruch mit Karte.");
 			throw PACEException();
+		case 0xF0026283:
+			eCardCore_warn(DEBUG_LEVEL_CARD, "Die eID-PIN ist deaktiviert.");
+			throw PACEException("0xF0026283");
+		case 0xF0200001:
+			eCardCore_warn(DEBUG_LEVEL_CARD, "Benutzerabbruch");
+			throw PACEException();
 		default:
 			eCardCore_warn(DEBUG_LEVEL_CARD, "Reader reported some error: %0X.", result);
 			throw PACEException();

@@ -200,7 +200,17 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 	try {
 		error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription);
 
-	} catch (...) {
+	}
+	catch(PACEException exc)
+	{
+		//Sad Hack until we get rid of the exceptions or use them in the whole code
+		if(!strcmp("0xF0026283", exc.what()))
+		{
+			return ECARD_PIN_DEACTIVATED;
+		}
+		return NPACLIENT_ERROR_PACE_FAILED;
+	}
+	catch (...) {
 		return NPACLIENT_ERROR_PACE_FAILED;
 	}
 

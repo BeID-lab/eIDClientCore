@@ -41,8 +41,18 @@ class TransactionFailed : public ReaderException
 };
 class PACEException : public ReaderException
 {
+private:
+	const string m_errMsg;
+
+public:
+	PACEException(const char * errorMessage) :
+	m_errMsg(errorMessage)
+	{}
+	PACEException() {
+		PACEException("PACE failed");
+	}
 		const char *what() const throw() {
-			return "PACE failed";
+			return m_errMsg.c_str();
 		}
 };
 
