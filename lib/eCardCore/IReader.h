@@ -48,6 +48,8 @@ public:
 	PACEException(const char * errorMessage) :
 	m_errMsg(errorMessage)
 	{}
+	~PACEException() throw()
+	{}
 	PACEException() {
 		PACEException("PACE failed");
 	}
