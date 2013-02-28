@@ -175,8 +175,10 @@ ECARD_STATUS __STDCALL__ process_PACE_Step_B(
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL) {
 		if ((rapdu.getSW() >> 4) == 0x63C) {
 			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "%u tries left.", rapdu.getSW() & 0xf);
+		} else if(rapdu.getSW() == 0x6283) {
+			eCardCore_warn(DEBUG_LEVEL_CARD, "The password (eID-Function) is deactivated.");
 		} else {
-			return ECARD_PACE_STEP_B_FAILED;
+			return ECARD_PIN_DEACTIVATED;
 		}
 	}
 

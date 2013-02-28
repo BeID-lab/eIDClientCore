@@ -317,6 +317,12 @@ parse_EstablishPACEChannel_OutputData(BYTE *output, size_t output_length)
 		case 0xF0100001:
 			eCardCore_warn(DEBUG_LEVEL_CARD, "Kommunikationsabbruch mit Karte.");
 			throw PACEException();
+		case 0xF0026283:
+			eCardCore_warn(DEBUG_LEVEL_CARD, "Die eID-PIN ist deaktiviert.");
+			throw PACEException("0xF0026283");
+		case 0xF0200001:
+			eCardCore_warn(DEBUG_LEVEL_CARD, "Benutzerabbruch");
+			throw PACEException();
 		default:
 			eCardCore_warn(DEBUG_LEVEL_CARD, "Reader reported some error: %0X.", result);
 			throw PACEException();
@@ -447,6 +453,7 @@ PaceOutput PCSCReader::establishPACEChannel(const PaceInput &input) const
 	length_CHAT = (uint8_t) input.get_chat().size();
 	length_PIN = (uint8_t) input.get_pin().size();
 	/* FIXME */
+#define REINERSCT_ACCEPTS_TESTDESCRIPTION 1
 #if REINERSCT_ACCEPTS_TESTDESCRIPTION
 	lengthCertificateDescription = (unsigned int) input.get_certificate_description().size();
 #else

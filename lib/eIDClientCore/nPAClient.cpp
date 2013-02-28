@@ -285,12 +285,10 @@ int fill_vector(const void *buffer, size_t size,
 	const unsigned char *in = (const unsigned char *) buffer;
 
 	if (!v || !in) {
-		printf("%s:%d\n", __FILE__, __LINE__);
 		goto err;
 	}
 
 	while (size) {
-		printf("%s:%d\n", __FILE__, __LINE__);
 		v->push_back(*in);
 		in++;
 		size--;
@@ -305,7 +303,6 @@ bool encode_CertificateHolderAuthorizationTemplate_t(const struct chat *chat_in,
 {
 	bool r = false;
 	CertificateHolderAuthorizationTemplate_t chat_tmp;
-	//chat_tmp.authTerminalID = {NULL, 0}; //Doesnt work with Windows?
 	chat_tmp.authTerminalID.buf = NULL;
 	chat_tmp.authTerminalID.size = 0;
 	unsigned char buf[5] = {0, 0, 0, 0, 0};
