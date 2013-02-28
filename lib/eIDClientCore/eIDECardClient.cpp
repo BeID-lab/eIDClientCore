@@ -111,6 +111,7 @@ eIdECardClient::eIdECardClient(CharMap *paraMap)
 
 eIdECardClient::~eIdECardClient(void)
 {
+	this->close();
 	m_instance = 0x00;
 }
 
@@ -137,6 +138,7 @@ bool eIdECardClient::open(void)
  */
 bool eIdECardClient::close()
 {
+	//Todo: Add Error Checking
 	EndConnection();
 	return true;
 }
@@ -352,6 +354,7 @@ bool eIdECardClient::StartConnection(const char *url, const string &strSessionId
 void eIdECardClient::EndConnection()
 {
 	eIDClientConnectionEnd(m_hConnection);
+	m_hConnection = NULL;
 }
 
 // send a HTTP POST request

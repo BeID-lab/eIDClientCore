@@ -5,6 +5,8 @@
 #if !defined(__NPACLIENTLIB_INCLUDED__)
 #define __NPACLIENTLIB_INCLUDED__
 
+#include "nPA-EAC/nPAStatus.h"
+
 typedef unsigned long NPACLIENT_ERROR;
 
 #define NPACLIENT_ERROR_SUCCESS         (NPACLIENT_ERROR) 0x00000000

@@ -200,7 +200,17 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAPerformPACE(
 	try {
 		error = pnPAClient->performPACE(password, chatSelectedByUser, certificateDescription);
 
-	} catch (...) {
+	}
+	catch(PACEException exc)
+	{
+		//Sad Hack until we get rid of the exceptions or use them in the whole code
+		if(!strcmp("0xF0026283", exc.what()))
+		{
+			return ECARD_PIN_DEACTIVATED;
+		}
+		return NPACLIENT_ERROR_PACE_FAILED;
+	}
+	catch (...) {
 		return NPACLIENT_ERROR_PACE_FAILED;
 	}
 
@@ -385,7 +395,13 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 	   	{p, 0}
    	};
 
-	fnUserInteractionCallback(&description, &input);
+	error = fnUserInteractionCallback(&description, &input);
+	if (error != NPACLIENT_ERROR_SUCCESS) {
+		// We have to call this here, because  we have to free all the allocated resources.
+		nPAFinalizeProtocol(hnPAClient);
+		return error;
+	}
+
 	error = nPAPerformPACE(hnPAClient, &input.pin, &input.chat_selected, &certificateDescriptionRaw);
 	fnCurrentStateCallback(NPACLIENT_STATE_PACE_PERFORMED, error);
 

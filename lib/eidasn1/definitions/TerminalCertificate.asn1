@@ -6,10 +6,17 @@ CVCertTest DEFINITIONS ::=
 
 BEGIN
 
+/* FIXME. should better use dh *and* ecdh public keys. see BSI TR-03110 */
 PublicKey ::= [APPLICATION 73] IMPLICIT SEQUENCE {
 	pkID 			OBJECT IDENTIFIER,
-	pKey			ANY DEFINED BY pkID
-} 
+	domParaP		[1] ANY DEFINED BY pkID OPTIONAL,
+	domParaA		[2] ANY DEFINED BY pkID OPTIONAL,
+	domParaB		[3] ANY DEFINED BY pkID OPTIONAL,
+	domParaG		[4] ANY DEFINED BY pkID OPTIONAL,
+	domParaR		[5] ANY DEFINED BY pkID OPTIONAL,
+	domParaY		[6] ANY DEFINED BY pkID OPTIONAL,
+	domParaC		[7] ANY DEFINED BY pkID OPTIONAL
+}
 
 CertificateHolderAuthorizationTemplate ::= [APPLICATION 76] IMPLICIT SEQUENCE {
 	authTerminalID		OBJECT IDENTIFIER,
