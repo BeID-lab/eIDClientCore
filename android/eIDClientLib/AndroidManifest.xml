@@ -1,0 +1,12 @@
+<!--
+-	 Copyright (C) 2013 Bundesdruckerei GmbH
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="de.bdr.eidclient"
+    android:versionCode="1"
+    android:versionName="0.1" >
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="17" />
+</manifest>

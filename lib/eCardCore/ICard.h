@@ -39,21 +39,21 @@ class ICard: public Transceiver<CAPDU, RAPDU>
 		bool selectMF(void);
 		bool selectDF(unsigned short FID);
 		bool selectEF(unsigned short FID);
-		bool selectEF(unsigned short FID, vector<unsigned char>& fcp);
+		bool selectEF(unsigned short FID, std::vector<unsigned char>& fcp);
 
-		bool readFile(vector<unsigned char>& result);
-		bool readFile(unsigned char sfid, size_t chunk_size, vector<unsigned char>& result);
+		bool readFile(std::vector<unsigned char>& result);
+		bool readFile(unsigned char sfid, size_t chunk_size, std::vector<unsigned char>& result);
 
 		virtual RAPDU transceive(const CAPDU& cmd);
 		virtual std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 
-		const IReader *getSubSystem(void) const;
+		IReader *getSubSystem(void) const;
 
 		// -------------------------------------------------------------------------
 		// Pure virtuals
 		// -------------------------------------------------------------------------
 
-		virtual string getCardDescription(void) = 0;
+		virtual std::string getCardDescription(void) = 0;
 
 }; // class ICard
 

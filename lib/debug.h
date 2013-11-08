@@ -20,6 +20,12 @@ extern "C" {
 #define DEBUG_LEVEL_ALL    (DEBUG_LEVEL_APDU|DEBUG_LEVEL_CRYPTO|DEBUG_LEVEL_SSL|DEBUG_LEVEL_PAOS|DEBUG_LEVEL_CARD|DEBUG_LEVEL_CLIENT)
 #define USED_DEBUG_LEVEL DEBUG_LEVEL_ALL
 
+#ifdef __ANDROID__
+/* stlport doesn't provide vector.data() */
+#define DATA(v) (v.size()?&v[0]:NULL)
+#else
+#define DATA(v) (v.data())
+#endif
 
 #define hexdump(level, caption, buffer, length) { \
 		if (level & USED_DEBUG_LEVEL) _hexdump(caption, buffer, length); }
@@ -34,17 +40,25 @@ extern "C" {
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdlib.h>
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+#include <windows.h>
+#endif
 
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 #include <windows.h>
 #define my_puts(s) { OutputDebugStringA(s); OutputDebugStringA("\n"); }
 #else
-#define my_puts(s) puts(s)
+#define my_puts(s) { puts(s);fflush(stdout); }
 #endif
 
 
 #define BYTES_PER_LINE 16
 #define ADDRESS_LENGTH 8
+#define BUFFERSIZE 16384
 
 	static void _hexdump(const char *const caption,
 						 const void *const buffer, size_t length)
@@ -149,27 +163,67 @@ extern "C" {
 
 	static void _eCardCore_info(const char *format, ...)
 	{
+
 		va_list params;
+		char newMessage[BUFFERSIZE];
+		int rlen = 0;
 		va_start(params, format);
-		char newMessage[4096];
-		vsprintf(newMessage, format, params);
-		my_puts(newMessage);
+
+		rlen = vsnprintf(newMessage, BUFFERSIZE, format, params);
+		if(rlen >= BUFFERSIZE)
+		{
+			/*Buffer is too small, have to dynamically alocate more memory*/
+			char * dynMessage = (char*) malloc(rlen + 1);
+			vsnprintf(dynMessage, rlen + 1, format , params);
+			my_puts(dynMessage);
+			free(dynMessage);
+		}
+		else
+		{
+			my_puts(newMessage);
+		}
 	}
 	static void _eCardCore_warn(const char *format, ...)
 	{
 		va_list params;
+		char newMessage[BUFFERSIZE];
+		int rlen = 0;
 		va_start(params, format);
-		char newMessage[4096];
-		vsprintf(newMessage, format, params);
-		my_puts(newMessage);
+
+		rlen = vsnprintf(newMessage, BUFFERSIZE, format, params);
+		if(rlen >= BUFFERSIZE)
+		{
+			/*Buffer is too small, have to dynamically alocate more memory*/
+			char * dynMessage = (char*) malloc(rlen + 1);
+			vsnprintf(dynMessage, rlen + 1, format , params);
+			my_puts(dynMessage);
+			free(dynMessage);
+		}
+		else
+		{
+			my_puts(newMessage);
+		}
 	}
 	static void _eCardCore_debug(const char *format, ...)
 	{
 		va_list params;
+		char newMessage[BUFFERSIZE];
+		int rlen = 0;
 		va_start(params, format);
-		char newMessage[4096];
-		vsprintf(newMessage, format, params);
-		my_puts(newMessage);
+
+		rlen = vsnprintf(newMessage, BUFFERSIZE, format, params);
+		if(rlen >= BUFFERSIZE)
+		{
+			/*Buffer is too small, have to dynamically alocate more memory*/
+			char * dynMessage = (char*) malloc(rlen + 1);
+			vsnprintf(dynMessage, rlen + 1, format , params);
+			my_puts(dynMessage);
+			free(dynMessage);
+		}
+		else
+		{
+			my_puts(newMessage);
+		}
 	}
 
 

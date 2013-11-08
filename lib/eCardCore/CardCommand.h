@@ -5,11 +5,10 @@
 #if !defined(__CARDCOMMAND_INCLUDED__)
 #define __CARDCOMMAND_INCLUDED__
 
+#include <cstdlib>
 #include <vector>
 
-using namespace std;
-
-class APDUException : public exception
+class APDUException : public std::exception
 { };
 class BufferTooLong : public APDUException
 {
@@ -55,10 +54,10 @@ class CAPDU
 		unsigned char m_INS;
 		unsigned char m_P1;
 		unsigned char m_P2;
-		vector<unsigned char> m_data;
+		std::vector<unsigned char> m_data;
 		size_t m_Ne;
 
-		vector<unsigned char> encodeLength(size_t length, bool extendedOnThreeBytes) const;
+		std::vector<unsigned char> encodeLength(size_t length, bool extendedOnThreeBytes) const;
 		size_t decodeLength(const unsigned char *const len, bool isExtended, bool extendedOnThreeBytes) const;
 
 	public:
@@ -72,17 +71,18 @@ class CAPDU
 		static const unsigned char CLA_CHAINING       = 0x10;
 
 		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2);
-		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2, vector<unsigned char> data);
-		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2, vector<unsigned char> data, size_t ne);
-		CAPDU(const vector<unsigned char> capdu);
+		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2, std::vector<unsigned char> data);
+		CAPDU(unsigned char cla, unsigned char ins, unsigned char p1, unsigned char p2, std::vector<unsigned char> data, size_t ne);
+		CAPDU(const std::vector<unsigned char> capdu);
 
-		void appendData(unsigned char b);
-		void appendData(const vector<unsigned char> data);
+        void appendData(unsigned char b);
+		//Copies of the elements in the range [first,last) are appended
+		void appendData(std::vector<unsigned char>::const_iterator first, std::vector<unsigned char>::const_iterator last);
 
 		bool isExtended(void) const;
 		bool isSecure(void) const;
 		bool isShort(void) const;
-		void setData(const vector<unsigned char> data);
+		void setData(const std::vector<unsigned char> data);
 		void setCLA(unsigned char cla);
 		void setP1(unsigned char p1);
 		void setP2(unsigned char p2);
@@ -92,10 +92,10 @@ class CAPDU
 		unsigned char getP1(void) const;
 		unsigned char getP2(void) const;
 		size_t getNe(void) const;
-		const vector<unsigned char> getData(void) const;
-		vector<unsigned char> encodedLc(void) const;
-		vector<unsigned char> encodedLe(void) const;
-		vector<unsigned char> asBuffer(void) const;
+		const std::vector<unsigned char>& getData(void) const;
+		std::vector<unsigned char> encodedLc(void) const;
+		std::vector<unsigned char> encodedLe(void) const;
+		std::vector<unsigned char> asBuffer(void) const;
 };
 
 class SelectFile : public CAPDU
@@ -242,7 +242,7 @@ class Verify : public SecurityCAPDU
 class RAPDU
 {
 	private:
-		vector<unsigned char> m_data;
+		std::vector<unsigned char> m_data;
 		unsigned char m_sw1;
 		unsigned char m_sw2;
 
@@ -254,9 +254,9 @@ class RAPDU
 
 		static const unsigned short ISO_SW_NORMAL      = 0x9000;
 
-		RAPDU(const vector<unsigned char> rapdu);
-		RAPDU(const vector<unsigned char> rdata, unsigned short sw);
-		RAPDU(const vector<unsigned char> rdata, unsigned char sw1, unsigned char sw2);
+		RAPDU(const std::vector<unsigned char> rapdu);
+		RAPDU(const std::vector<unsigned char> rdata, unsigned short sw);
+		RAPDU(const std::vector<unsigned char> rdata, unsigned char sw1, unsigned char sw2);
 
 		RAPDU(unsigned char sw1, unsigned char sw2);
 		RAPDU(unsigned short sw);
@@ -264,8 +264,8 @@ class RAPDU
 		unsigned char getSW1(void) const;
 		unsigned char getSW2(void) const;
 		unsigned short getSW(void) const;
-		const vector<unsigned char>& getData(void) const;
-		vector<unsigned char> asBuffer(void) const;
+		const std::vector<unsigned char>& getData(void) const;
+		std::vector<unsigned char> asBuffer(void) const;
 		bool isOK(void) const;
 };
 

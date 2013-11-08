@@ -18,7 +18,12 @@ using namespace Bundesdruckerei::eIDUtils;
 #include "nPA-EAC/nPACard.h"
 
 #include <debug.h>
+#ifndef DISABLE_PCSC
 #include "eCardCore/PCSCManager.h"
+#endif
+#ifndef DISABLE_EXTERNAL
+#include "eCardCore/ExternalManager.h"
+#endif
 
 nPAClient *nPAClient::m_instance = 0x00;
 
@@ -110,7 +115,19 @@ NPACLIENT_ERROR nPAClient::initialize(
 	// Connect to the underlying smart card system.
 	switch (usedProtocol) {
 		case PROTOCOL_PCSC: {
+#ifdef DISABLE_PCSC
+				return ECARD_PROTOCOL_UNKNOWN;
+#else
 				m_hSystem = new PCSCManager();
+#endif
+			}
+			break;
+		case PROTOCOL_EXTERNAL: {
+#ifdef DISABLE_EXTERNAL
+				return ECARD_PROTOCOL_UNKNOWN;
+#else
+				m_hSystem = new ExternalManager();
+#endif
 			}
 			break;
 		default: {
@@ -160,7 +177,7 @@ NPACLIENT_ERROR nPAClient::initialize(
 			ePACounter++;
 			eCardCore_info(DEBUG_LEVEL_CLIENT, "Found %s", m_hCard->getCardDescription().c_str());
 			vector<unsigned char> atr = readers[i]->getATRForPresentCard();
-			hexdump(DEBUG_LEVEL_CLIENT, "Answer-to-Reset (ATR):", atr.data(),
+			hexdump(DEBUG_LEVEL_CLIENT, "Answer-to-Reset (ATR):", DATA(atr),
 					atr.size());
 
 		} else
@@ -649,7 +666,7 @@ NPACLIENT_ERROR nPAClient::performPACE(
 	if (Unauthenticated != m_protocolState)
 		return NPACLIENT_ERROR_INVALID_PROTOCOL_STATE;
 
-	std::vector<unsigned char> passwordInput;
+	PaceInput pace_input;
 
 	if (!chatSelectedByUser)
 		return NPACLIENT_ERROR_INVALID_PARAMETER2;
@@ -660,17 +677,20 @@ NPACLIENT_ERROR nPAClient::performPACE(
 	// Actually we running the PACE protocol
 	m_protocolState = PACE_Running;
 
+	/* FIXME use an other type of secret... */
+	pace_input.set_pin_id(PaceInput::pin);
 	if (password)
-		passwordInput = std::vector<unsigned char> (password->pDataBuffer,
-						password->pDataBuffer + password->bufferSize);
+		pace_input.set_pin(std::vector<unsigned char> (password->pDataBuffer,
+					password->pDataBuffer + password->bufferSize));
 
-	std::vector<unsigned char> certificateDescriptionInput
-	(certificateDescription->pDataBuffer,
-	 certificateDescription->pDataBuffer + certificateDescription->bufferSize);
+	pace_input.set_certificate_description(std::vector<unsigned char>
+			(certificateDescription->pDataBuffer,
+			 certificateDescription->pDataBuffer + certificateDescription->bufferSize));
+
 	if (!encode_CertificateHolderAuthorizationTemplate_t(chatSelectedByUser, m_chatUsed))
 		return NPACLIENT_ERROR_INVALID_PARAMETER2;
-	PaceInput pace_input = PaceInput(PaceInput::pin, passwordInput, m_chatUsed,
-									 certificateDescriptionInput);
+	pace_input.set_chat(m_chatUsed);
+
 	// Running the protocol
 	ECARD_STATUS status = ECARD_SUCCESS;
 

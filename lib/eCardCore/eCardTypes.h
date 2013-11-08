@@ -5,7 +5,7 @@
 #if !defined(__ECARDTYPES_INCLUDED__)
 #define __ECARDTYPES_INCLUDED__
 
-#include <stddef.h>
+#include <cstddef>
 
 typedef unsigned char BYTE;
 typedef BYTE *PBYTE;
@@ -35,6 +35,7 @@ typedef void *LPVOID;
  */
 enum ECARD_PROTOCOL {
 	PROTOCOL_PCSC,
+	PROTOCOL_EXTERNAL,
 };
 
 #endif

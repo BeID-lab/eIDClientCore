@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.65])
-AC_INIT([eIDClientCore], [0.1])
+AC_INIT([eIDClientCore], [0.2])
 AC_CONFIG_SRCDIR([bin/Test_nPAClientLib/Test_nPAClientLib.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -13,9 +13,11 @@ ifdef(
 	[LT_INIT],
 	[
 		LT_INIT([win32-dll])
+        LT_LANG([Windows Resource])
 	],
 	[
 		AC_LIBTOOL_WIN32_DLL
+        AC_LIBTOOL_RC
 		AC_PROG_LIBTOOL
 	]
 )
@@ -23,8 +25,12 @@ ifdef(
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PATH_PROG(ASN1C, asn1c, false // Could not find asn1c //)
-AC_PATH_PROG(WGET, wget, false // Could not find wget //)
+AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
+AX_PTHREAD([], AC_MSG_ERROR([pthread required])])
+AX_CHECK_OPENSSL([AC_MSG_NOTICE([openssl found])], [AC_MSG_WARN([openssl not found])])
+LIBCURL_CHECK_CONFIG()
 
 # If you need to see the details, just run make V=1.
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -38,30 +44,9 @@ PKG_CHECK_EXISTS([libcrypto++],
 PKG_CHECK_EXISTS([expat],
                  [PKG_CHECK_MODULES([EXPAT], [expat])],
                  [AC_MSG_WARN([expat not found by pkg-config])])
-if test -z "$EXPAT_LIBS"
-then
-    EXPAT_LIBS="-lexpat"
-fi
-# Checks for libraries.
 PKG_CHECK_EXISTS([libpcsclite],
                  [PKG_CHECK_MODULES([PCSC], [libpcsclite])],
                  [AC_MSG_WARN([libpcsclite not found by pkg-config])])
-
-AC_ARG_WITH(
-    [static-gnutls],
-    [AS_HELP_STRING([--without-static-gnutls],[build and statically link against a patched version of GnuTLS])],
-    ,
-    [with_static_gnutls="yes"]
-)
-if test "${with_static_gnutls}" = yes
-then
-    BUILD_GNUTLS=yes
-else
-    BUILD_GNUTLS=no
-    PKG_CHECK_EXISTS([gnutls],
-                     [PKG_CHECK_MODULES([GNUTLS], [gnutls])],
-                     [AC_MSG_WARN([gnutls not found by pkg-config])])
-fi
 
 
 AC_ARG_WITH(
@@ -94,6 +79,81 @@ case "${host}" in
     ;;
 esac
 
+if test "${WIN32}" = "yes"; then
+    if test -z "PCSC_LIBS"; then
+        PCSC_LIBS="-lwinscard"
+    fi
+else
+    AC_CHECK_LIB([dl],
+                 [dlopen],
+                 ,
+                 [AC_MSG_ERROR([libdl required])])
+fi
+
+saved_CPPFLAGS="$CPPFLAGS"
+saved_LIBS="$LIBS"
+CPPFLAGS="$CPPFLAGS $PCSC_CFLAGS"
+LIBS="$LDFLAGS $PCSC_LIBS"
+
+DISABLE_PCSC=no
+AC_CHECK_HEADERS(winscard.h, [],
+                 [
+                  AC_MSG_WARN([disabling PC/SC backend])
+                  AC_DEFINE([DISABLE_PCSC], [1], [Define if PC/SC readers are disabled.])
+                  DISABLE_PCSC=yes
+                 ])
+
+AC_MSG_CHECKING([for SCardTransmit])
+AC_TRY_LINK_FUNC(SCardTransmit,
+                 [AC_MSG_RESULT([yes])],
+                 [
+                  AC_MSG_WARN([disabling PC/SC backend])
+                  AC_DEFINE([DISABLE_PCSC], [1], [Define if PC/SC readers are disabled.])
+                  DISABLE_PCSC=yes
+                 ])
+AM_CONDITIONAL([DISABLE_PCSC], [test "${DISABLE_PCSC}" = "yes"])
+
+AC_ARG_ENABLE([reader-external],
+              [AS_HELP_STRING([--enable-reader-external],[enable External Reader @<:@default=no@:>@])],
+              ,
+              [enable_reader_external="no"])
+AM_CONDITIONAL([DISABLE_EXTERNAL], [test "${enable_reader_external}" = "no"])
+if test "${enable_reader_external}" = "no"
+then
+    AC_DEFINE([DISABLE_EXTERNAL], [1], [Define if External reader is disabled.])
+fi
+
+CPPFLAGS="$saved_CPPFLAGS"
+LIBS="$saved_LIBS"
+
+
+saved_CPPFLAGS="$CPPFLAGS"
+saved_LIBS="$LIBS"
+CPPFLAGS="$CPPFLAGS $EIDGUI_CFLAGS"
+LIBS="$LDFLAGS $EIDGUI_LIBS"
+
+AC_CHECK_HEADERS(eIDmfcUI.h, [],
+                 [
+                  AC_MSG_WARN([disabling eID GUI])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  DISABLE_EIDGUI=yes
+                 ])
+
+AC_MSG_CHECKING([for eIDmfcUIdoPace])
+AC_TRY_LINK_FUNC(eIDmfcUIdoPace,
+                 [
+                  AC_MSG_RESULT([yes])
+                 ],
+                 [
+                  AC_MSG_RESULT([no])
+                  AC_MSG_WARN([disabling eID GUI])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  DISABLE_EIDGUI=yes
+                 ])
+AM_CONDITIONAL([DISABLE_EIDGUI], [test "${DISABLE_EIDGUI}" = "yes"])
+
+CPPFLAGS="$saved_CPPFLAGS"
+LIBS="$saved_LIBS"
 
 # Checks for header files.
 AC_CHECK_HEADERS([netdb.h stdlib.h])
@@ -110,37 +170,46 @@ AC_TYPE_UINT32_T
 AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_CHECK_FUNCS([memset select socket strchr strdup strerror strstr strtoul])
+#AC_CHECK_DECL(pthread_cancel,,, [#include <pthread.h>])
 
 
 AM_CONDITIONAL([WIN32], [test "${WIN32}" = "yes"])
-AM_CONDITIONAL([BUILD_GNUTLS], [test "${BUILD_GNUTLS}" = "yes"])
-
 
 cat << EOF
 
 ${PACKAGE} has been configured with following options:
 
-Version:              ${PACKAGE_VERSION}
-User binaries:        $(eval eval eval echo "${bindir}")
-Libraries:            $(eval eval eval echo "${libdir}")
-Configuration files:  $(eval eval eval echo "${sysconfdir}")
+Version:                   ${PACKAGE_VERSION}
+User binaries:             $(eval eval eval echo "${bindir}")
+Libraries:                 $(eval eval eval echo "${libdir}")
+Configuration files:       $(eval eval eval echo "${sysconfdir}")
 
 
-Host:                 ${host}
-Compiler:             ${CXX}
-Preprocessor flags:   ${CPPFLAGS}
-Compiler flags:       ${CFLAGS}
-Linker flags:         ${LDFLAGS}
-Libraries:            ${LIBS}
-PCSC_CFLAGS:          ${PCSC_CFLAGS}
-PCSC_LIBS:            ${PCSC_LIBS}
-EXPAT_CFLAGS:         ${EXPAT_CFLAGS}
-EXPAT_LIBS:           ${EXPAT_LIBS}
-CRYPTOPP_CFLAGS:      ${CRYPTOPP_CFLAGS}
-CRYPTOPP_LIBS:        ${CRYPTOPP_LIBS}
-Build GnuTLS:         ${BUILD_GNUTLS}
-GNUTLS_CFLAGS:        ${GNUTLS_CFLAGS}
-GNUTLS_LIBS:          ${GNUTLS_LIBS}
+Host:                      ${host}
+Compiler:                  ${CXX}
+Preprocessor flags:        ${CPPFLAGS}
+Compiler flags:            ${CFLAGS}
+Linker flags:              ${LDFLAGS}
+Libraries:                 ${LIBS}
+PTHREAD_LIBS:              ${PTHREAD_LIBS}
+PTHREAD_CFLAGS:            ${PTHREAD_CFLAGS}
+PTHREAD_CC:                ${PTHREAD_CC}
+PCSC_CFLAGS:               ${PCSC_CFLAGS}
+PCSC_LIBS:                 ${PCSC_LIBS}
+EXPAT_CFLAGS:              ${EXPAT_CFLAGS}
+EXPAT_LIBS:                ${EXPAT_LIBS}
+CRYPTOPP_CFLAGS:           ${CRYPTOPP_CFLAGS}
+CRYPTOPP_LIBS:             ${CRYPTOPP_LIBS}
+OPENSSL_INCLUDES:          ${OPENSSL_INCLUDES}
+OPENSSL_LIBS:              ${OPENSSL_LIBS}
+OPENSSL_LDFLAGS:           ${OPENSSL_LDFLAGS}
+LIBCURL:                   ${LIBCURL}
+LIBCURL_CPPFLAGS:          ${LIBCURL_CPPFLAGS}
+ASN1C:                     ${ASN1C}
+
+eID GUI disabled:          ${DISABLE_EIDGUI}
+PC/SC reader disabled:     ${DISABLE_PCSC}
+External reader enabled:   ${enable_reader_external}
 
 EOF
 

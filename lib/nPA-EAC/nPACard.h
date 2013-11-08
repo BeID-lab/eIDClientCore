@@ -74,10 +74,10 @@ class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 		CAPDU applySM(const CAPDU &apdu);
 		RAPDU removeSM(const RAPDU &apdu);
 
-		string getCardDescription(void);
+		std::string getCardDescription(void);
 
-		const vector<unsigned char> get_ef_cardaccess(void) const;
-		const vector<unsigned char> get_ef_cardsecurity(void);
+		const std::vector<unsigned char>& get_ef_cardaccess(void) const;
+		const std::vector<unsigned char>& get_ef_cardsecurity(void);
 
 		RAPDU receive(void);
 		std::vector<RAPDU> receive(size_t count);
@@ -86,9 +86,9 @@ class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 		void send(const std::vector<CAPDU> &cmds);
 
 		RAPDU transceive(const CAPDU& cmd);
-		vector<RAPDU> transceive(const vector<CAPDU>& cmds);
+		std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 
-		void setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac);
+		void setKeys(std::vector<unsigned char>& kEnc, std::vector<unsigned char>& kMac);
         void setSSC(unsigned long long ssc);
 };
 

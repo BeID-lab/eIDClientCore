@@ -22,7 +22,7 @@ void ICard::debug_CAPDU(const char *label, const CAPDU& capdu) const
 			label, label ? " " : "", capdu.getCLA(), capdu.getINS(), capdu.getP1(),
 			capdu.getP2(), capdu.getData().size(), capdu.getNe());
 	hexdump(DEBUG_LEVEL_APDU, NULL,
-			capdu.getData().data(), capdu.getData().size());
+			DATA(capdu.getData()), capdu.getData().size());
 }
 
 void ICard::debug_RAPDU(const char *label, const RAPDU& rapdu) const
@@ -31,15 +31,15 @@ void ICard::debug_RAPDU(const char *label, const RAPDU& rapdu) const
 			label, label ? " " : "", rapdu.getSW(), rapdu.getData().size());
 	if (!rapdu.getData().empty())
 		hexdump(DEBUG_LEVEL_APDU, NULL,
-				rapdu.getData().data(), rapdu.getData().size());
+				DATA(rapdu.getData()), rapdu.getData().size());
 }
 
 std::vector<std::vector<unsigned char> >
 ICard::get_buffers(std::vector<CAPDU> apdus)
 {
-	vector<vector<unsigned char> > buffers;
+	std::vector<std::vector<unsigned char> > buffers;
 
-	for (vector<CAPDU>::const_iterator i = apdus.begin(); i < apdus.end(); ++i) {
+	for (std::vector<CAPDU>::const_iterator i = apdus.begin(); i < apdus.end(); ++i) {
 		debug_CAPDU("Outgoing", *i);
 		buffers.push_back(i->asBuffer());
 	}
@@ -50,9 +50,9 @@ ICard::get_buffers(std::vector<CAPDU> apdus)
 std::vector<RAPDU>
 ICard::get_rapdus(std::vector<std::vector<unsigned char> > buffers)
 {
-	vector<RAPDU> rapdus;
+	std::vector<RAPDU> rapdus;
 
-	for (vector<std::vector<unsigned char> >::const_iterator i = buffers.begin(); i < buffers.end(); ++i) {
+	for (std::vector<std::vector<unsigned char> >::const_iterator i = buffers.begin(); i < buffers.end(); ++i) {
 		RAPDU rapdu(*i);
 		debug_RAPDU("Incoming", rapdu);
 		rapdus.push_back(rapdu);
@@ -76,7 +76,7 @@ std::vector<RAPDU> ICard::transceive(const std::vector<CAPDU> &cmds)
 	return get_rapdus(m_subSystem->transceive(get_buffers(cmds)));
 }
 
-const IReader *ICard::getSubSystem(void) const
+IReader *ICard::getSubSystem(void) const
 {
 	return m_subSystem;
 }
@@ -99,7 +99,7 @@ bool ICard::selectEF(
 
 bool ICard::selectEF(
 	unsigned short FID,
-	vector<unsigned char>& fcp)
+	std::vector<unsigned char>& fcp)
 {
 	SelectFile select(SelectFile::P1_SELECT_EF, SelectFile::P2_FCP_TEMPLATE, FID);
 	select.setNe(CAPDU::DATA_SHORT_MAX);
@@ -119,7 +119,7 @@ bool ICard::selectDF(
 bool ICard::readFile(
 	unsigned char sfid,
 	size_t chunk_size,
-	vector<unsigned char>& result)
+	std::vector<unsigned char>& result)
 {
 	ReadBinary read = ReadBinary(0, sfid);
 	read.setNe(chunk_size);
@@ -143,7 +143,7 @@ bool ICard::readFile(
 }
 
 bool ICard::readFile(
-	vector<unsigned char>& result)
+	std::vector<unsigned char>& result)
 {
 	ReadBinary read = ReadBinary();
 	read.setNe(CAPDU::DATA_EXTENDED_MAX);

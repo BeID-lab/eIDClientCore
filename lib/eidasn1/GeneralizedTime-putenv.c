@@ -67,7 +67,7 @@ static struct tm *gmtime_r(const time_t *tloc, struct tm *result) {
 #define	GMTOFF(tm)	(-timezone)
 #endif	/* HAVE_TM_GMTOFF */
 
-#if	(defined(_EMULATE_TIMEGM) || !defined(HAVE_TM_GMTOFF))
+#if	((defined(_EMULATE_TIMEGM) || !defined(HAVE_TM_GMTOFF)) && !defined(_WIN32))
 #warning "PLEASE STOP AND READ!"
 #warning "  timegm() is implemented via getenv(\"TZ\")/setenv(\"TZ\"), which may be not thread-safe."
 #warning "  "

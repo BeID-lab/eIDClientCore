@@ -17,6 +17,7 @@
 #include <cryptopp-5.6.0/integer.h>
 #include <cryptopp-5.6.0/ecp.h> // Elliptic curve over GF(p)
 #include <cryptopp-5.6.0/cmac.h>
+#include <cryptopp-5.6.0/dh.h>
 #else
 // CRYPTOPP includes
 #include <cryptopp/sha.h>
@@ -26,6 +27,7 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/ecp.h> // Elliptic curve over GF(p)
 #include <cryptopp/cmac.h>
+#include <cryptopp/dh.h>
 #endif
 
 USING_NAMESPACE(CryptoPP)
@@ -76,4 +78,7 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 std::vector<unsigned char> calculate_ID_ICC(
 	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char>& PuK_ICC_DH2);
+
+DH get_std_dp_0(void);
+
 #endif

@@ -6,15 +6,14 @@
 using namespace Bundesdruckerei::eIDUtils;
 
 #include <string>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
 
 #include <cstdio>
 
 #if defined(WIN32)
 #   include <windows.h>
 #else
-#include <stdarg.h>
+#include <cstdarg>
 #endif
 
 #if !defined(WIN32)

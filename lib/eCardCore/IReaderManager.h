@@ -10,7 +10,6 @@
 
 #include <string>
 #include <vector>
-using namespace std;
 
 /*!
  * @class IReaderManager
@@ -19,8 +18,8 @@ using namespace std;
 class IReaderManager
 {
 	protected:
-		vector<IReader *> m_readerList;
-		vector<ICardDetector *> m_cardDetectors;
+		std::vector<IReader *> m_readerList;
+		std::vector<ICardDetector *> m_cardDetectors;
 
 	public:
 		/*!
@@ -35,14 +34,14 @@ class IReaderManager
 		virtual ~IReaderManager(
 			void) {
 			// Delete all known readers.
-			for (vector<IReader *>::iterator it = m_readerList.begin();
+			for (std::vector<IReader *>::iterator it = m_readerList.begin();
 				 it != m_readerList.end(); it++) {
 				IReader *reader = *it;
 				delete reader;
 			}
 
 			// Delete all known card detectors
-			for (vector<ICardDetector *>::iterator it = m_cardDetectors.begin();
+			for (std::vector<ICardDetector *>::iterator it = m_cardDetectors.begin();
 				 it != m_cardDetectors.end(); it++) {
 				ICardDetector *detector = *it;
 				delete detector;
@@ -71,15 +70,15 @@ class IReaderManager
 		/*!
 		 *
 		 */
-		vector<IReader *> getReaders(
+		std::vector<IReader *> getReaders(
 			void) { return m_readerList; };
 
 		/*!
 		 *
 		 */
 		IReader *getReader(
-			const string &readerName) {
-			for (vector<IReader *>::iterator it = m_readerList.begin();
+			const std::string &readerName) {
+			for (std::vector<IReader *>::iterator it = m_readerList.begin();
 				 it != m_readerList.end(); it++) {
 				IReader *reader = *it;
 

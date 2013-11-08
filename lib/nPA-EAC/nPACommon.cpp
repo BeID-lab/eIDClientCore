@@ -57,8 +57,8 @@ ECP::Point vector2point(const std::vector<unsigned char> &v)
 	std::vector<unsigned char> yValue_ = get_y(v);
 
 	// Encode the point
-	p.x.Decode(xValue_.data(), xValue_.size());
-	p.y.Decode(yValue_.data(), yValue_.size());
+	p.x.Decode(DATA(xValue_), xValue_.size());
+	p.y.Decode(DATA(yValue_), yValue_.size());
 	p.identity = false;
 
 	return p;
@@ -70,13 +70,13 @@ std::vector<unsigned char> point2vector(const ECP::Point &p)
 
 	std::vector<unsigned char> x_;
 	x_.resize(p.x.ByteCount());
-	p.x.Encode(x_.data(), p.x.ByteCount());
+	p.x.Encode(DATA(x_), p.x.ByteCount());
 	while (x_.size() < 0x20)
 		x_.insert(x_.begin(), 0x00);
 
 	std::vector<unsigned char> y_;
 	y_.resize(p.y.ByteCount());
-	p.y.Encode(y_.data(), p.y.ByteCount());
+	p.y.Encode(DATA(y_), p.y.ByteCount());
 	while (y_.size() < 0x20)
 		y_.insert(y_.begin(), 0x00);
 
@@ -94,9 +94,9 @@ std::vector<unsigned char> calculateMAC(
 	std::vector<unsigned char> result_;
 	result_.resize(toBeMaced.size());
 	CMAC<AES> cmac;
-	cmac.SetKey(kMac.data(), kMac.size());
-	cmac.Update(toBeMaced.data(), toBeMaced.size());
-	cmac.Final(result_.data());
+	cmac.SetKey(DATA(kMac), kMac.size());
+	cmac.Update(DATA(toBeMaced), toBeMaced.size());
+	cmac.Final(DATA(result_));
 	result_.resize(8);
 	return result_;
 }
@@ -108,7 +108,7 @@ std::string getCAR(
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   certificate.data(), certificate.size()).code != RC_OK) {
+				   DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCAR failed ...");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		return car_;
@@ -128,7 +128,7 @@ std::string getCHR(
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   certificate.data(), certificate.size()).code != RC_OK) {
+				   DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCHR failed ...");
 		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 		return chr_;
@@ -141,6 +141,30 @@ std::string getCHR(
 	return chr_;
 }
 
+DH get_std_dp_0(void)
+{
+	Integer p("0xB10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C6"
+			"9A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C0"
+			"13ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD70"
+			"98488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0"
+			"A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708"
+			"DF1FB2BC2E4A4371");
+
+	Integer g("0xA4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507F"
+			"D6406CFF14266D31266FEA1E5C41564B777E690F5504F213"
+			"160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1"
+			"909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28A"
+			"D662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24"
+			"855E6EEB22B3B2E5");
+
+	Integer q("0xF518AA8781A8DF278ABA4E7D64B7CB9D49462353");
+
+	DH dh;
+	dh.AccessGroupParameters().Initialize(p, q, g);
+
+	return dh;
+}
+
 std::vector<unsigned char> generate_PrK_IFD_DHx(
 	const OBJECT_IDENTIFIER_t &OID_)
 {
@@ -149,21 +173,61 @@ std::vector<unsigned char> generate_PrK_IFD_DHx(
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
 
+	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
+
 	std::vector<unsigned char> result;
 	AutoSeededRandomPool rng;
 
 	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
 		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
 		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
+		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_128 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_192 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_256) {
 		result.resize(32);
-		rng.GenerateBlock(result.data(), result.size());
+		rng.GenerateBlock(DATA(result), result.size());
+	} else if (OID_ == PACE_DH_3DES_CBC_CBC ||
+			OID_ == PACE_DH_AES_CBC_CMAC_128 ||
+			OID_ == PACE_DH_AES_CBC_CMAC_192 ||
+			OID_ ==  PACE_DH_AES_CBC_CMAC_256 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_128 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_192 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_256) {
+		DH dh = get_std_dp_0();
+
+		result.resize(dh.PrivateKeyLength());
+		dh.GeneratePrivateKey(rng, DATA(result));
 	}
 
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
 
 	return result;
 }
@@ -172,20 +236,34 @@ std::vector<unsigned char> calculate_PuK_IFD_DH1(
 	const OBJECT_IDENTIFIER_t &OID_,
 	const std::vector<unsigned char>& PrK_IFD_DH1)
 {
-	hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DHx in calculate_PuK_IFD_DHx", (void *) PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
-
 	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
 
 	std::vector<unsigned char> result_buffer;
 
 	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
 		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
 		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256) {
-		Integer k(PrK_IFD_DH1.data(), PrK_IFD_DH1.size());
+		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_128 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_192 ||
+		OID_ ==  CA_ECDH_AES_CBC_CMAC_256) {
+		Integer k(DATA(PrK_IFD_DH1), PrK_IFD_DH1.size());
 		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
 		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
 		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
@@ -196,12 +274,37 @@ std::vector<unsigned char> calculate_PuK_IFD_DH1(
 		ECP::Point result = ecp.Multiply(k, G);
 
 		result_buffer = point2vector(result);
+	} else if (OID_ == PACE_DH_3DES_CBC_CBC ||
+			OID_ == PACE_DH_AES_CBC_CMAC_128 ||
+			OID_ == PACE_DH_AES_CBC_CMAC_192 ||
+			OID_ ==  PACE_DH_AES_CBC_CMAC_256 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_128 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_192 ||
+			OID_ ==  CA_DH_AES_CBC_CMAC_256) {
+		DH dh = get_std_dp_0();
+
+		AutoSeededRandomPool rng;
+		result_buffer.resize(dh.PublicKeyLength());
+		dh.GeneratePublicKey(rng, DATA(PrK_IFD_DH1), DATA(result_buffer));
 	}
 
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
 
 	return result_buffer;
 }
@@ -215,7 +318,7 @@ std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, b
 
   SHA1 H;
 
-  H.Update(input.data(), input.size());
+  H.Update(DATA(input), input.size());
 
   if (true == generateMac)
     H.Update(kmac, 4);
@@ -224,7 +327,7 @@ std::vector<unsigned char> calculate_SMKeys( std::vector<unsigned char> input, b
 
   // Get the first 16 bytes from result
   result.resize(20);
-  H.Final(result.data());
+  H.Final(DATA(result));
   result.resize(16);  
 
   return result;
@@ -238,18 +341,24 @@ std::vector<unsigned char> generate_compressed_PuK(
 	unsigned int tag_pubkey = 0;
 
 	OBJECT_IDENTIFIER_t pace_ecdh = makeOID(id_PACE_ECDH);
+	OBJECT_IDENTIFIER_t pace_dh   = makeOID(id_PACE_DH);
 	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
+	OBJECT_IDENTIFIER_t ca_dh   = makeOID(id_CA_DH);
 	if (pace_ecdh < OID_ || ca_ecdh < OID_) {
 		tag_pubkey = 0x86;
+	} else if (pace_dh < OID_ || ca_dh < OID_) {
+		tag_pubkey = 0x84;
 	}
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &pace_ecdh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &pace_dh, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
 	if (!tag_pubkey) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid pace OID.");
 	}
 
-	do06 = TLV_encode(0x06, vector<unsigned char> (OID_.buf, OID_.buf + OID_.size));
-	do86 = TLV_encode(0x86, PuK_IFD_DH2);
+	do06 = TLV_encode(0x06, std::vector<unsigned char> (OID_.buf, OID_.buf + OID_.size));
+	do86 = TLV_encode(tag_pubkey, PuK_IFD_DH2);
 
 	do06.insert(do06.end(), do86.begin(), do86.end());
 
@@ -259,7 +368,7 @@ std::vector<unsigned char> generate_compressed_PuK(
 std::vector<unsigned char> TLV_encode(unsigned int tag, const std::vector<unsigned char> &data)
 {
 	/* XXX use asn1c instead of doing TLV by hand */
-	vector<unsigned char> encoded, t, l;
+	std::vector<unsigned char> encoded, t, l;
 
 	if (tag == 0x00 || tag == 0xFF)
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid tag.");
@@ -295,8 +404,8 @@ std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
 	/* XXX use asn1c instead of doing TLV by hand */
 	size_t l;
 	unsigned int t;
-	vector<unsigned char> rest;
-	vector<unsigned char>::const_iterator i;
+	std::vector<unsigned char> rest;
+	std::vector<unsigned char>::const_iterator i;
 
 	if (tlv.empty() || !tag)
 		goto err;
@@ -307,7 +416,7 @@ std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
 	i++;
 	if ((t & 0x1F) == 0x1F) {
 		t <<= 8 | i[0];
-		while (i[0] & 0x80 == 0x80) {
+		while ((i[0] & 0x80) == 0x80) {
 			i++;
 			t <<= 8 | i[0];
 		}
@@ -333,11 +442,11 @@ std::vector<unsigned char> TLV_decode(const std::vector<unsigned char> &tlv,
 	*tag = t;
 
 	data.resize(l);
-	copy(i, i+l, data.begin());
+	std::copy(i, i+l, data.begin());
 
 	i += l;
 	rest.resize(tlv.end() - i);
-	copy(i, i+rest.size(), rest.begin());
+	std::copy(i, i+rest.size(), rest.begin());
 
 	return rest;
 
@@ -358,10 +467,20 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
 
+	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
+
 	OBJECT_IDENTIFIER_t CA_ECDH_3DES_CBC_CBC	 = makeOID(id_CA_ECDH_3DES_CBC_CBC);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_DH_3DES_CBC_CBC	   = makeOID(id_CA_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
 
 	std::vector<unsigned char> result_buffer;
 
@@ -374,7 +493,7 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 			|| OID_ == CA_ECDH_AES_CBC_CMAC_192
 			|| OID_ == CA_ECDH_AES_CBC_CMAC_256) {
 		ECP::Point PuK_ICC_DH2_ = vector2point(PuK_ICC_DH2);
-		Integer k(PrK_IFD_DH2.data(), PrK_IFD_DH2.size());
+		Integer k(DATA(PrK_IFD_DH2), PrK_IFD_DH2.size());
 		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
 		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
 		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
@@ -383,6 +502,28 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
 
 		result_buffer = get_x(point2vector(kifd_icc_));
+	} else if (OID_ == PACE_DH_3DES_CBC_CBC
+			|| OID_ == PACE_DH_AES_CBC_CMAC_128
+			|| OID_ == PACE_DH_AES_CBC_CMAC_192
+			|| OID_ == PACE_DH_AES_CBC_CMAC_256
+			|| OID_ == CA_DH_3DES_CBC_CBC
+			|| OID_ == CA_DH_AES_CBC_CMAC_128
+			|| OID_ == CA_DH_AES_CBC_CMAC_192
+			|| OID_ == CA_DH_AES_CBC_CMAC_256) {
+		DH dh = get_std_dp_0();
+
+		if (PrK_IFD_DH2.size() != dh.PrivateKeyLength()
+			   	|| PuK_ICC_DH2.size() != dh.PublicKeyLength()) {
+			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "No valid public or private key for mapping (%d/%d %d/%d).",
+					PrK_IFD_DH2.size(), dh.PrivateKeyLength(), PuK_ICC_DH2.size(), dh.PublicKeyLength());
+			return result_buffer;
+		}
+
+		result_buffer.resize(dh.AgreedValueLength());
+		if (!dh.Agree(DATA(result_buffer), DATA(PrK_IFD_DH2), DATA(PuK_ICC_DH2))) {
+			eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Key agreement for shared secret failed.");
+			return result_buffer;
+		}
 	}
 
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
@@ -390,10 +531,20 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
 
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
+
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_3DES_CBC_CBC, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
 
 	return result_buffer;
 }
@@ -407,10 +558,20 @@ std::vector<unsigned char> calculate_ID_ICC(
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
 
+	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
+
 	OBJECT_IDENTIFIER_t CA_ECDH_3DES_CBC_CBC	 = makeOID(id_CA_ECDH_3DES_CBC_CBC);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
 	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+
+	OBJECT_IDENTIFIER_t CA_DH_3DES_CBC_CBC	   = makeOID(id_CA_DH_3DES_CBC_CBC);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
+	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
 
 	std::vector<unsigned char> result_buffer;
 
@@ -423,6 +584,17 @@ std::vector<unsigned char> calculate_ID_ICC(
 			|| OID_ == CA_ECDH_AES_CBC_CMAC_192
 			|| OID_ == CA_ECDH_AES_CBC_CMAC_256) {
 		result_buffer = get_x(PuK_ICC_DH2);
+	} else if (OID_ == PACE_DH_3DES_CBC_CBC
+		   	|| OID_ == PACE_DH_AES_CBC_CMAC_128
+		   	|| OID_ == PACE_DH_AES_CBC_CMAC_192
+		   	|| OID_ == PACE_DH_AES_CBC_CMAC_256
+			|| OID_ == CA_DH_3DES_CBC_CBC
+		   	|| OID_ == CA_DH_AES_CBC_CMAC_128
+		   	|| OID_ == CA_DH_AES_CBC_CMAC_192
+		   	|| OID_ == CA_DH_AES_CBC_CMAC_256) {
+		CryptoPP::SHA1 sha1;
+		result_buffer.resize(sha1.DigestSize());
+		sha1.CalculateDigest(DATA(result_buffer), DATA(PuK_ICC_DH2), PuK_ICC_DH2.size());
 	}
 
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
@@ -430,10 +602,20 @@ std::vector<unsigned char> calculate_ID_ICC(
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
 
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
+
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_3DES_CBC_CBC, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
+
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_3DES_CBC_CBC, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
+	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
 
 	return result_buffer;
 }

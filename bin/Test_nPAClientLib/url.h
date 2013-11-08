@@ -2,75 +2,68 @@
 #define _URL_H
 
 #include <algorithm>
-#include <string.h>
 #include <string>
 
 class URL
 {
 	public:
-		URL(const char *url) {
-			if (!parse_url(url))
-				_valid = false;
-			else
-				_valid = true;
+		URL(const char *const url) {
+			_scheme.assign("");
+			_hostname.assign("");
+			_port.assign("");
+			_path.assign("");
+
+			if (url && *url) {
+				std::string _str(url);
+				_valid = parse_url(_str);
+			} else _valid = false;
 		}
 
-		std::string  _scheme;
-		std::string  _hostname;
-		std::string  _port;
-		std::string  _path;
+		std::string _scheme;
+		std::string _hostname;
+		std::string _port;
+		std::string _path;
 		bool _valid;
 
-		bool parse_url(const char *str, const char *default_port = "80") {
-			if (!str || !*str)
+		bool parse_url(std::string& url) {
+			std::string prefix("https");
+			std::string::size_type idx;
+
+			_port.assign("80");
+
+			if (prefix.length() >= url.length())
 				return false;
-
-			const char *p1 = strstr(str, "://");
-
-			if (p1) {
-				_scheme.assign(str, p1 - str);
-				p1 += 3;
-				std::transform(_scheme.begin(), _scheme.end(), _scheme.begin(), static_cast<int ( *)(int)>(tolower));
-
-				if (0x00 == _scheme.compare("https")) {
-					default_port = "443";
+			idx = url.find("://");
+			if (idx != std::string::npos) {
+				auto res = std::mismatch(prefix.begin(), prefix.end(), url.begin());
+				if (res.first == prefix.end()) {
+					_scheme = "https";
+					_port = "443";
+				} else if (res.first == (prefix.end()-1)) {
+					_scheme = "http";
+				} else {
+					return false;
 				}
-
-			} else {
-				p1 = str;
+				url.erase(0, (idx+3));
 			}
-
-			const char *p2 = strchr(p1, ':');
-
-			//      const char* p3 = p2 ? strchr(p2+1, '/'): p2;
-			const char *p3 = strchr(p1, '/');
-
-			if (p2) {
-				_hostname.assign(p1, p2 - p1);
-
-				if (p3) {
-					_port.assign(p2 + 1, p3 - (p2 + 1));
-					_path = p3;
-
-				} else {
-					_port.assign(p2 + 1);
+			idx = url.find(":");
+			if (idx != std::string::npos) {
+				_hostname = url.substr(0, idx);
+				url.erase(0, (idx+1));
+				idx = url.find("/");
+				if (idx != std::string::npos) {
+					_port = url.substr(0, idx);
+					url.erase(0, idx);
+					_path = url;
 				}
-
 			} else {
-				_port = default_port;
-
-				if (p3) {
-					_hostname.assign(p1, p3 - p1);
-					_path = p3;
-
-				} else {
-					_hostname = p1;
+				idx = url.find("/");
+				if (idx != std::string::npos) {
+					_hostname = url.substr(0, idx);
+					url.erase(0, idx);
+					_path = url;
 				}
 			}
-
-			if (_path.empty())
-				_path = "";
-
 			return true;
 		}
 };

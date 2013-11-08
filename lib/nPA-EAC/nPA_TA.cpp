@@ -8,8 +8,8 @@
 #include <debug.h>
 
 #include "eCardCore/ICard.h"
-#include <SecurityInfos.h>
-#include <PACEDomainParameterInfo.h>
+#include "SecurityInfos.h"
+#include "PACEDomainParameterInfo.h"
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 #include "nPACommon.h"
@@ -32,9 +32,9 @@ CAPDU build_TA_Step_Set_CAR(
 ECARD_STATUS __STDCALL__ process_TA_Step_Set_CAR(const RAPDU &rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_A_FAILED;
+		return EAC_TA_STEP_A_FAILED;
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 CAPDU build_TA_Step_Verify_Certificate(
@@ -76,9 +76,9 @@ ECARD_STATUS __STDCALL__ process_TA_Step_Verify_Certificate(
 		const RAPDU &rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_B_FAILED;
+		return EAC_TA_STEP_B_FAILED;
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 CAPDU build_TA_Step_E(
@@ -129,9 +129,9 @@ ECARD_STATUS __STDCALL__ process_TA_Step_E(
 		const RAPDU &rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_E_FAILED;
+		return EAC_TA_STEP_E_FAILED;
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 #define TA_LENGTH_NONCE 8
@@ -148,11 +148,11 @@ ECARD_STATUS __STDCALL__ process_TA_Step_F(
 		const RAPDU &rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_F_FAILED;
+		return EAC_TA_STEP_F_FAILED;
 
 	RND_ICC = rapdu.getData();
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 CAPDU build_TA_Step_G(
@@ -167,10 +167,12 @@ CAPDU build_TA_Step_G(
 ECARD_STATUS __STDCALL__ process_TA_Step_G(const RAPDU &rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_TA_STEP_G_FAILED;
+		return EAC_TA_STEP_G_FAILED;
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
+
+
 
 ECARD_STATUS __STDCALL__ ePAPerformTA(
 	ePACard &hCard,
@@ -183,72 +185,108 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 	std::vector<unsigned char>& toBeSigned)
 {
 	ECARD_STATUS status = ECARD_SUCCESS;
-	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
 
-	/* build all APDUs */
-	vector<CAPDU> capdus;
+	try {
 
-	/* TODO verify the chain of certificates in the middle ware */
-	std::vector<unsigned char> _current_car = carCVCA;
-	for (size_t i = 0; i < list_certificates.size(); i++) {
+		const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) DATA(CA_OID), static_cast<int>(CA_OID.size())};
+
+		/*Hack for later compare*/
+		int appendTACert = 0;
+
+		/* build all APDUs */
+		std::vector<CAPDU> capdus;
+
+		/* TODO verify the chain of certificates in the middle ware */
+		std::vector<unsigned char> _current_car = carCVCA;
 		std::string current_car;
-		hexdump(DEBUG_LEVEL_CRYPTO, "CAR", _current_car.data(), _current_car.size());
+		for (size_t i = 0; i < list_certificates.size(); i++) {
+			hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
 
-		capdus.push_back(build_TA_Step_Set_CAR(_current_car));
+			capdus.push_back(build_TA_Step_Set_CAR(_current_car));
 
-		std::vector<unsigned char> cert;
-		cert = list_certificates[i];
-		hexdump(DEBUG_LEVEL_CRYPTO, "certificate", cert.data(), cert.size());
+			std::vector<unsigned char> cert;
+			cert = list_certificates[i];
+			hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(cert), cert.size());
 
-		capdus.push_back(build_TA_Step_Verify_Certificate(cert));
+			capdus.push_back(build_TA_Step_Verify_Certificate(cert));
 
-		current_car = getCHR(cert);
-		_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
-	}
+			current_car = getCHR(cert);
+			_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
+		}
 
-	std::string chrTerm_ = getCHR(terminalCertificate);
-	hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", chrTerm_.data(), chrTerm_.size());
+		std::string chrTerm_ = getCHR(terminalCertificate);
+		/*Test if last Certificate is the Terminal Certificate
+		  Otherwise we have to append it to our list*/
+		if(current_car.compare(chrTerm_))
+		{
+			appendTACert++;
 
-	capdus.push_back(build_TA_Step_E(_current_car, ca_oid, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
-	capdus.push_back(build_TA_Step_F());
+			/*To Do: Delete the code duplication by using a method*/
+			hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
+
+			capdus.push_back(build_TA_Step_Set_CAR(_current_car));
+
+			std::vector<unsigned char> cert;
+			cert = terminalCertificate;
+			hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(cert), cert.size());
+
+			capdus.push_back(build_TA_Step_Verify_Certificate(cert));
+
+			current_car = getCHR(cert);
+			_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
+		}
+		hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", DATA(chrTerm_), chrTerm_.size());
+
+		capdus.push_back(build_TA_Step_E(_current_car, ca_oid, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
+		capdus.push_back(build_TA_Step_F());
 
 
-	/* process all RAPDUs */
-	vector<RAPDU> rapdus = hCard.transceive(capdus);
+		/* process all RAPDUs */
+		std::vector<RAPDU> rapdus = hCard.transceive(capdus);
 
-	if (rapdus.size() != list_certificates.size()*2 + 2)
-		return ECARD_TA_STEP_A_FAILED;
+		if (rapdus.size() != list_certificates.size()*2 + appendTACert*2 + 2)
+			return EAC_TA_STEP_A_FAILED;
 
-	vector<RAPDU>::const_iterator it = rapdus.begin();
+		std::vector<RAPDU>::const_iterator it = rapdus.begin();
 
-	for (size_t i = 0; i < list_certificates.size(); i++) {
-		if (ECARD_SUCCESS != (status = process_TA_Step_Set_CAR(*it)))
+		for (size_t i = 0; i < (capdus.size() - 2) / 2; i++) {
+			if (EAC_SUCCESS != (status = process_TA_Step_Set_CAR(*it)))
+				return status;
+			++it;
+
+			if (EAC_SUCCESS != (status = process_TA_Step_Verify_Certificate(*it)))
+				return status;
+			++it;
+		}
+
+		if (EAC_SUCCESS != (status = process_TA_Step_E(*it)))
 			return status;
 		++it;
 
-		if (ECARD_SUCCESS != (status = process_TA_Step_Verify_Certificate(*it)))
+		std::vector<unsigned char> RND_ICC_;
+		if (EAC_SUCCESS != (status = process_TA_Step_F(RND_ICC_,
+						*it)))
 			return status;
-		++it;
+
+		// Copy the data to the output buffer.
+		toBeSigned = RND_ICC_;
+
+		return status;
+
+	} catch (...) {
+		return EAC_TA_STEP_G_FAILED;
 	}
-
-	if (ECARD_SUCCESS != (status = process_TA_Step_E(*it)))
-		return status;
-	++it;
-
-	std::vector<unsigned char> RND_ICC_;
-	if (ECARD_SUCCESS != (status = process_TA_Step_F(RND_ICC_,
-				*it)))
-		return status;
-
-	// Copy the data to the output buffer.
-	toBeSigned = RND_ICC_;
-
-	return status;
 }
 
 ECARD_STATUS __STDCALL__ ePASendSignature(
 	ICard &hCard,
 	const std::vector<unsigned char>& signature)
 {
-	return process_TA_Step_G(hCard.transceive(build_TA_Step_G(signature)));
+	try {
+
+		return process_TA_Step_G(hCard.transceive(build_TA_Step_G(signature)));
+
+	} catch (...) {
+		return ECARD_READER_TRANSCEIVE_FAILED;
+	}
 }

@@ -9,23 +9,21 @@
 #  include <tchar.h>
 #endif
 #if !(defined(UNICODE) || defined(_UNICODE))
-#include <string.h>
+#include <cstring>
 #endif
 
 /*
  *
  */
-PCSCManager::PCSCManager(
-	void) : IReaderManager()
+PCSCManager::PCSCManager(const char * userSelectedCardReader) : IReaderManager()
 {
-	findReaders();
+	findReaders(userSelectedCardReader);
 }
 
 /*
  *
  */
-void PCSCManager::findReaders(
-	void)
+void PCSCManager::findReaders(const char * userSelectedCardReader)
 {
 	long retValue = SCARD_S_SUCCESS;
 	SCARDCONTEXT hScardContext = 0x0;
@@ -77,12 +75,16 @@ void PCSCManager::findReaders(
 		char *pMBBuffer = new char[size];
 		memset(pMBBuffer, 0, size);
 		wcstombs(pMBBuffer, pReader, wcslen(pReader));
-		IReader *newReader = new PCSCReader(pMBBuffer, m_cardDetectors);
+		/*Dont know if this is correct or we have to do some conversions before*/
+		if(!userSelectedCardReader || strstr(pMBBuffer, userSelectedCardReader))
+			IReader *newReader = new PCSCReader(pMBBuffer, m_cardDetectors);
 		m_readerList.push_back(newReader);
 		delete [] pMBBuffer;
 		pReader = pReader + wcslen(pReader) + 1;
 #else
-		m_readerList.push_back(new PCSCReader(pReader, m_cardDetectors));
+		/*To Do: Case insensitive compare*/
+		if(!userSelectedCardReader || !strlen(userSelectedCardReader) || strstr(pReader, userSelectedCardReader))
+			m_readerList.push_back(new PCSCReader(pReader, m_cardDetectors));
 		pReader = pReader + strlen(pReader) + 1;
 #endif
 	}
