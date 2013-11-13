@@ -1,0 +1,33 @@
+eIDClientCore 0.2 - 2013-11-08
+
+	- eIDClientCore:
+		- removed unused namespaces
+		- fixed compiling for Mac OS and Android
+		- added some error codes
+		- catch some exceptions. exceptions should be removed in future releases, though
+		- now using nPAeIdPerformAuthenticationProtocol(READER_PCSC, ...) instead of nPAeIdPerformAuthenticationProtocolPcSc(...)
+		- now passing a decoded version of CHAT and certificate description to the application
+		- removed unused eIDECardClient class
+
+	- eCardCore:
+		- added support for boxing commands from BSI TR-03119 1.2
+		- added support for selecting a card reader by name
+		- added interface for external reader to be loaded at runtime
+
+	- eIDClientConnection:
+		- switched to libcurl with OpenSSL for RSA-PSK. Crypto++ should be removed in favor of OpenPACE in future releases
+		- added wrappers for HTTP/PAOS/raw socket communication
+
+	- nPA-EAC: added support for 3DES and DH for PACE
+
+	- eidasn1: fixed handling of CVCA link certificates
+
+	- Test_nPAClientLib:
+	  	- separated ui
+	  	- added support for new calling convention with redirect to localhost
+		- fixed thread handling
+
+	- added implementation and wrappers for Android
+	- added more information about building building the library in README.md
+	- fixed some other minor bug
+

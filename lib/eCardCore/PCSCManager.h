@@ -13,15 +13,13 @@
 class PCSCManager : public IReaderManager
 {
 	private:
-		void findReaders(
-			void);
+		void findReaders(const char * userSelectedCardReader);
 
 	public:
 		/*!
 		 *
 		 */
-		PCSCManager(
-			void);
+		PCSCManager(const char * userSelectedCardReader);
 
 		/*!
 		 *

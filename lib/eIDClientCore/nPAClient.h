@@ -7,7 +7,7 @@
 
 #include <map>
 #include <list>
-#include <string.h>
+#include <cstring>
 
 #include "eCardCore/CardCommand.h"
 #include "eIDClientCore.h"

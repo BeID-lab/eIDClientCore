@@ -30,8 +30,8 @@ class PCSCReader : public IndividualReader
 		 * to the PCSC subsystem. The handle is stored in m_hScardContext.
 		 */
 		PCSCReader(
-			const string &,
-			vector<ICardDetector *>&);
+			const std::string &,
+			std::vector<ICardDetector *>&);
 
 		/*!
 		 * @brief Destructor
@@ -64,18 +64,18 @@ class PCSCReader : public IndividualReader
 		/*!
 		 * @brief This command uses SCardTransmit to send a command to the card.
 		 */
-		vector<unsigned char> transceive(
-			const vector<unsigned char>& cmd);
+		std::vector<unsigned char> transceive(
+			const std::vector<unsigned char>& cmd);
 
 		/*!
 		 *
 		 */
-		vector<BYTE> getATRForPresentCard(
+		std::vector<BYTE> getATRForPresentCard(
 			void);
 
-		bool supportsPACE(void) const;
+		bool supportsPACE(void);
 
-		PaceOutput establishPACEChannel(const PaceInput &) const;
+		PaceOutput establishPACEChannel(const PaceInput &);
 };
 
 #endif

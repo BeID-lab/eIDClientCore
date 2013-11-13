@@ -11,7 +11,7 @@ BufferTooLong::BufferTooLong(size_t overrun_by)
 
 const char *BufferTooLong::what() const throw()
 {
-	ostringstream r;
+	std::ostringstream r;
 	r << "Overrun by " << m_overrun_by << " Bytes";
 	return r.str().c_str();
 }
@@ -21,7 +21,7 @@ BufferTooSmall::BufferTooSmall(size_t underrun_by)
 { }
 const char *BufferTooSmall::what() const throw()
 {
-	ostringstream r;
+	std::ostringstream r;
 	r << "Underrun by " << m_underrun_by << " Bytes";
 	return r.str().c_str();
 }
@@ -36,9 +36,9 @@ const char *WrongSM::what() const throw()
 	return "Secure Messaging error";
 }
 
-vector<unsigned char> CAPDU::encodeLength(size_t length, bool extendedOnThreeBytes) const
+std::vector<unsigned char> CAPDU::encodeLength(size_t length, bool extendedOnThreeBytes) const
 {
-	vector<unsigned char> encoded;
+	std::vector<unsigned char> encoded;
 
 	if (length) {
 		if (length > DATA_EXTENDED_MAX)
@@ -105,13 +105,13 @@ size_t CAPDU::decodeLength(const unsigned char *const len, bool isExtended, bool
 }
 
 CAPDU::CAPDU(unsigned char cla, unsigned char ins, unsigned char p1,
-			 unsigned char p2, vector<unsigned char> data)
+			 unsigned char p2, std::vector<unsigned char> data)
 	: m_CLA(cla), m_INS(ins), m_P1(p1), m_P2(p2), m_data(data),
 	  m_Ne(0)
 { }
 
 CAPDU::CAPDU(unsigned char cla, unsigned char ins, unsigned char p1,
-			 unsigned char p2, vector<unsigned char> data, size_t ne)
+			 unsigned char p2, std::vector<unsigned char> data, size_t ne)
 	: m_CLA(cla), m_INS(ins), m_P1(p1), m_P2(p2), m_data(data),
 	  m_Ne(ne)
 { }
@@ -121,7 +121,7 @@ CAPDU::CAPDU(unsigned char cla, unsigned char ins, unsigned char p1,
 	: m_CLA(cla), m_INS(ins), m_P1(p1), m_P2(p2), m_Ne(0)
 { }
 
-CAPDU::CAPDU(const vector<unsigned char> capdu)
+CAPDU::CAPDU(const std::vector<unsigned char> capdu)
 {
 	size_t Nc, lc_len;
 	bool isExtended;
@@ -178,12 +178,12 @@ void CAPDU::appendData(unsigned char b)
 	m_data.push_back(b);
 }
 
-void CAPDU::appendData(const vector<unsigned char> data)
+void CAPDU::appendData(std::vector<unsigned char>::const_iterator first, std::vector<unsigned char>::const_iterator last)
 {
-	if (m_data.size() + data.size() > DATA_EXTENDED_MAX)
-		throw(BufferTooLong(m_data.size() + data.size() - DATA_EXTENDED_MAX));
+	if (m_data.size() + std::distance(first, last) > DATA_EXTENDED_MAX)
+        throw (BufferTooLong(m_data.size() + std::distance(first, last) - DATA_EXTENDED_MAX));
 
-	m_data.insert(m_data.end(), data.begin(), data.end());
+    m_data.insert(m_data.end(), first, last);
 }
 
 bool CAPDU::isExtended(void) const
@@ -201,7 +201,7 @@ bool CAPDU::isSecure(void) const
 	return (m_CLA & CAPDU::CLA_SM) == CAPDU::CLA_SM;
 }
 
-void CAPDU::setData(const vector<unsigned char> data)
+void CAPDU::setData(const std::vector<unsigned char> data)
 {
 	m_data = data;
 }
@@ -251,24 +251,24 @@ size_t CAPDU::getNe(void) const
 	return m_Ne;
 }
 
-const vector<unsigned char> CAPDU::getData(void) const
+const std::vector<unsigned char>& CAPDU::getData(void) const
 {
 	return m_data;
 }
 
-vector<unsigned char> CAPDU::encodedLc(void) const
+std::vector<unsigned char> CAPDU::encodedLc(void) const
 {
 	return encodeLength(m_data.size(), true);
 }
 
-vector<unsigned char> CAPDU::encodedLe(void) const
+std::vector<unsigned char> CAPDU::encodedLe(void) const
 {
 	return encodeLength(m_Ne, m_data.empty());
 }
 
-vector<unsigned char> CAPDU::asBuffer(void) const
+std::vector<unsigned char> CAPDU::asBuffer(void) const
 {
-	vector<unsigned char> capdu, Lc, Le;
+	std::vector<unsigned char> capdu, Lc, Le;
 	capdu.push_back(m_CLA);
 	capdu.push_back(m_INS);
 	capdu.push_back(m_P1);
@@ -289,7 +289,7 @@ SelectFile::SelectFile(unsigned char p1, unsigned char p2)
 SelectFile::SelectFile(unsigned char p1, unsigned char p2, unsigned short fid)
 	: CAPDU(0x00, INS_SELECT, p1, p2)
 {
-	vector<unsigned char> data;
+	std::vector<unsigned char> data;
 	data.push_back((fid >> 8) & 0xff);
 	data.push_back(fid     & 0xff);
 	setData(data);
@@ -363,7 +363,7 @@ Verify::Verify(unsigned char p1, unsigned char p2)
 	: SecurityCAPDU(INS_VERIFY, p1, p2)
 { }
 
-RAPDU::RAPDU(const vector<unsigned char> rapdu)
+RAPDU::RAPDU(const std::vector<unsigned char> rapdu)
 {
 	if (rapdu.size() < 2) {
 		throw BufferTooSmall(2 - rapdu.size());
@@ -376,11 +376,11 @@ RAPDU::RAPDU(const vector<unsigned char> rapdu)
 	m_data.pop_back();
 }
 
-RAPDU::RAPDU(const vector<unsigned char> rdata, unsigned short sw)
+RAPDU::RAPDU(const std::vector<unsigned char> rdata, unsigned short sw)
 	: m_data(rdata), m_sw1((sw >> 8) & 0xff), m_sw2(sw & 0xff)
 { }
 
-RAPDU::RAPDU(const vector<unsigned char> rdata, unsigned char sw1, unsigned char sw2)
+RAPDU::RAPDU(const std::vector<unsigned char> rdata, unsigned char sw1, unsigned char sw2)
 	: m_data(rdata), m_sw1(sw1), m_sw2(sw2)
 { }
 
@@ -407,14 +407,14 @@ unsigned short RAPDU::getSW(void) const
 	return (m_sw1 << 8) | m_sw2;
 }
 
-const vector<unsigned char>& RAPDU::getData(void) const
+const std::vector<unsigned char>& RAPDU::getData(void) const
 {
 	return m_data;
 }
 
-vector<unsigned char> RAPDU::asBuffer(void) const
+std::vector<unsigned char> RAPDU::asBuffer(void) const
 {
-	vector <unsigned char> rapdu = m_data;
+	std::vector <unsigned char> rapdu = m_data;
 	rapdu.push_back(getSW1());
 	rapdu.push_back(getSW2());
 	return rapdu;

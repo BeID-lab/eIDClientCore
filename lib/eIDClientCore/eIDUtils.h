@@ -6,7 +6,7 @@
 #define __EIDUTILS__
 
 #include <string>
-#include <time.h>
+#include <ctime>
 #include <vector>
 
 

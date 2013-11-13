@@ -110,5 +110,55 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 ECARD_STATUS __STDCALL__ ePAGetRandom(
 	size_t size, std::vector<unsigned char>& random_bytes);
 
+extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
+        const unsigned char pinid,
+        const unsigned char *pin,
+        size_t pin_len,
+        const unsigned char *chat,
+        size_t chat_len,
+        const unsigned char *certificate_description,
+        size_t certificate_description_len,
+        unsigned char **bufEstablishPACEChannelInput,
+        size_t *tablishPACEChannelInput_len);
+
+extern "C" ECARD_STATUS __STDCALL__ decode_EstablishPACEChannelOutput(
+        unsigned char* const bufEstablishPACEChannelOutput,
+        size_t const bufEstablishPACEChannelOutput_len,
+        unsigned int* const result,
+        unsigned short* const status_mse_set_at,
+        unsigned char** const ef_cardaccess,
+        size_t* const ef_cardaccess_len,
+        unsigned char** const car_curr,
+        size_t* const car_curr_len,
+        unsigned char** const car_prev,
+        size_t* const car_prev_len,
+        unsigned char** const id_icc,
+        size_t* const id_icc_len);
+
+typedef ECARD_STATUS (*encode_EstablishPACEChannelInput_t)(
+        const unsigned char pinid,
+        const unsigned char *pin,
+        size_t pin_len,
+        const unsigned char *chat,
+        size_t chat_len,
+        const unsigned char *certificate_description,
+        size_t certificate_description_len,
+        unsigned char **bufEstablishPACEChannelInput,
+        size_t *tablishPACEChannelInput_len);
+
+typedef ECARD_STATUS (*decode_EstablishPACEChannelOutput_t)(
+        unsigned char* const bufEstablishPACEChannelOutput,
+        size_t const bufEstablishPACEChannelOutput_len,
+        unsigned int* const result,
+        unsigned short* const status_mse_set_at,
+        unsigned char** const ef_cardaccess,
+        size_t* const ef_cardaccess_len,
+        unsigned char** const car_curr,
+        size_t* const car_curr_len,
+        unsigned char** const car_prev,
+        size_t* const car_prev_len,
+        unsigned char** const id_icc,
+        size_t* const id_icc_len);
+
 
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

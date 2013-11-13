@@ -24,9 +24,9 @@ static CAPDU build_CA_Step_B(const OBJECT_IDENTIFIER_t& CA_OID)
 static ECARD_STATUS process_CA_Step_B(const RAPDU& rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_CA_STEP_B_FAILED;
+		return EAC_CA_STEP_B_FAILED;
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 static CAPDU build_CA_Step_C(const OBJECT_IDENTIFIER_t& CA_OID,
@@ -59,11 +59,11 @@ static ECARD_STATUS process_CA_Step_C(const RAPDU rapdu,
 	std::vector<unsigned char>& GeneralAuthenticationResult)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
-		return ECARD_CA_STEP_B_FAILED;
+		return EAC_CA_STEP_B_FAILED;
 
 	GeneralAuthenticationResult = rapdu.getData();
 
-	return ECARD_SUCCESS;
+	return EAC_SUCCESS;
 }
 
 ECARD_STATUS __STDCALL__ ePAPerformCA(
@@ -72,37 +72,43 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 	const std::vector<unsigned char>& Puk_IFD_DH,
 	std::vector<unsigned char>& GeneralAuthenticationResult)
 {
-	ECARD_STATUS status_ = ECARD_SUCCESS;
-	const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) CA_OID.data(), CA_OID.size()};
+	try {
 
-	vector<CAPDU> capdus;
-	capdus.push_back(build_CA_Step_B(ca_oid));
-	capdus.push_back(build_CA_Step_C(ca_oid, Puk_IFD_DH));
+		ECARD_STATUS status_ = ECARD_SUCCESS;
+		const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) DATA(CA_OID), static_cast<int>(CA_OID.size())};
 
-	vector<RAPDU> rapdus = hCard.transceive(capdus);
-	vector<RAPDU>::const_iterator it = rapdus.begin();
+		std::vector<CAPDU> capdus;
+		capdus.push_back(build_CA_Step_B(ca_oid));
+		capdus.push_back(build_CA_Step_C(ca_oid, Puk_IFD_DH));
 
-	switch (rapdus.size()) {
-		case 0:
-			/* step B failed */
-			return ECARD_CA_STEP_B_FAILED;
-		case 1:
-			/* step C failed */
-			return ECARD_CA_STEP_B_FAILED;
-		case 2:
-			/* OK */
-			break;
-		default:
-			/* too many rapdus */
-			return ECARD_CA_STEP_B_FAILED;
+		std::vector<RAPDU> rapdus = hCard.transceive(capdus);
+		std::vector<RAPDU>::const_iterator it = rapdus.begin();
+
+		switch (rapdus.size()) {
+			case 0:
+				/* step B failed */
+				return EAC_CA_STEP_B_FAILED;
+			case 1:
+				/* step C failed */
+				return EAC_CA_STEP_B_FAILED;
+			case 2:
+				/* OK */
+				break;
+			default:
+				/* too many rapdus */
+				return EAC_CA_STEP_B_FAILED;
+		}
+		if (EAC_SUCCESS != (status_ = process_CA_Step_B(*it)))
+			return status_;
+		++it;
+
+		if (EAC_SUCCESS != (status_ = process_CA_Step_C(*it,
+						GeneralAuthenticationResult)))
+			return status_;
+
+		return EAC_SUCCESS;
+
+	} catch (...) {
+		return EAC_CA_STEP_B_FAILED;
 	}
-	if (ECARD_SUCCESS != (status_ = process_CA_Step_B(*it)))
-		return status_;
-	++it;
-
-	if (ECARD_SUCCESS != (status_ = process_CA_Step_C(*it,
-					GeneralAuthenticationResult)))
-		return status_;
-
-	return ECARD_SUCCESS;
 }

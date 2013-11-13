@@ -2,3 +2,5 @@ LIBRARY	"eIdClientCore"
 
 EXPORTS
   nPAeIdPerformAuthenticationProtocol
+  encode_EstablishPACEChannelInput
+  decode_EstablishPACEChannelOutput

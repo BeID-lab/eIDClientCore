@@ -5,6 +5,8 @@
 #if !defined(__EIDHELPER_INCLUDED__)
 #define __EIDHELPER_INCLUDED__
 
+#include"OBJECT_IDENTIFIER.h"
+
 inline bool operator==(const OBJECT_IDENTIFIER_t a, const OBJECT_IDENTIFIER_t b)
 {
 	return a.size == b.size && 0 == memcmp(a.buf, b.buf, b.size);

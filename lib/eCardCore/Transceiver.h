@@ -5,6 +5,7 @@
 #if !defined(__TRANSCEIVER_INCLUDED__)
 #define __TRANSCEIVER_INCLUDED__
 
+#include <cstdlib>
 #include <queue>
 #include <vector>
 

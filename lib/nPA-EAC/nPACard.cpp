@@ -30,31 +30,34 @@ static std::vector<unsigned char> decryptResponse_AES(
 ePACard::ePACard(IReader *hSubSystem) : ICard(hSubSystem)
 {
 	if (!selectMF()
-		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
+		/* read EF.CardAccess in chunks that fit into short length APDU */
+		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_SHORT_MAX, m_ef_cardaccess))
+//		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
 		throw WrongHandle();
 }
 
 ePACard::ePACard(IReader *hSubSystem,
-	   	const vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
+	   	const std::vector<unsigned char> ef_cardaccess) : ICard(hSubSystem)
 {
     m_ef_cardaccess = ef_cardaccess;
 }
 
-string ePACard::getCardDescription(void)
+std::string ePACard::getCardDescription(void)
 {
 	return "German nPA";
 }
 
-const vector<unsigned char> ePACard::get_ef_cardaccess(void) const
+const std::vector<unsigned char>& ePACard::get_ef_cardaccess(void) const
 {
 	return m_ef_cardaccess;
 }
 
-const vector<unsigned char> ePACard::get_ef_cardsecurity(void)
+const std::vector<unsigned char>& ePACard::get_ef_cardsecurity(void)
 {
 	if (m_ef_cardsecurity.empty()
 			/* read EF.CardSecurity in chunks that fit into short length APDU */
 			&& !readFile(SFID_EF_CARDSECURITY, 0xDF, m_ef_cardsecurity))
+            //&& !readFile(SFID_EF_CARDSECURITY, CAPDU::DATA_EXTENDED_MAX, m_ef_cardsecurity))
 		throw WrongHandle();
 
 	return m_ef_cardsecurity;
@@ -90,10 +93,10 @@ static std::vector<unsigned char> buildDO87_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(ssc_.data(), kEnc.size());
+	Integer issc(DATA(ssc_), kEnc.size());
 	std::vector<unsigned char> vssc;
 	vssc.resize(kEnc.size());
-	issc.Encode(vssc.data(), kEnc.size());
+	issc.Encode(DATA(vssc), kEnc.size());
 	std::vector<unsigned char> calculatedIV_;
 	CBC_Mode<AES>::Encryption AESCBC_encryption;
 
@@ -101,13 +104,13 @@ static std::vector<unsigned char> buildDO87_AES(
 		return calculatedIV_;
 
 	calculatedIV_.resize(kEnc.size());
-	AESCBC_encryption.SetKeyWithIV(kEnc.data(), kEnc.size(), iv_);
-	AESCBC_encryption.ProcessData(calculatedIV_.data(), vssc.data(), vssc.size());
+	AESCBC_encryption.SetKeyWithIV(DATA(kEnc), kEnc.size(), iv_);
+	AESCBC_encryption.ProcessData(DATA(calculatedIV_), DATA(vssc), vssc.size());
 	CBC_Mode<AES>::Encryption AESCBC_encryption1;
 	std::vector<unsigned char> encryptedData_;
 	encryptedData_.resize(data_.size());
-	AESCBC_encryption1.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
-	AESCBC_encryption1.ProcessData(encryptedData_.data(), data_.data(), data_.size());
+	AESCBC_encryption1.SetKeyWithIV(DATA(kEnc), kEnc.size(), DATA(calculatedIV_));
+	AESCBC_encryption1.ProcessData(DATA(encryptedData_), DATA(data_), data_.size());
    
 	// Append padding content indicator
 	encryptedData_.insert(encryptedData_.begin(), BIT_PADDING);
@@ -160,11 +163,11 @@ static std::vector<unsigned char> buildDO8E_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(ssc_.data(), AES::BLOCKSIZE);
+	Integer issc(DATA(ssc_), AES::BLOCKSIZE);
 	std::vector<unsigned char> vssc;
 	vssc.resize(AES::BLOCKSIZE);
-	issc.Encode(vssc.data(), AES::BLOCKSIZE);
-	issc.Encode(ssc_.data(), AES::BLOCKSIZE);
+	issc.Encode(DATA(vssc), AES::BLOCKSIZE);
+	issc.Encode(DATA(ssc_), AES::BLOCKSIZE);
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
@@ -181,9 +184,9 @@ static std::vector<unsigned char> buildDO8E_AES(
 	std::vector<unsigned char> result_;
 	result_.resize(vssc.size());
 	CMAC<AES> cmac;
-	cmac.SetKey(kMac.data(), kMac.size());
-	cmac.Update(vssc.data(), vssc.size());
-	cmac.Final(result_.data());
+	cmac.SetKey(DATA(kMac), kMac.size());
+	cmac.Update(DATA(vssc), vssc.size());
+	cmac.Final(DATA(result_));
 	result_.resize(8);
 
 	return TLV_encode(0x8E, result_);
@@ -210,12 +213,12 @@ bool verifyResponse_AES(
 	ssc_.push_back((ssc << 16) & 0xFF);
 	ssc_.push_back((ssc << 8) & 0xFF);
 	ssc_.push_back(ssc & 0xFF);
-	Integer issc(ssc_.data(), AES::BLOCKSIZE);
+	Integer issc(DATA(ssc_), AES::BLOCKSIZE);
 	// The data buffer for the computations.
 	std::vector<unsigned char> vssc;
 	vssc.resize(AES::BLOCKSIZE);
-	issc.Encode(vssc.data(), AES::BLOCKSIZE);
-	issc.Encode(ssc_.data(), AES::BLOCKSIZE);
+	issc.Encode(DATA(vssc), AES::BLOCKSIZE);
+	issc.Encode(DATA(ssc_), AES::BLOCKSIZE);
 	ssc = 0;
 	ssc += (unsigned long long) ssc_[8] << 56;
 	ssc += (unsigned long long) ssc_[9] << 48;
@@ -248,7 +251,7 @@ bool verifyResponse_AES(
 	std::vector<unsigned char> calculatedMAC_ = calculateMAC(vssc, kMac_);
 
 	// Compare the calculated MAC against the returned MAC. If equal all is fine ;)
-	if (memcmp(&dataPart[dataPart.size() - 8], calculatedMAC_.data(), 8)) {
+	if (memcmp(&dataPart[dataPart.size() - 8], DATA(calculatedMAC_), 8)) {
 		return false;
 	}
 
@@ -304,13 +307,13 @@ std::vector<unsigned char> decryptResponse_AES(
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 		};
 		calculatedIV_.resize(kEnc.size());
-		AESCBC_encryption.SetKeyWithIV(kEnc.data(), kEnc.size(), iv_);
-		AESCBC_encryption.ProcessData(calculatedIV_.data(), ssc_.data(), ssc_.size());
+		AESCBC_encryption.SetKeyWithIV(DATA(kEnc), kEnc.size(), iv_);
+		AESCBC_encryption.ProcessData(DATA(calculatedIV_), DATA(ssc_), ssc_.size());
 		CBC_Mode<AES>::Decryption AESCBC_decryption;
 		std::vector<unsigned char> decrypted;
 		decrypted.resize(len - 1);
-		AESCBC_decryption.SetKeyWithIV(kEnc.data(), kEnc.size(), calculatedIV_.data());
-		AESCBC_decryption.ProcessData(decrypted.data(), &returnedData[offset], len - 1);
+		AESCBC_decryption.SetKeyWithIV(DATA(kEnc), kEnc.size(), DATA(calculatedIV_));
+		AESCBC_decryption.ProcessData(DATA(decrypted), &returnedData[offset], len - 1);
 		size_t padOffset = 0;
 
 		for (size_t i = decrypted.size() - 1; i > 0; i--) {
@@ -388,15 +391,15 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 	return rapdu;
 }
 
-vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
+std::vector<RAPDU> ePACard::transceive(const std::vector<CAPDU> &cmds)
 {
-	vector<RAPDU> resps;
+	std::vector<RAPDU> resps;
 
 	if (!m_kEnc.empty() && !m_kMac.empty()) {
 		unsigned long long start_ssc = m_ssc;
 		size_t i;
 		bool sm = true;
-		vector<CAPDU> sm_cmds;
+		std::vector<CAPDU> sm_cmds;
 		for (i = 0; i < cmds.size(); i++) {
 			if (cmds[i].isSecure())
 				sm = false;
@@ -409,7 +412,7 @@ vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
 				sm_cmds.push_back(cmds[i]);
 		}
 
-		vector<RAPDU> sm_resps = ICard::transceive(sm_cmds);
+		std::vector<RAPDU> sm_resps = ICard::transceive(sm_cmds);
 		if (cmds.size() > sm_resps.size()) {
 			eCardCore_warn(DEBUG_LEVEL_APDU, "Received too few APDUs");
 		}
@@ -428,7 +431,7 @@ vector<RAPDU> ePACard::transceive(const vector<CAPDU> &cmds)
 		}
 
 		for (i = 0; i < (cmds.size() - sm_resps.size()); i++) {
-			resps.push_back(RAPDU(vector<unsigned char> (), 0x6d00));
+			resps.push_back(RAPDU(std::vector<unsigned char> (), 0x6d00));
 		}
 
 		if (!sm) {
@@ -448,7 +451,7 @@ RAPDU ePACard::transceive(const CAPDU &cmd)
 	return BatchTransceiver<CAPDU, RAPDU>::transceive(cmd);
 }
 
-void ePACard::setKeys(vector<unsigned char>& kEnc, vector<unsigned char>& kMac)
+void ePACard::setKeys(std::vector<unsigned char>& kEnc, std::vector<unsigned char>& kMac)
 {
 	m_kEnc = kEnc;
 	m_kMac = kMac;

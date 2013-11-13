@@ -1,0 +1,9 @@
+LIBRARY	"externalReaderd"
+
+EXPORTS
+	CardReaderOpen
+	CardReaderClose
+	CardReaderSend
+	CardReaderGetATR
+	CardReaderSupportsPACE
+	CardReaderDoPACE
