@@ -842,7 +842,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+		retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
 		if(retValue != NPACLIENT_ERROR_SUCCESS)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
