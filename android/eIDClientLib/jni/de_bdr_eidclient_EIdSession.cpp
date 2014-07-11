@@ -743,7 +743,7 @@ JNIEXPORT jlong JNICALL Java_de_bdr_eidclient_EIdSession_performEAC(
 	path_sec_str = pEnv->GetStringUTFChars(path_sec, 0);
 
 	retValue = nPAeIdPerformAuthenticationProtocol(READER_EXTERNAL, url_str,
-			session_id_str, path_sec_str, NULL, nPAeIdUserInteractionCallback,
+			session_id_str, path_sec_str, NULL, NULL, nPAeIdUserInteractionCallback,
 			state_callback);
 
 	ALOG("Authentication returned value: 0x%08lx", retValue);

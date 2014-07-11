@@ -653,7 +653,7 @@ bool nPAClient::passwordIsRequired(void) const
 
 	// Try to get ePA card
 	ePACard &ePA_ = dynamic_cast<ePACard &>(*m_hCard);
-	return !(ePA_.getSubSystem()->supportsPACE());
+	return !ePA_.getSubSystem()->supportsPACE();
 }
 
 NPACLIENT_ERROR nPAClient::performPACE(

@@ -68,7 +68,10 @@ class PaceInput
 		enum PinID m_pin_id;
 		std::vector<unsigned char> m_pin;
 		std::vector<unsigned char> m_chat;
+		std::vector<unsigned char> m_chat_required;
+		std::vector<unsigned char> m_chat_optional;
 		std::vector<unsigned char> m_certificate_description;
+		std::vector<unsigned char> m_transaction_info_hidden;
 
 	public:
 		const std::vector<unsigned char>& get_chat(void) const {
@@ -76,6 +79,18 @@ class PaceInput
 		};
 		void set_chat(const std::vector<unsigned char>& chat) {
 			m_chat = chat;
+		};
+		const std::vector<unsigned char>& get_chat_optional(void) const {
+			return m_chat_optional;
+		};
+		void set_chat_optional(const std::vector<unsigned char>& chat_optional) {
+			m_chat_optional = chat_optional;
+		};
+		const std::vector<unsigned char>& get_chat_required(void) const {
+			return m_chat_required;
+		};
+		void set_chat_required(const std::vector<unsigned char>& chat_required) {
+			m_chat_required = chat_required;
 		};
 		enum PinID get_pin_id(void) const {
 			return m_pin_id;
@@ -95,6 +110,12 @@ class PaceInput
 		void set_certificate_description(const std::vector<unsigned char>& certificate_description) {
 			m_certificate_description = certificate_description;
 		};
+		const std::vector<unsigned char>& get_transaction_info_hidden(void) const {
+			return m_transaction_info_hidden;
+		};
+		void set_transaction_info_hidden(const std::vector<unsigned char>& transaction_info_hidden) {
+			m_transaction_info_hidden = transaction_info_hidden;
+		};
 };
 
 class PaceOutput
@@ -106,6 +127,7 @@ class PaceOutput
 		std::vector<unsigned char> m_car_curr;
 		std::vector<unsigned char> m_car_prev;
 		std::vector<unsigned char> m_id_icc;
+		std::vector<unsigned char> m_chat;
 
 	public:
 
@@ -147,6 +169,12 @@ class PaceOutput
 		void set_id_icc(const std::vector<unsigned char>& id_icc) {
 			m_id_icc = id_icc;
 		};
+		const std::vector<unsigned char>& get_chat(void) const {
+			return m_chat;
+		};
+		void set_chat(const std::vector<unsigned char>& chat) {
+			m_chat = chat;
+		};
 };
 
 
@@ -158,9 +186,19 @@ class PaceOutput
 
 class IReader : public Transceiver<std::vector<unsigned char>, std::vector<unsigned char> >
 {
+	public:
+		enum BoxingSupport { untested, tested_yes, tested_no };
+
 	protected:
 		std::string m_readerName;
 		std::vector<ICardDetector *>& m_cardDetectors;
+
+		enum BoxingSupport m_boxing_support;
+		bool supportsPACEboxed(void);
+
+		PaceOutput establishPACEChannelBoxed(const PaceInput &);
+		virtual bool supportsPACEnative(void) = 0;
+		virtual PaceOutput establishPACEChannelNative(const PaceInput &);
 
 	private:
 		IReader(
@@ -176,7 +214,7 @@ class IReader : public Transceiver<std::vector<unsigned char>, std::vector<unsig
 		IReader(
 			const std::string &readerName,
 			std::vector<ICardDetector *>& detector) : m_readerName(readerName),
-			m_cardDetectors(detector) {};
+			m_cardDetectors(detector), m_boxing_support() {};
 
 		/*!
 		 *
@@ -191,6 +229,10 @@ class IReader : public Transceiver<std::vector<unsigned char>, std::vector<unsig
 			void) const {
 			return m_readerName;
 		}
+
+		virtual bool supportsPACE(void);
+
+		virtual PaceOutput establishPACEChannel(const PaceInput &);
 
 		// -------------------------------------------------------------------------
 		// Pure virtuals
@@ -225,10 +267,6 @@ class IReader : public Transceiver<std::vector<unsigned char>, std::vector<unsig
 		 *
 		 */
 		virtual std::vector<unsigned char> getATRForPresentCard(void) = 0;
-
-		virtual bool supportsPACE(void) = 0;
-
-		virtual PaceOutput establishPACEChannel(const PaceInput &) = 0;
 }; // class IReader
 
 class IndividualReader : public IReader, public IndividualTransceiver<std::vector<unsigned char>, std::vector<unsigned char> >

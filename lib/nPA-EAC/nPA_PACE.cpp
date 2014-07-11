@@ -401,7 +401,8 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 	const PaceInput &pace_input,
 	std::vector<unsigned char>& car_cvca,
 	std::vector<unsigned char>& idPICC,
-	std::vector<unsigned char>& ca_oid)
+	std::vector<unsigned char>& ca_oid,
+	std::vector<unsigned char>& chat_used)
 {
 	OBJECT_IDENTIFIER_t PACE_OID_ = {NULL, 0};
 	OBJECT_IDENTIFIER_t CA_OID_ = {NULL, 0};
@@ -436,18 +437,26 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 
 		if (ePA_.getSubSystem()->supportsPACE()) {
 			eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader supports PACE");
+
 			PaceOutput output = ePA_.getSubSystem()->establishPACEChannel(pace_input);
+
 			if (output.get_result()){
 				return ECARD_EXTERNAL_PACE_ERROR;
 			}
+
 			car_cvca = output.get_car_curr();
 			idPICC = output.get_id_icc();
-
-		} else {
+			chat_used = output.get_chat();
+			//use chat from pace_input if chat_used from pace_output is empty
+			if (chat_used.empty()){
+				chat_used = pace_input.get_chat();
+			}
+        } else {
 			eCardCore_info(DEBUG_LEVEL_CRYPTO, "Reader does not support PACE. Will establish PACE channel.");
 
 
 			ECARD_STATUS status = ECARD_SUCCESS;
+			chat_used = pace_input.get_chat();
 
 			std::vector<CAPDU> capdus;
 			capdus.push_back(build_PACE_Step_B(PACE_OID_, pace_input.get_pin_id(), pace_input.get_chat()));
@@ -582,8 +591,16 @@ extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
             size_t pin_len,
             const unsigned char *chat,
             size_t chat_len,
+            const unsigned char *chat_required,
+            size_t chat_required_len,
+            const unsigned char *chat_optional,
+            size_t chat_optional_len,
             const unsigned char *certificate_description,
             size_t certificate_description_len,
+            const unsigned char *transaction_info_hidden,
+            size_t transaction_info_hidden_len,
+			unsigned char *oid_hash_transactiondata,
+            size_t oid_hash_transactiondata_len,
             unsigned char **bufEstablishPACEChannelInput,
             size_t *bufEstablishPACEChannelInput_len)
 {
@@ -592,7 +609,8 @@ extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
     uint8_t                         passwordID = pinid;
     CertificateDescription_t*       pCertificateDescription = 0x00;
     unsigned char                   buf[1000];
-    
+    size_t							bufSize = 1000;
+
     if(0x00 == bufEstablishPACEChannelInput)
         return ECARD_INVALID_PARAMETER_1;
 
@@ -616,13 +634,33 @@ extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
     pEstablishPACEChannelInput->cHAT->buf = (unsigned char *) chat;
     pEstablishPACEChannelInput->cHAT->size = chat_len;
     
-    size_t	bufSize = 1000;
+    pEstablishPACEChannelInput->cHATrequired = (struct OCTET_STRING*) malloc(sizeof(struct OCTET_STRING));
+    pEstablishPACEChannelInput->cHATrequired->buf = (unsigned char *) chat_required;
+    pEstablishPACEChannelInput->cHATrequired->size = chat_required_len;
+    
+    pEstablishPACEChannelInput->cHAToptional = (struct OCTET_STRING*) malloc(sizeof(struct OCTET_STRING));
+    pEstablishPACEChannelInput->cHAToptional->buf = (unsigned char *) chat_optional;
+    pEstablishPACEChannelInput->cHAToptional->size = chat_optional_len;
+
+	pEstablishPACEChannelInput->transactionInfo = (OCTET_STRING_t*) malloc(sizeof(OCTET_STRING_t));
+    pEstablishPACEChannelInput->transactionInfo->buf = (unsigned char *) transaction_info_hidden;
+    pEstablishPACEChannelInput->transactionInfo->size = transaction_info_hidden_len;
+    
+	pEstablishPACEChannelInput->transactionInfoHashOID = (OBJECT_IDENTIFIER_t*) malloc(sizeof(OBJECT_IDENTIFIER_t));
+	pEstablishPACEChannelInput->transactionInfoHashOID->buf = oid_hash_transactiondata;
+	pEstablishPACEChannelInput->transactionInfoHashOID->size = oid_hash_transactiondata_len;
+
+    
     er = der_encode_to_buffer(&asn_DEF_EstablishPACEChannelInput, pEstablishPACEChannelInput, &buf[0], bufSize);
     
     if(er.encoded == -1)
     {
         asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, pCertificateDescription, 0);
         free(pEstablishPACEChannelInput->cHAT);
+        free(pEstablishPACEChannelInput->cHATrequired);
+        free(pEstablishPACEChannelInput->cHAToptional);
+		free(pEstablishPACEChannelInput->transactionInfo);
+		free(pEstablishPACEChannelInput->transactionInfoHashOID);
         free(pEstablishPACEChannelInput);
         eCardCore_debug(DEBUG_LEVEL_CLIENT, "encode_EstablishPACEChannelInput - Could not encode EstablishPACEChannelInput.");
         return ECARD_ASN1_PARSER_ERROR;
@@ -636,6 +674,10 @@ extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
     
     asn_DEF_CertificateDescription.free_struct(&asn_DEF_CertificateDescription, pCertificateDescription, 0);
     free(pEstablishPACEChannelInput->cHAT);
+	free(pEstablishPACEChannelInput->cHATrequired);
+	free(pEstablishPACEChannelInput->cHAToptional);
+	free(pEstablishPACEChannelInput->transactionInfo);
+	free(pEstablishPACEChannelInput->transactionInfoHashOID);
     free(pEstablishPACEChannelInput);
     
     return ECARD_SUCCESS;
@@ -653,7 +695,9 @@ extern "C" ECARD_STATUS __STDCALL__ decode_EstablishPACEChannelOutput(
         unsigned char** const car_prev,
         size_t* const car_prev_len,
         unsigned char** const id_icc,
-        size_t* const id_icc_len)
+        size_t* const id_icc_len,
+        unsigned char** const chat,
+        size_t* const chat_len)
 {
     asn_enc_rval_t                  er;
     EstablishPACEChannelOutput_t*   pEstablishPACEChannelOutput = 0x00;
@@ -672,14 +716,16 @@ extern "C" ECARD_STATUS __STDCALL__ decode_EstablishPACEChannelOutput(
         return ECARD_INVALID_PARAMETER_1;
     if(0x00 == id_icc)
         return ECARD_INVALID_PARAMETER_1;
+    if(0x00 == chat)
+        return ECARD_INVALID_PARAMETER_1;
     
     if (ber_decode(0, &asn_DEF_EstablishPACEChannelOutput, (void **)&pEstablishPACEChannelOutput, bufEstablishPACEChannelOutput, bufEstablishPACEChannelOutput_len).code != RC_OK)
     {
-        eCardCore_debug(DEBUG_LEVEL_CLIENT, "nPAeIdPerformPACEonCcidReader - Could not decode pEstablishPACEChannelOutput.");
+        eCardCore_debug(DEBUG_LEVEL_CLIENT, "decode_EstablishPACEChannelOutput - Could not decode pEstablishPACEChannelOutput.");
         asn_DEF_EstablishPACEChannelOutput.free_struct(&asn_DEF_EstablishPACEChannelOutput, pEstablishPACEChannelOutput, 0);
         return ECARD_ASN1_PARSER_ERROR;
     }
-// ToDo  check byte order -> decode OCTETSTRING to unsigned int and unsigned short
+// TODO  check byte order -> decode OCTETSTRING to unsigned int and unsigned short
     if( (0x00 != pEstablishPACEChannelOutput->errorCode.buf) && (sizeof *result == pEstablishPACEChannelOutput->errorCode.size) )
     {
         memcpy(result, pEstablishPACEChannelOutput->errorCode.buf, pEstablishPACEChannelOutput->errorCode.size);
@@ -730,6 +776,15 @@ extern "C" ECARD_STATUS __STDCALL__ decode_EstablishPACEChannelOutput(
 			return ECARD_BUFFER_TO_SMALL;
         *id_icc_len= pEstablishPACEChannelOutput->idPICC->size;
         memcpy(*id_icc, pEstablishPACEChannelOutput->idPICC->buf, *id_icc_len);
+    }
+
+    if(0x00 != pEstablishPACEChannelOutput->cHATout)
+    {
+        *chat = (unsigned char*) malloc(pEstablishPACEChannelOutput->cHATout->size);
+		if (!*chat)
+			return ECARD_BUFFER_TO_SMALL;
+        *chat_len = pEstablishPACEChannelOutput->cHATout->size;
+        memcpy(*chat, pEstablishPACEChannelOutput->cHATout->buf, *chat_len);
     }
             
     asn_DEF_EstablishPACEChannelOutput.free_struct(&asn_DEF_EstablishPACEChannelOutput, pEstablishPACEChannelOutput, 0);

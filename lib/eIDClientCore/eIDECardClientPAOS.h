@@ -31,7 +31,8 @@ extern "C"
                                                   nPADataBuffer_t* const optionalCHAT,
                                                   nPADataBuffer_t* const authAuxData,
                                                   nPADataBuffer_t* const cert,
-                                                  nPADataBuffer_t* const certDescRaw);
+                                                  nPADataBuffer_t* const certDescRaw,
+                                                  nPADataBuffer_t* const transactionInfo);
  
     EID_ECARD_CLIENT_PAOS_ERROR getTerminalAuthenticationData(EIDCLIENT_CONNECTION_HANDLE hConnection,
                                                               const nPADataBuffer_t efCardAccess,
@@ -54,8 +55,10 @@ extern "C"
                                                        unsigned long* const list_size);
 
     EID_ECARD_CLIENT_PAOS_ERROR readAttributes(EIDCLIENT_CONNECTION_HANDLE hConnection,
-                                               nPADataBuffer_t* list_inApdus,
-                                               const unsigned long list_inApdus_size);
+                                               const nPADataBuffer_t* list_inApdus,
+                                               const unsigned long list_inApdus_size,
+                                               nPADataBuffer_t **new_list_inApdus,
+                                               unsigned long *new_list_inApdus_size);
 
 	typedef EID_ECARD_CLIENT_PAOS_ERROR (*startPAOS_t)(EIDCLIENT_CONNECTION_HANDLE, const char* const);
     

@@ -34,8 +34,8 @@ class ExternalReader : public IndividualReader
 
 		std::vector<unsigned char> getATRForPresentCard(void);
 
-		bool supportsPACE(void);
-		PaceOutput establishPACEChannel(const PaceInput &input);
+		bool supportsPACEnative(void);
+		PaceOutput establishPACEChannelNative(const PaceInput &input);
 };
 
 #endif // __EXTERNALREADER_INCLUDED__

@@ -230,7 +230,7 @@ err:
 	return atr;
 }
 
-bool PCSCReader::supportsPACE(void)
+bool PCSCReader::supportsPACEnative(void)
 {
 	if (0 == m_ioctl_pace)
 		return false;
@@ -238,7 +238,7 @@ bool PCSCReader::supportsPACE(void)
 	return true;
 }
 
-PaceOutput PCSCReader::establishPACEChannel(const PaceInput &input)
+PaceOutput PCSCReader::establishPACEChannelNative(const PaceInput &input)
 {
 	PaceOutput output;
 	DWORD r, recvlen;

@@ -91,6 +91,18 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 	snprintf(buf, MAX(sizeof buf, description->description.bufferSize), (char *) description->description.pDataBuffer);
 	buf[(sizeof buf) - 1] = '\0';
 	printf("certificateDescription:\n%s\n", buf);
+	if(description->transactionInfo.bufferSize > 0)
+	{
+		snprintf(buf, MAX(sizeof buf, description->transactionInfo.bufferSize), (char *) description->transactionInfo.pDataBuffer);
+		buf[(sizeof buf) - 1] = '\0';
+		printf("TransactionInfo:\n%s\n", buf);
+	}
+	if(description->transactionInfoHidden.bufferSize > 0)
+	{
+		snprintf(buf, MAX(sizeof buf, description->transactionInfoHidden.bufferSize), (char *) description->transactionInfoHidden.pDataBuffer);
+		buf[(sizeof buf) - 1] = '\0';
+		printf("TransactionInfoHidden:\n%s\n", buf);
+	}
 
 	switch (description->chat_required.type) {
 		case TT_IS:

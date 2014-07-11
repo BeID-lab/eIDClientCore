@@ -48,7 +48,8 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 	const PaceInput &pace_input,
 	std::vector<unsigned char>& car_cvca,
 	std::vector<unsigned char>& idPICC,
-	std::vector<unsigned char>& CA_OID);
+	std::vector<unsigned char>& CA_OID,
+	std::vector<unsigned char>& chat_used);
 
 /**
  * @brief Perform the Terminal Authentication protocol. For further information look at
@@ -116,8 +117,16 @@ extern "C" ECARD_STATUS __STDCALL__ encode_EstablishPACEChannelInput(
         size_t pin_len,
         const unsigned char *chat,
         size_t chat_len,
+        const unsigned char *chat_required,
+        size_t chat_required_len,
+        const unsigned char *chat_optional,
+        size_t chat_optional_len,
         const unsigned char *certificate_description,
         size_t certificate_description_len,
+        const unsigned char *transaction_info_hidden,
+        size_t transaction_info_hidden_len,
+		unsigned char *oid_hash_transactiondata,
+        size_t oid_hash_transactiondata_len,
         unsigned char **bufEstablishPACEChannelInput,
         size_t *tablishPACEChannelInput_len);
 
@@ -133,7 +142,9 @@ extern "C" ECARD_STATUS __STDCALL__ decode_EstablishPACEChannelOutput(
         unsigned char** const car_prev,
         size_t* const car_prev_len,
         unsigned char** const id_icc,
-        size_t* const id_icc_len);
+        size_t* const id_icc_len,
+        unsigned char** const chat,
+        size_t* const chat_len);
 
 typedef ECARD_STATUS (*encode_EstablishPACEChannelInput_t)(
         const unsigned char pinid,
@@ -141,8 +152,14 @@ typedef ECARD_STATUS (*encode_EstablishPACEChannelInput_t)(
         size_t pin_len,
         const unsigned char *chat,
         size_t chat_len,
+        const unsigned char *chat_required,
+        size_t chat_required_len,
+        const unsigned char *chat_optional,
+        size_t chat_optional_len,
         const unsigned char *certificate_description,
         size_t certificate_description_len,
+        const unsigned char *transaction_info_hidden,
+        size_t transaction_info_hidden_len,
         unsigned char **bufEstablishPACEChannelInput,
         size_t *tablishPACEChannelInput_len);
 
@@ -158,7 +175,8 @@ typedef ECARD_STATUS (*decode_EstablishPACEChannelOutput_t)(
         unsigned char** const car_prev,
         size_t* const car_prev_len,
         unsigned char** const id_icc,
-        size_t* const id_icc_len);
-
+        size_t* const id_icc_len,
+        unsigned char** const chat,
+        size_t* const chat_len);
 
 #endif // #if !defined(__EPAPAPI_INCLUDED__)

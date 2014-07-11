@@ -38,6 +38,7 @@ public:
     std::string  m_strOptionalChat;
     std::string  m_strAuxiliaryData;
     std::string  m_strCertificateDescription;
+    std::string  m_strTransactionInfo;
     
     std::string              m_strEphemeralPublicKey;
     certificateList_t   m_certificateList;
@@ -325,6 +326,10 @@ void CharacterDataHandler(void *pUserData, const XML_Char *pszData, int nLength)
 		pParserObject->m_strCertificateDescription = std::string(pszData, nLength);
 //		eCardCore_debug(DEBUG_LEVEL_PAOS, "CertificateDescription : %s", pParserObject->m_strCertificateDescription.c_str());
         
+	} else if (strCurrentTag.find("TransactionInfo") != std::string::npos) {
+		pParserObject->m_strTransactionInfo = std::string(pszData, nLength);
+//		eCardCore_debug(DEBUG_LEVEL_PAOS, "RequiredCHAT : %s", pParserObject->m_strRequiredChat.c_str());
+        
 	} else if (strCurrentTag.find("RequiredCHAT") != std::string::npos) {
 		pParserObject->m_strRequiredChat = std::string(pszData, nLength);
 //		eCardCore_debug(DEBUG_LEVEL_PAOS, "RequiredCHAT : %s", pParserObject->m_strRequiredChat.c_str());
@@ -411,7 +416,7 @@ EID_ECARD_CLIENT_PAOS_ERROR startPAOS(EIDCLIENT_CONNECTION_HANDLE hConnection,
 }
 
 
-EID_ECARD_CLIENT_PAOS_ERROR getEACSessionInfo(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const cSessionID, nPADataBuffer_t* const requiredCHAT, nPADataBuffer_t* const optionalCHAT, nPADataBuffer_t* const authAuxData, nPADataBuffer_t* const cert, nPADataBuffer_t* const certDescRaw)
+EID_ECARD_CLIENT_PAOS_ERROR getEACSessionInfo(EIDCLIENT_CONNECTION_HANDLE hConnection, const char* const cSessionID, nPADataBuffer_t* const requiredCHAT, nPADataBuffer_t* const optionalCHAT, nPADataBuffer_t* const authAuxData, nPADataBuffer_t* const cert, nPADataBuffer_t* const certDescRaw, nPADataBuffer_t* const transactionInfo)
 {
     if( 0x00 == hConnection )
 		return EID_ECARD_CLIENT_PAOS_CONNECTION_ERROR;
@@ -473,6 +478,17 @@ EID_ECARD_CLIENT_PAOS_ERROR getEACSessionInfo(EIDCLIENT_CONNECTION_HANDLE hConne
                 certDescRaw->bufferSize = certDesc.size();
                 certDescRaw->pDataBuffer = (unsigned char*) malloc(certDescRaw->bufferSize);
                 memcpy(certDescRaw->pDataBuffer, DATA(certDesc) , certDesc.size() );
+            }
+        }
+
+        if( pCParserObject->m_strTransactionInfo.length() > 0 )
+        {
+            std::vector<unsigned char> transInfo = Hex2Byte(pCParserObject->m_strTransactionInfo.c_str(), pCParserObject->m_strTransactionInfo.length() );
+            if( 0x00 != transactionInfo )
+            {
+                transactionInfo->bufferSize = transInfo.size();
+                transactionInfo->pDataBuffer = (unsigned char*) malloc(transactionInfo->bufferSize);
+                memcpy(transactionInfo->pDataBuffer, DATA(transInfo) , transInfo.size() );
             }
         }
 
@@ -687,8 +703,10 @@ EID_ECARD_CLIENT_PAOS_ERROR EAC2OutputCardSecurity(EIDCLIENT_CONNECTION_HANDLE h
 }
 
 EID_ECARD_CLIENT_PAOS_ERROR readAttributes(EIDCLIENT_CONNECTION_HANDLE hConnection,
-                                           nPADataBuffer_t* list_inApdus,
-                                           const unsigned long list_inApdus_size)
+                                           const nPADataBuffer_t* list_inApdus,
+                                           const unsigned long list_inApdus_size,
+                                           nPADataBuffer_t** new_list_apdus,
+                                           unsigned long* const new_list_size)
 {
     if( 0x00 == hConnection )
 		return EID_ECARD_CLIENT_PAOS_CONNECTION_ERROR;
@@ -696,7 +714,7 @@ EID_ECARD_CLIENT_PAOS_ERROR readAttributes(EIDCLIENT_CONNECTION_HANDLE hConnecti
     bool bParseSuccess = false;
     APDUList_t inAPDUList;
     
-    nPADataBuffer_t* listTmp = list_inApdus;
+    const nPADataBuffer_t* listTmp = list_inApdus;
     
     for(int i = 0; i < list_inApdus_size; i++)
     {
@@ -709,11 +727,36 @@ EID_ECARD_CLIENT_PAOS_ERROR readAttributes(EIDCLIENT_CONNECTION_HANDLE hConnecti
 	WriteOutputAPDU(iossFrame, getMessageID(hConnection), inAPDUList);
 	std::string xml_strFrame = iossFrame.str();
 	std::string ret = request_post(hConnection, xml_strFrame);
+    removeMessageID(hConnection);
     CParserObject*  pCParserObject = new CParserObject();
 	
     bParseSuccess = doParse(pCParserObject, ret);
     
-    removeMessageID(hConnection);
+    if(true == bParseSuccess)
+    {
+        if( pCParserObject->m_strMessageID.length() > 0 )
+        {
+            setMessageID(hConnection, pCParserObject->m_strMessageID);
+        }
+        
+        *new_list_size = pCParserObject->m_APDUList.size();
+        *new_list_apdus = (nPADataBuffer_t*) malloc(*new_list_size * sizeof(nPADataBuffer_t));
+        
+        nPADataBuffer_t* bufTmp = *new_list_apdus;
+        
+        while (!pCParserObject->m_APDUList.empty())
+        {
+            std::string apdu = pCParserObject->m_APDUList.front();
+            pCParserObject->m_APDUList.pop_front();
+            std::vector<unsigned char> myAPDU = Hex2Byte(apdu.c_str(), apdu.length());
+            
+            bufTmp->bufferSize = myAPDU.size();
+            bufTmp->pDataBuffer = (unsigned char*) malloc(bufTmp->bufferSize);
+            memcpy(bufTmp->pDataBuffer, DATA(myAPDU) , myAPDU.size() );
+            
+            bufTmp++;
+        }
+    }
     
     delete pCParserObject;
     

@@ -34,13 +34,17 @@ ECARD_STATUS CardReaderDoPACE(EIDCLIENT_CARD_READER_HANDLE hCardReader,
 		const enum PinID pinid,
 		const nPADataBuffer_t *pin,
 		const nPADataBuffer_t *chat,
+		const nPADataBuffer_t *chat_required,
+		const nPADataBuffer_t *chat_optional,
 		const nPADataBuffer_t *certificate_description,
+		const nPADataBuffer_t *transaction_info_hidden,
 		unsigned int *result,
 		unsigned short *status_mse_set_at,
 		nPADataBuffer_t *ef_cardaccess,
 		nPADataBuffer_t *car_curr,
 		nPADataBuffer_t *car_prev,
-		nPADataBuffer_t *id_icc);
+		nPADataBuffer_t *id_icc,
+		nPADataBuffer_t *chat_used);
 
 
 typedef ECARD_STATUS (*CardReaderOpen_t)(P_EIDCLIENT_CARD_READER_HANDLE hCardReader, const char* const readerName);
@@ -58,13 +62,17 @@ typedef ECARD_STATUS (*CardReaderDoPACE_t)(EIDCLIENT_CARD_READER_HANDLE hCardRea
 		const enum PinID pinid,
 		const nPADataBuffer_t *pin,
 		const nPADataBuffer_t *chat,
+		const nPADataBuffer_t *chat_required,
+		const nPADataBuffer_t *chat_optional,
 		const nPADataBuffer_t *certificate_description,
+		const nPADataBuffer_t *transaction_info_hidden,
 		unsigned int *result,
 		unsigned short *status_mse_set_at,
 		nPADataBuffer_t *ef_cardaccess,
 		nPADataBuffer_t *car_curr,
 		nPADataBuffer_t *car_prev,
-		nPADataBuffer_t *id_icc);
+		nPADataBuffer_t *id_icc,
+		nPADataBuffer_t *chat_used);
 #if defined(__cplusplus)
 }
 #endif
