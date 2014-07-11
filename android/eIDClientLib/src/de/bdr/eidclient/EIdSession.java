@@ -4,6 +4,8 @@
 
 package de.bdr.eidclient;
 
+import de.bdr.reader.Reader;
+
 final class EIdSession {
 
     private Reader mReader;
