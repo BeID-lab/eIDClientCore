@@ -3,7 +3,7 @@ abs_builddir = $(shell pwd)
 PACKAGE_TARNAME=eIDClientCore
 PACKAGE_VERSION=0.2
 ANDROID_ARCH ?= arm
-ANDROID_API ?= android-18
+ANDROID_API ?= android-19
 ANDROID_TOOL ?= $(ANDROID_ARCH)-linux-androideabi
 ANDROID_TOOL_DIR ?= $(abs_builddir)/ndk
 ANDROID_TARGETDIR = $(abs_builddir)/$(PACKAGE_TARNAME)-$(PACKAGE_VERSION)_$(ANDROID_ARCH)
@@ -97,7 +97,7 @@ $(LIBCRYPTOPP): $(CRYPTOPP_MAKEFILE)
 
 
 $(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
-	$(MAKE) cross builddir=$(EIDCLIENTCORE_DIR) EXTRA_OPTS="--enable-reader-external CRYPTOPP_LIBS=-lcryptopp" \
+	$(MAKE) cross builddir=$(EIDCLIENTCORE_DIR) EXTRA_OPTS="--enable-reader-external CRYPTOPP_LIBS=-lcryptopp CFLAGS='-D_EMULATE_TIMEGM'" \
 		|| env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			$(MAKE) -C $(EIDCLIENTCORE_DIR)/lib install DESTDIR=$(ANDROID_TARGETDIR)
 

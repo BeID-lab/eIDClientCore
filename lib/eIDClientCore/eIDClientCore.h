@@ -75,6 +75,8 @@ typedef unsigned long NPACLIENT_ERROR;
 #define NPACLIENT_ERROR_ASN1_ENCODE						NPACLIENT_ERRO + 0x00000600
 #define NPACLIENT_ERROR_ASN1_DECODE						NPACLIENT_ERRO + 0x00000601
 
+#define NPACLIENT_ERROR_TRANSACTION_HASH_NOT_VALID		NPACLIENT_ERRO + 0x00000700
+
 typedef unsigned long NPACLIENT_STATE;
 
 #define NPACLIENT_STATE_INITIALIZE        (NPACLIENT_STATE) 0x00000001
@@ -91,6 +93,7 @@ typedef unsigned long NPACLIENT_STATE;
  */
 typedef struct AuthenticationParams {
 	const char *m_serverAddress;
+	const char *m_transactionURL;
 	const char *m_sessionIdentifier;
 	const char *m_binding;
 	const char *m_pathSecurityProtocol;
@@ -142,6 +145,7 @@ typedef EIDCLIENT_CONNECTION_HANDLE *P_EIDCLIENT_CONNECTION_HANDLE;
  */
 	enum ECARD_READER {
 		READER_PCSC,
+		READER_TCP,
 		READER_EXTERNAL,
 	};
 
@@ -250,6 +254,8 @@ typedef EIDCLIENT_CONNECTION_HANDLE *P_EIDCLIENT_CONNECTION_HANDLE;
 		const struct chat chat_optional;
 		const time_t valid_from;
 		const time_t valid_to;
+		const nPADataBuffer_t transactionInfo;
+		const nPADataBuffer_t transactionInfoHidden;
 	} SPDescription_t;
 
 	typedef struct {
@@ -280,6 +286,7 @@ typedef EIDCLIENT_CONNECTION_HANDLE *P_EIDCLIENT_CONNECTION_HANDLE;
 		const char *const SessionIdentifier,
 		const char *const PathSecurityParameters,
 		const char *const CardReaderName,
+        const char *const TransactionURL,
 		const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
 		const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);
     
@@ -290,6 +297,11 @@ typedef EIDCLIENT_CONNECTION_HANDLE *P_EIDCLIENT_CONNECTION_HANDLE;
         const char *const PathSecurityParameters,
         const nPAeIdUserInteractionCallback_t fnUserInteractionCallback,
         const nPAeIdProtocolStateCallback_t fnCurrentStateCallback);    
+
+	bool validateTransactionData(unsigned char* transaction_data,
+								 int transaction_data_length,
+								 unsigned char* transaction_hash,
+								 int transaction_hash_length);
 
 // ASN.1 helper
     bool getCertificateInformation( const nPADataBuffer_t certificateDescriptionRaw,

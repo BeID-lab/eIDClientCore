@@ -73,9 +73,9 @@ class PCSCReader : public IndividualReader
 		std::vector<BYTE> getATRForPresentCard(
 			void);
 
-		bool supportsPACE(void);
+		bool supportsPACEnative(void);
 
-		PaceOutput establishPACEChannel(const PaceInput &);
+		PaceOutput establishPACEChannelNative(const PaceInput &);
 };
 
 #endif

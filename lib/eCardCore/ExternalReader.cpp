@@ -162,7 +162,7 @@ std::vector<unsigned char> ExternalReader::transceive(const std::vector<unsigned
 	return response;
 }
 
-bool ExternalReader::supportsPACE(void)
+bool ExternalReader::supportsPACEnative(void)
 {
 	bool r = false;
 
@@ -183,7 +183,7 @@ static std::vector<unsigned char> buffer2vector(const nPADataBuffer_t *src)
 	return dest;
 }
 
-PaceOutput ExternalReader::establishPACEChannel(const PaceInput &input)
+PaceOutput ExternalReader::establishPACEChannelNative(const PaceInput &input)
 {
 	PaceOutput paceoutput;
 
@@ -212,30 +212,43 @@ PaceOutput ExternalReader::establishPACEChannel(const PaceInput &input)
 		const nPADataBuffer_t chat = {
 			(unsigned char *) DATA(input.get_chat()),
 			input.get_chat().size()};
+		const nPADataBuffer_t chat_required = {
+			(unsigned char *) DATA(input.get_chat_required()),
+			input.get_chat_required().size()};
+		const nPADataBuffer_t chat_optional = {
+			(unsigned char *) DATA(input.get_chat_optional()),
+			input.get_chat_optional().size()};
 		const nPADataBuffer_t certificate_description = {
 			(unsigned char *) DATA(input.get_certificate_description()),
 			input.get_certificate_description().size()};
+		const nPADataBuffer_t transaction_info_hidden = {
+			(unsigned char *) DATA(input.get_transaction_info_hidden()),
+			input.get_transaction_info_hidden().size()};
 		unsigned int result;
 		unsigned short status_mse_set_at;
 		nPADataBuffer_t ef_cardaccess = {NULL, 0};
 		nPADataBuffer_t car_curr = {NULL, 0};
 		nPADataBuffer_t car_prev = {NULL, 0};
 		nPADataBuffer_t id_icc = {NULL, 0};
+		nPADataBuffer_t chat_used = {NULL, 0};
 
 		if (ECARD_SUCCESS == m_hDoPACE(m_hCardReader, pinid, &pin, &chat,
-					&certificate_description, &result, &status_mse_set_at,
-					&ef_cardaccess, &car_curr, &car_prev, &id_icc)) {
+					&chat_required, &chat_optional, &certificate_description,
+					&transaction_info_hidden, &result, &status_mse_set_at,
+					&ef_cardaccess, &car_curr, &car_prev, &id_icc, &chat_used)) {
 			paceoutput.set_result(result);
 			paceoutput.set_status_mse_set_at(status_mse_set_at);
 			paceoutput.set_ef_cardaccess(buffer2vector(&ef_cardaccess));
 			paceoutput.set_car_curr(buffer2vector(&car_curr));
 			paceoutput.set_car_prev(buffer2vector(&car_prev));
 			paceoutput.set_id_icc(buffer2vector(&id_icc));
+			paceoutput.set_chat(buffer2vector(&chat_used));
 
 			free(car_curr.pDataBuffer);
 			free(car_prev.pDataBuffer);
 			free(ef_cardaccess.pDataBuffer);
 			free(id_icc.pDataBuffer);
+			free(chat_used.pDataBuffer);
 		} else
 			eCardCore_warn(DEBUG_LEVEL_CARD, "external PACE failed");
 	}

@@ -27,15 +27,17 @@
 
 std::vector<unsigned char> establishPACEChannel_getBuffer(const PaceInput &input)
 {
-	uint8_t length_CHAT, length_PIN, PinID;
-	uint16_t lengthInputData, lengthCertificateDescription;
+	uint8_t length_CHAT, length_PIN, PinID, length_CHATrequired, length_CHAToptional;
+	uint16_t lengthInputData, lengthCertificateDescription, length_hashOID_description = 0, length_TransactionInfo = 0, length_hashOID_transactionInfo = 0;
 
 	if (input.get_chat().size() > 0xff || input.get_pin().size() > 0xff)
 		throw PACEException();
 
 	length_CHAT = (uint8_t) input.get_chat().size();
 	length_PIN = (uint8_t) input.get_pin().size();
-	/* FIXME */
+	length_CHATrequired = (uint8_t) input.get_chat_required().size();
+	length_CHAToptional = (uint8_t) input.get_chat_optional().size();
+	/* FIXME update the firmware of our reader */
 #define REINERSCT_ACCEPTS_TESTDESCRIPTION 1
 #if REINERSCT_ACCEPTS_TESTDESCRIPTION
 	lengthCertificateDescription = (unsigned int) input.get_certificate_description().size();
@@ -45,7 +47,14 @@ std::vector<unsigned char> establishPACEChannel_getBuffer(const PaceInput &input
 	lengthInputData = sizeof PinID
 					  + sizeof length_CHAT + length_CHAT
 					  + sizeof length_PIN + length_PIN
-					  + sizeof lengthCertificateDescription + lengthCertificateDescription;
+					  + sizeof lengthCertificateDescription + lengthCertificateDescription
+#ifdef REINERSCT_ACCEPTS_TRANSACTIONINFO
+					  + sizeof length_hashOID_description + length_hashOID_description
+					  + sizeof length_CHATrequired + length_CHATrequired
+					  + sizeof length_CHAToptional + length_CHAToptional
+					  + sizeof length_hashOID_transactionInfo + length_hashOID_transactionInfo
+#endif
+					  ;
 	size_t sendlen = 1 + 2 + lengthInputData;
 	std::vector<unsigned char> sendbuf;
     sendbuf.resize(sendlen);
@@ -85,6 +94,26 @@ std::vector<unsigned char> establishPACEChannel_getBuffer(const PaceInput &input
 		   &lengthCertificateDescription, sizeof lengthCertificateDescription);
 	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription,
 		   DATA(input.get_certificate_description()), lengthCertificateDescription);
+#ifdef REINERSCT_ACCEPTS_TRANSACTIONINFO
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription,
+		   &length_hashOID_description, sizeof length_hashOID_description);
+	/* TODO Add the actual OID of the hash functions */
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description,
+		   &length_CHATrequired, sizeof length_CHATrequired);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired,
+		   DATA(input.get_chat_required()), length_CHATrequired);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired + length_CHATrequired,
+		   &length_CHAToptional, sizeof length_CHAToptional);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired + length_CHATrequired + sizeof length_CHAToptional,
+		   DATA(input.get_chat_optional()), length_CHAToptional);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired + length_CHATrequired + sizeof length_CHAToptional + length_CHAToptional,
+		   &length_TransactionInfo, sizeof length_TransactionInfo);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired + length_CHATrequired + sizeof length_CHAToptional + length_CHAToptional + sizeof length_TransactionInfo,
+		   DATA(input.get_transaction_info_hidden()), length_TransactionInfo);
+	memcpy(DATA(sendbuf) + 1 + sizeof lengthInputData + sizeof PinID + sizeof length_CHAT + length_CHAT + sizeof length_PIN + length_PIN + sizeof lengthCertificateDescription + lengthCertificateDescription + sizeof length_hashOID_description + length_hashOID_description + sizeof length_CHATrequired + length_CHATrequired + sizeof length_CHAToptional + length_CHAToptional + sizeof length_TransactionInfo + length_TransactionInfo,
+		   &length_hashOID_transactionInfo, sizeof length_hashOID_transactionInfo);
+#endif
+	/* TODO Add the actual OID of the hash functions */
 
     return sendbuf;
 }
@@ -92,9 +121,9 @@ std::vector<unsigned char> establishPACEChannel_getBuffer(const PaceInput &input
 PaceOutput establishPACEChannel_parseBuffer(unsigned char *output, size_t output_length)
 {
 	size_t parsed = 0;
-	uint8_t lengthCAR, lengthCARprev;
+	uint8_t lengthCAR, lengthCARprev, length_CHAT;
 	uint16_t lengthOutputData, lengthEF_CardAccess, length_IDicc, mse_setat;
-	std::vector<unsigned char> CAR, CARprev, EF_CardAccess, IDicc;
+	std::vector<unsigned char> CAR, CARprev, EF_CardAccess, IDicc, CHAT;
 	uint32_t result;
 	PaceOutput paceoutput;
 
@@ -267,6 +296,21 @@ PaceOutput establishPACEChannel_parseBuffer(unsigned char *output, size_t output
 	IDicc.assign(output + parsed, output + parsed + length_IDicc);
 	paceoutput.set_id_icc(IDicc);
 	parsed += length_IDicc;
+
+	if (parsed > output_length) {
+		memcpy(&length_CHAT , output + parsed, sizeof length_CHAT);
+		parsed += sizeof length_CHAT;
+
+		/* CHAT */
+		if (parsed + length_CHAT > output_length) {
+			eCardCore_warn(DEBUG_LEVEL_CARD, "Malformed Establish PACE Channel output data.");
+			throw PACEException();
+		}
+
+		CHAT.assign(output + parsed, output + parsed + length_CHAT);
+		paceoutput.set_chat(CHAT);
+		parsed += length_CHAT;
+	}
 
 	if (parsed != output_length) {
 		eCardCore_warn(DEBUG_LEVEL_CARD, "Overrun by %d bytes", output_length - parsed);

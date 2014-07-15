@@ -112,14 +112,12 @@ CAPDU build_TA_Step_E(
 	if (ca_ecdh < CA_OID)
 		encoded_Puk_IFD_DH.push_back(0x04);
 	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
-	encoded_Puk_IFD_DH.insert(encoded_Puk_IFD_DH.end(), Puk_IFD_DH.begin(),
-			Puk_IFD_DH.end());
+	encoded_Puk_IFD_DH.insert(encoded_Puk_IFD_DH.end(), Puk_IFD_DH.begin(),	Puk_IFD_DH.end());
 	do91 = TLV_encode(0x91, calculate_ID_ICC(CA_OID, encoded_Puk_IFD_DH));
 	dataField.insert(dataField.end(), do91.begin(), do91.end());
 
-	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(),
-			authenticatedAuxiliaryData.end());
-
+	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(), authenticatedAuxiliaryData.end());
+	
 	mse.setData(dataField);
 
 	return mse;
