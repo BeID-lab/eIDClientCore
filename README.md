@@ -59,7 +59,8 @@ eIDClientCore has the following dependencies:
 ### Crypto++
 
 ```sh
-svn checkout https://cryptopp.svn.sourceforge.net/svnroot/cryptopp/trunk/c5 cryptopp
+svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 cryptopp
+sed -i.org -e "s%^#.*\(CXXFLAGS += -fPIC.*\)%\1%g" ${PREFIX}/cryptopp/GNUmakefile
 make -C cryptopp all libcryptopp.so
 make -C cryptopp install PREFIX=${PREFIX}
 ```
@@ -123,7 +124,7 @@ wget http://curl.haxx.se/download/curl-7.32.0.tar.gz
 tar xzf curl-7.32.0.tar.gz
 cd curl-7.32.0
 ./configure --prefix=${PREFIX} \
-    PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig
+    PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig
 make install
 cd -
 ```
@@ -137,9 +138,9 @@ uses the patched version of OpenSSL at runtime (see above).
 git clone https://github.com/BeID-lab/eIDClientCore.git
 cd eIDClientCore
 autoreconf -vis
-env LD_LIBRARY_PATH=${PREFIX}/lib ./configure --prefix=${PREFIX} \
+env LD_LIBRARY_PATH=${PREFIX}/lib:${PREFIX}/lib64 ./configure --prefix=${PREFIX} \
     --with-openssl=${PREFIX} --with-libcurl=${PREFIX} \
-    PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig \
+    PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig \
     ASN1C=${PREFIX}/bin/asn1c
 make install
 cd -
