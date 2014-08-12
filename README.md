@@ -101,12 +101,12 @@ the library.
 ### OpenSSL
 
 ```sh
-wget http://www.openssl.org/source/openssl-1.0.0k.tar.gz
-tar xzf openssl-1.0.0k.tar.gz
+wget http://www.openssl.org/source/openssl-1.0.0m.tar.gz
+tar xzf openssl-1.0.0m.tar.gz
 wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
 tar xf openssl-1.0.0c.tls-rsa-psk.tar
-patch -d openssl-1.0.0k -p1 < openssl-1.0.0c.tls-rsa-psk.patch
-cd openssl-1.0.0k
+patch -d openssl-1.0.0m -p1 < openssl-1.0.0c.tls-rsa-psk.patch
+cd openssl-1.0.0m
 ./config --prefix=${PREFIX} shared
 make
 make install_sw
