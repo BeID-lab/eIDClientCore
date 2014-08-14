@@ -35,7 +35,7 @@ libexpat:
 	make install
 	
 openssl:
-	cd patches/openssl/1.0.2 ;\
+	cd $(PREFIX)/patches/openssl/1.0.2 ;\
 	wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar ;\
 	tar xf openssl-1.0.0c.tls-rsa-psk.tar ;\
 	cd $(PREFIX)/OpenSSL_1_0_2-stable ;\

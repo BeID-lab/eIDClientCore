@@ -43,8 +43,23 @@ to do the actual communication with the card.
 
 # Building for Linux
 
-In the following guide we assume that PREFIX is set to the target installation
-directory.
+First you have to download the eIDClientCore Git-Repository in your target intstallation directory:
+
+```sh
+git clone git@github.com:BeID-lab/eIDClientCore.git
+```
+
+You can then change in the eIDClientCore directory and install the prerequisites and the eIDClientCore by:
+
+```sh
+cd eIDClientCore
+make all
+```
+
+If you want to install manually you can use the following guide. 
+We assume that PREFIX is set to the directory eIDClientCore in the target installation directory.
+
+
 
 ## Compiling Prerequisites from source
 
@@ -101,12 +116,15 @@ the library.
 ### OpenSSL
 
 ```sh
-wget http://www.openssl.org/source/openssl-1.0.0m.tar.gz
-tar xzf openssl-1.0.0m.tar.gz
+cd ${PREFIX}/patches/openssl/1.0.2 
 wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
 tar xf openssl-1.0.0c.tls-rsa-psk.tar
-patch -d openssl-1.0.0m -p1 < openssl-1.0.0c.tls-rsa-psk.patch
-cd openssl-1.0.0m
+cd ${PREFIX}/OpenSSL_1_0_2-stable
+git submodule init
+git submodule update
+patch -p1 <patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch
+patch -p1 <patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch
+patch -p1 <patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch
 ./config --prefix=${PREFIX} shared
 make
 make install_sw
@@ -114,8 +132,7 @@ cd -
 ```
 
 OpenSSL is the only library that needs to be patched since it does currently
-not support RSA-PSK. Please note that we are working on a better patch for
-newer version of OpenSSL.
+not support RSA-PSK. 
 
 ### libcurl
 
