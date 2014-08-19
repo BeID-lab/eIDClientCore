@@ -116,9 +116,6 @@ the library.
 ### OpenSSL
 
 ```sh
-cd ${PREFIX}/patches/openssl/1.0.2 
-wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
-tar xf openssl-1.0.0c.tls-rsa-psk.tar
 cd ${PREFIX}/OpenSSL_1_0_2-stable
 git submodule init
 git submodule update
