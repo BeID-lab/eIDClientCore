@@ -46,7 +46,7 @@ to do the actual communication with the card.
 First you have to download the eIDClientCore Git-Repository in your target intstallation directory:
 
 ```sh
-git clone git@github.com:BeID-lab/eIDClientCore.git
+git clone https://github.com/BeID-lab/eIDClientCore.git
 ```
 
 You can then change in the eIDClientCore directory and install the prerequisites and the eIDClientCore by:
