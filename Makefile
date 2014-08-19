@@ -35,15 +35,12 @@ libexpat:
 	make install
 	
 openssl:
-	cd $(PREFIX)/patches/openssl/1.0.2 ;\
-	wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar ;\
-	tar xf openssl-1.0.0c.tls-rsa-psk.tar ;\
 	cd $(PREFIX)/OpenSSL_1_0_2-stable ;\
 	git submodule init ;\
 	git submodule update ;\
-	patch -p1 <patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
-	patch -p1 <patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
-	patch -p1 <patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
+	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
+	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
+	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
 	make install_sw

@@ -3,18 +3,12 @@ From: Michael Gehring <mg@ebfe.org>
 Date: Fri, 2 Aug 2013 14:32:36 +0200
 Subject: [PATCH 2/3] fix space vs tabs indent
 
+Patch adjusted by Erik Nellessen: erik.nellessen@informatik.hu-berlin.de
 ---
- ssl/s3_clnt.c | 224 +++++++++++++++++++--------------------
- ssl/s3_lib.c  |   4 +-
- ssl/s3_srvr.c | 332 +++++++++++++++++++++++++++++-----------------------------
- ssl/ssl_lib.c |   8 +-
- 4 files changed, 284 insertions(+), 284 deletions(-)
-
-diff --git a/ssl/s3_clnt.c b/ssl/s3_clnt.c
-index d4a78bd..5ddfbda 100644
---- a/ssl/s3_clnt.c
-+++ b/ssl/s3_clnt.c
-@@ -1378,7 +1378,7 @@ int ssl3_get_key_exchange(SSL *s)
+diff -rupN OpenSSL_1_0_2-stable/ssl/s3_clnt.c OpenSSL_1_0_2-stable-patched/ssl/s3_clnt.c
+--- OpenSSL_1_0_2-stable/ssl/s3_clnt.c	2014-08-19 11:42:59.429902074 +0200
++++ OpenSSL_1_0_2-stable-patched/ssl/s3_clnt.c	2014-08-19 11:43:47.029900089 +0200
+@@ -1461,7 +1461,7 @@ int ssl3_get_key_exchange(SSL *s)
  	EVP_MD_CTX_init(&md_ctx);
  
  #ifndef OPENSSL_NO_PSK
@@ -23,46 +17,7 @@ index d4a78bd..5ddfbda 100644
  	if (alg_k & (SSL_kPSK|SSL_kRSAPSK)) // CJD
  		{
  		char tmp_id_hint[PSK_MAX_IDENTITY_LEN+1];
-@@ -1845,7 +1845,7 @@ fprintf(stderr, "USING TLSv1.2 HASH %s\n", EVP_MD_name(md));
- 		{
- 		if (!(alg_a & SSL_aNULL) && !(alg_k & (SSL_kPSK|SSL_kRSAPSK)))
- 			/* aNULL or kPSK do not need public keys 
--             * CJD: added SSL_kRSAPSK here, too */
-+			* CJD: added SSL_kRSAPSK here, too */
- 			{
- 			/* Might be wrong key type, check it */
- 			if (ssl3_check_cert_and_algorithm(s))
-@@ -2292,22 +2292,22 @@ int ssl3_send_client_key_exchange(SSL *s)
- 		/* Fool emacs indentation */
- 		if (0) {}
- #ifndef OPENSSL_NO_RSA
--        /** here we can see normal RSA key exchange **/
--        /* ClientKeyExchange consists of the encrypted premaster secret 
--         * which in turn consists of version (2 bytes) and 46 random bytes */
-+		/** here we can see normal RSA key exchange **/
-+		/* ClientKeyExchange consists of the encrypted premaster secret 
-+		 * which in turn consists of version (2 bytes) and 46 random bytes */
- 		else if (alg_k & SSL_kRSA) // plain kRSA case
- 			{
- 			RSA *rsa;
--            /* this contains the premaster secret */
-+		/* this contains the premaster secret */
- 			unsigned char tmp_buf[SSL_MAX_MASTER_KEY_LENGTH];
- 
--            /* get the server's public key */
-+		/* get the server's public key */
- 			if (s->session->sess_cert->peer_rsa_tmp != NULL)
--                /* for this session the server's rsa has been extracted */
-+			/* for this session the server's rsa has been extracted */
- 				rsa=s->session->sess_cert->peer_rsa_tmp;
- 			else
- 				{
--                /* get the pubkey from the server's certificate */
-+				/* get the pubkey from the server's certificate */
- 				pkey=X509_get_pubkey(s->session->sess_cert->peer_pkeys[SSL_PKEY_RSA_ENC].x509);
- 				if ((pkey == NULL) ||
- 					(pkey->type != EVP_PKEY_RSA) ||
-@@ -2320,33 +2320,33 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -2419,33 +2419,33 @@ int ssl3_send_client_key_exchange(SSL *s
  				EVP_PKEY_free(pkey);
  				}
  			
@@ -111,7 +66,7 @@ index d4a78bd..5ddfbda 100644
  #ifdef PKCS1_CHECK
  			if (s->options & SSL_OP_PKCS1_CHECK_1) p[1]++;          // ???
  			if (s->options & SSL_OP_PKCS1_CHECK_2) tmp_buf[0]=0x70; // ???
-@@ -2918,20 +2918,20 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3024,20 +3024,20 @@ int ssl3_send_client_key_exchange(SSL *s
  			}
  #endif
  #ifndef OPENSSL_NO_PSK
@@ -142,7 +97,7 @@ index d4a78bd..5ddfbda 100644
  			unsigned char psk_or_pre_ms[PSK_MAX_PSK_LEN*2+4];
  			unsigned int pre_ms_len = 0, psk_len = 0;
  			int psk_err = 1;
-@@ -2944,8 +2944,8 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3050,8 +3050,8 @@ int ssl3_send_client_key_exchange(SSL *s
  				goto err;
  				}
  
@@ -153,7 +108,7 @@ index d4a78bd..5ddfbda 100644
  			psk_len = s->psk_client_callback(s, s->ctx->psk_identity_hint,
  				identity, PSK_MAX_IDENTITY_LEN,
  				psk_or_pre_ms, sizeof(psk_or_pre_ms));
-@@ -2963,24 +2963,24 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3069,24 +3069,24 @@ int ssl3_send_client_key_exchange(SSL *s
  				}
  
  			/* create PSK pre_master_secret, it should look like pre_ms at the end
@@ -188,7 +143,7 @@ index d4a78bd..5ddfbda 100644
  
  			if (s->session->psk_identity_hint != NULL)
  				OPENSSL_free(s->session->psk_identity_hint);
-@@ -3003,15 +3003,15 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3109,15 +3109,15 @@ int ssl3_send_client_key_exchange(SSL *s
  				goto psk_err;
  				}
  
@@ -209,7 +164,7 @@ index d4a78bd..5ddfbda 100644
  			n = strlen(identity);
  			s2n(n, p); // write n as uint16 into p
  			memcpy(p, identity, n); // copy identity into p
-@@ -3029,16 +3029,16 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3135,16 +3135,16 @@ int ssl3_send_client_key_exchange(SSL *s
  #endif
  #ifndef OPENSSL_NO_PSK
  #ifndef OPENSSL_NO_RSA
@@ -230,7 +185,7 @@ index d4a78bd..5ddfbda 100644
  			int psk_err = 1;
  
  			n = 0;
-@@ -3066,35 +3066,35 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3172,35 +3172,35 @@ int ssl3_send_client_key_exchange(SSL *s
  				}
  
  			/* create RSA-PSK pre_master_secret, it should look like pre_ms at the end
@@ -289,7 +244,7 @@ index d4a78bd..5ddfbda 100644
  			if (s->session->psk_identity_hint != NULL)
  				OPENSSL_free(s->session->psk_identity_hint);
  			s->session->psk_identity_hint = BUF_strdup(s->ctx->psk_identity_hint);
-@@ -3106,7 +3106,7 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3212,7 +3212,7 @@ int ssl3_send_client_key_exchange(SSL *s
  				goto rsapsk_err;
  				}
  
@@ -298,7 +253,7 @@ index d4a78bd..5ddfbda 100644
  			if (s->session->psk_identity != NULL)
  				OPENSSL_free(s->session->psk_identity);
  			s->session->psk_identity = BUF_strdup(identity);
-@@ -3122,22 +3122,22 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3228,22 +3228,22 @@ int ssl3_send_client_key_exchange(SSL *s
  					s->session->master_key,
  					psk_or_pre_ms, pre_ms_len); 
  
@@ -331,7 +286,7 @@ index d4a78bd..5ddfbda 100644
  					{
  					SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,ERR_R_INTERNAL_ERROR);
  					goto err; // FIXME CJD: check target, maybe rsapsk_err?
-@@ -3146,35 +3146,35 @@ int ssl3_send_client_key_exchange(SSL *s)
+@@ -3252,35 +3252,35 @@ int ssl3_send_client_key_exchange(SSL *s
  				EVP_PKEY_free(pkey);
  				}
  
@@ -390,11 +345,10 @@ index d4a78bd..5ddfbda 100644
  			OPENSSL_cleanse(identity, PSK_MAX_IDENTITY_LEN);
  			OPENSSL_cleanse(psk_or_pre_ms, sizeof(psk_or_pre_ms));
  			if (psk_err != 0)
-diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
-index 97f9dd3..e34ce15 100644
---- a/ssl/s3_lib.c
-+++ b/ssl/s3_lib.c
-@@ -1717,8 +1717,8 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[]={
+diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable-patched/ssl/s3_lib.c
+--- OpenSSL_1_0_2-stable/ssl/s3_lib.c	2014-08-19 11:42:59.430902074 +0200
++++ OpenSSL_1_0_2-stable-patched/ssl/s3_lib.c	2014-08-19 11:43:47.030900089 +0200
+@@ -1717,8 +1717,8 @@ OPENSSL_GLOBAL const SSL_CIPHER ssl3_cip
  	},
  
  #ifndef OPENSSL_NO_RSA
@@ -405,11 +359,10 @@ index 97f9dd3..e34ce15 100644
  
  	/* Cipher 95 */
  	{
-diff --git a/ssl/s3_srvr.c b/ssl/s3_srvr.c
-index 79facd1..82f432b 100644
---- a/ssl/s3_srvr.c
-+++ b/ssl/s3_srvr.c
-@@ -483,7 +483,7 @@ int ssl3_accept(SSL *s)
+diff -rupN OpenSSL_1_0_2-stable/ssl/s3_srvr.c OpenSSL_1_0_2-stable-patched/ssl/s3_srvr.c
+--- OpenSSL_1_0_2-stable/ssl/s3_srvr.c	2014-08-19 11:42:59.431902073 +0200
++++ OpenSSL_1_0_2-stable-patched/ssl/s3_srvr.c	2014-08-19 11:43:47.031900089 +0200
+@@ -467,7 +467,7 @@ int ssl3_accept(SSL *s)
  			 * RSA but we have a sign only certificate
  			 *
  			 * PSK|RSAPSK: may send PSK identity hints.
@@ -418,7 +371,7 @@ index 79facd1..82f432b 100644
  			 *
  			 * For ECC ciphersuites, we send a serverKeyExchange
  			 * message only if the cipher suite is either
-@@ -493,7 +493,7 @@ int ssl3_accept(SSL *s)
+@@ -477,7 +477,7 @@ int ssl3_accept(SSL *s)
  			 */
  			if (s->s3->tmp.use_rsa_tmp
  #ifndef OPENSSL_NO_PSK
@@ -427,20 +380,7 @@ index 79facd1..82f432b 100644
  			    || ((alg_k & (SSL_kPSK|SSL_kRSAPSK)) && s->ctx->psk_identity_hint)
  #endif
  #ifndef OPENSSL_NO_SRP
-@@ -540,9 +540,9 @@ int ssl3_accept(SSL *s)
- 				(s->s3->tmp.new_cipher->algorithm_auth & SSL_aKRB5)
- 				/* With normal PSK, Certificates and
- 				 * Certificate Requests are omitted */
--                /* CJD: I am not sure whether kRSAPSK falls into the same
--                 * category. I think, with kRSAPSK client certs make no
--                 * sense either, thus the CertRequest can be skipped, too. */
-+				/* CJD: I am not sure whether kRSAPSK falls into the same
-+				 * category. I think, with kRSAPSK client certs make no
-+				 * sense either, thus the CertRequest can be skipped, too. */
- 				|| (s->s3->tmp.new_cipher->algorithm_mkey & (SSL_kPSK|SSL_kRSAPSK)))
- 				{
- 				/* no cert request */
-@@ -1620,7 +1620,7 @@ int ssl3_send_server_key_exchange(SSL *s)
+@@ -1632,7 +1632,7 @@ int ssl3_send_server_key_exchange(SSL *s
  		r[0]=r[1]=r[2]=r[3]=NULL;
  		n=0;
  #ifndef OPENSSL_NO_RSA
@@ -449,7 +389,7 @@ index 79facd1..82f432b 100644
  		if (type & SSL_kRSA)
  			{
  			rsa=cert->rsa_tmp;
-@@ -1869,13 +1869,13 @@ int ssl3_send_server_key_exchange(SSL *s)
+@@ -1900,13 +1900,13 @@ int ssl3_send_server_key_exchange(SSL *s
  #endif
  #ifndef OPENSSL_NO_RSA
  #ifndef OPENSSL_NO_PSK
@@ -468,7 +408,7 @@ index 79facd1..82f432b 100644
  			rsa=cert->rsa_tmp;
  			if ((rsa == NULL) && (s->cert->rsa_tmp_cb != NULL))
  				{
-@@ -1900,9 +1900,9 @@ int ssl3_send_server_key_exchange(SSL *s)
+@@ -1931,9 +1931,9 @@ int ssl3_send_server_key_exchange(SSL *s
  			r[0]=rsa->n;
  			r[1]=rsa->e;
  			s->s3->tmp.use_rsa_tmp=1;
@@ -481,9 +421,9 @@ index 79facd1..82f432b 100644
  			n+=2+strlen(s->ctx->psk_identity_hint);
  			}
  		else
-@@ -1926,8 +1926,8 @@ int ssl3_send_server_key_exchange(SSL *s)
+@@ -1957,8 +1957,8 @@ int ssl3_send_server_key_exchange(SSL *s
  
- 		if (!(s->s3->tmp.new_cipher->algorithm_auth & SSL_aNULL)
+ 		if (!(s->s3->tmp.new_cipher->algorithm_auth & (SSL_aNULL|SSL_aSRP))
  			&& !(s->s3->tmp.new_cipher->algorithm_mkey & SSL_kPSK))
 -            /* CJD: no change needed for RSAPSK. we need the pkey 
 -             * in case of RSAPSK. */
@@ -492,16 +432,16 @@ index 79facd1..82f432b 100644
  			{
  			if ((pkey=ssl_get_sign_pkey(s,s->s3->tmp.new_cipher,&md))
  				== NULL)
-@@ -2011,7 +2011,7 @@ int ssl3_send_server_key_exchange(SSL *s)
- 			if (pkey->type == EVP_PKEY_RSA
- 					&& TLS1_get_version(s) < TLS1_2_VERSION)
+@@ -2040,7 +2040,7 @@ int ssl3_send_server_key_exchange(SSL *s
+ #ifndef OPENSSL_NO_RSA
+ 			if (pkey->type == EVP_PKEY_RSA && !SSL_USE_SIGALGS(s))
  				{
 -                if(!(type & SSL_kRSAPSK)) {
 +				if(!(type & SSL_kRSAPSK)) {
  				q=md_buf;
  				j=0;
  				for (num=2; num > 0; num--)
-@@ -2243,7 +2243,7 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -2269,7 +2269,7 @@ int ssl3_get_client_key_exchange(SSL *s)
  	alg_k=s->s3->tmp.new_cipher->algorithm_mkey;
  
  #ifndef OPENSSL_NO_RSA
@@ -509,8 +449,8 @@ index 79facd1..82f432b 100644
 +	/** plain RSA case for ClientKeyExchange **/
  	if (alg_k & SSL_kRSA)
  		{
- 		/* FIX THIS UP EAY EAY EAY EAY */
-@@ -2279,8 +2279,8 @@ int ssl3_get_client_key_exchange(SSL *s)
+ 		unsigned char rand_premaster_secret[SSL_MAX_MASTER_KEY_LENGTH];
+@@ -2309,8 +2309,8 @@ int ssl3_get_client_key_exchange(SSL *s)
  		if (s->version > SSL3_VERSION && s->version != DTLS1_BAD_VER)
  			{
  			n2s(p,i);   // read uint16 from p into i, increases p by 2
@@ -521,7 +461,7 @@ index 79facd1..82f432b 100644
  			if (n != i+2)
  				{
  				if (!(s->options & SSL_OP_TLS_D5_BUG))
-@@ -2800,7 +2800,7 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -2870,7 +2870,7 @@ int ssl3_get_client_key_exchange(SSL *s)
  	else
  #endif
  #ifndef OPENSSL_NO_PSK
@@ -530,7 +470,7 @@ index 79facd1..82f432b 100644
  		if (alg_k & SSL_kPSK)
  			{
  			unsigned char *t = NULL;
-@@ -2935,24 +2935,24 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -3012,24 +3012,24 @@ int ssl3_get_client_key_exchange(SSL *s)
  #endif	/* OPENSSL_NO_SRP */
  #ifndef OPENSSL_NO_RSA
  #ifndef OPENSSL_NO_PSK
@@ -571,7 +511,7 @@ index 79facd1..82f432b 100644
  
  		/* FIX THIS UP EAY EAY EAY EAY */
  		if (s->s3->tmp.use_rsa_tmp)
-@@ -2982,73 +2982,73 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -3059,73 +3059,73 @@ int ssl3_get_client_key_exchange(SSL *s)
  			rsa=pkey->pkey.rsa;
  			}
  
@@ -711,7 +651,7 @@ index 79facd1..82f432b 100644
  
  		al = -1;
  		
-@@ -3058,7 +3058,7 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -3135,7 +3135,7 @@ int ssl3_get_client_key_exchange(SSL *s)
  			/* SSLerr(SSL_F_SSL3_GET_CLIENT_KEY_EXCHANGE,SSL_R_BAD_RSA_DECRYPT); */
  			}
  
@@ -720,7 +660,7 @@ index 79facd1..82f432b 100644
  		if ((al == -1) && !((p[0] == (s->client_version>>8)) && (p[1] == (s->client_version & 0xff))))
  			{
  			/* The premaster secret must contain the same version number as the
-@@ -3097,69 +3097,69 @@ int ssl3_get_client_key_exchange(SSL *s)
+@@ -3174,69 +3174,69 @@ int ssl3_get_client_key_exchange(SSL *s)
  				goto rsapsk_err; // CHECKME CD: goto target correctly adapted? was err
  			}
  	
@@ -852,29 +792,3 @@ index 79facd1..82f432b 100644
  #endif /* !OPENSSL_NO_PSK */
  #endif /* !OPENSSL_NO_RSA */
  		if (alg_k & SSL_kGOST) 
-diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index afa89a6..74918d4 100644
---- a/ssl/ssl_lib.c
-+++ b/ssl/ssl_lib.c
-@@ -1470,14 +1470,14 @@ int ssl_cipher_list_to_bytes(SSL *s,STACK_OF(SSL_CIPHER) *sk,unsigned char *p,
- 
- #ifndef OPENSSL_NO_KRB5
- 		if (((c->algorithm_mkey & SSL_kKRB5) || (c->algorithm_auth & SSL_aKRB5)) &&
--		    nokrb5)
--		    continue;
-+			nokrb5)
-+			continue;
- #endif /* OPENSSL_NO_KRB5 */
- #ifndef OPENSSL_NO_PSK
- 		/* with PSK there must be client callback set */
- 		if (((c->algorithm_mkey & (SSL_kPSK|SSL_kRSAPSK)) 
--            || (c->algorithm_auth & SSL_aPSK)) &&
--		    s->psk_client_callback == NULL)
-+			|| (c->algorithm_auth & SSL_aPSK)) &&
-+			s->psk_client_callback == NULL)
- 			continue;
- #endif
- #ifdef OPENSSL_SSL_DEBUG_BROKEN_PROTOCOL
--- 
-1.8.4
-
