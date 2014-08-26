@@ -1,0 +1,405 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B5E14CF8-42E6-468F-9BFB-902F39EEA3EC}</ProjectGuid>
+    <RootNamespace>eIDASN1</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;..\..\..\src\lib\eIDASN1\generated</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SuppressStartupBanner>
+      </SuppressStartupBanner>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName)d.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>.;..\..\..\src\lib\eIDASN1\generated</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>
+      </SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\lib\eidasn1\definitions\tr31xx.asn1">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd ..\..\lib\eidasn1\generated
+del /Q *.c
+del /Q *.h
+del /Q Makefile.am.sample
+..\..\..\..\Software\asn1c-0.9.24_win32\bin\asn1c.exe -S ..\..\..\..\Software\asn1c-0.9.24_win32\share\asn1c %(FullPath)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compile ASN.1 definition for %(Filename)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\src\lib\eIDASN1\generated\SecurityInfo.h;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\eidasn1\generated\AcademicTitle.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AgeVerificationDate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AlgorithmIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ANY.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ArtisticName.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\asn_codecs_prim.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\asn_SEQUENCE_OF.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\asn_SET_OF.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Attribute.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AttributeType.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AttributeTypeAndValue.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AttributeValue.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AuxDataTemplate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\AuxiliaryAuthenticatedData.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ber_decoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ber_tlv_length.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ber_tlv_tag.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\BIT_STRING.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\BOOLEAN.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CardInfoLocator.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Certificate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateBody.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateChoices.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateDescription.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateExtensions.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateHolderAuthorizationTemplate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateList.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateSerialNumber.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CertificateSet.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ChipAuthenticationDomainParameterInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ChipAuthenticationInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ChipAuthenticationPublicKeyInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CMSVersion.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CommunityID.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constraints.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constr_CHOICE.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constr_SEQUENCE.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constr_SEQUENCE_OF.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constr_SET_OF.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\constr_TYPE.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ContentInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ContentType.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Curve.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\CVCertificate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Date.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DateOfBirth.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DateOfExpiry.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\der_encoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DigestAlgorithmIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DigestAlgoritmsIdentifiers.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DiscretionaryDataTemplate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DistinguishedName.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\DocumentType.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ECParameters.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ECPoint.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ECPVer.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\EncapsulatedContentInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\EstablishPACEChannelInput.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\EstablishPACEChannelOutput.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Extension.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Extensions.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\FamilyNames.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\FieldElement.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\FieldID.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\FileID.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\GeneralizedTime.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\GeneralPlace.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\GivenNames.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\HtmlTermsOfUsage.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\IA5String.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ICAOCountry.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ICAOSex.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ICAOString.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\INTEGER.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\IssuerAndSerialNumber.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\IssuingState.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\KeyIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Name.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Nationality.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\NativeEnumerated.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\NativeInteger.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\NumericString.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OBJECT_IDENTIFIER.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OCTET_STRING.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OptionalData.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OptionalDataR.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OptionalDataRW.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OtherCertificateFormat.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\OtherRevocationInfoFormat.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PACECapabilities.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PACEDomainParameterInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PACEInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PdfTermsOfUsage.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\per_decoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\per_encoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\per_opentype.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\per_support.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Place.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PlaceOfBirth.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PlaceOfResidence.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PlainTermsOfUsage.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PrintableString.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ProtocolParams.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\PublicKey.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RDNSequence.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RelativeDistinguishedName.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ResidencePermitI.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ResidencePermitII.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RestrictedIdentificationInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RevocationInfoChoice.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RevocationInfoChoices.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RevokedCertificate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\RevokedCertificates.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SecurityInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SecurityInfos.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Sex.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignatureAlgorithmIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignatureValue.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignedAttribute.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignedAttributes.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignedData.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignerIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignerInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SignerInfos.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SubjectKeyIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\SubjectPublicKeyInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\TBSCertificate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\TBSCertList.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\TerminalAuthenticationInfo.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Text.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\UniqueIdentifier.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\UTCTime.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\UTF8String.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Validity.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\ValidityDate.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\Version.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\xer_decoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\xer_encoder.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\xer_support.c" />
+    <ClCompile Include="..\..\lib\eidasn1\generated\XTime.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\eidasn1\generated\AcademicTitle.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AgeVerificationDate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AlgorithmIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ANY.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ArtisticName.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_application.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_codecs.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_codecs_prim.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_internal.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_SEQUENCE_OF.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_SET_OF.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\asn_system.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Attribute.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AttributeType.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AttributeTypeAndValue.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AttributeValue.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AuxDataTemplate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\AuxiliaryAuthenticatedData.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ber_decoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ber_tlv_length.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ber_tlv_tag.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\BIT_STRING.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\BOOLEAN.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CardInfoLocator.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Certificate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateBody.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateChoices.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateDescription.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateExtensions.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateHolderAuthorizationTemplate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateList.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateSerialNumber.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CertificateSet.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ChipAuthenticationDomainParameterInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ChipAuthenticationInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ChipAuthenticationPublicKeyInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CMSVersion.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CommunityID.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constraints.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constr_CHOICE.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constr_SEQUENCE.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constr_SEQUENCE_OF.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constr_SET_OF.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\constr_TYPE.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ContentInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ContentType.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Curve.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\CVCertificate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Date.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DateOfBirth.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DateOfExpiry.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\der_encoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DigestAlgorithmIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DigestAlgoritmsIdentifiers.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DiscretionaryDataTemplate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DistinguishedName.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\DocumentType.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ECParameters.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ECPoint.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ECPVer.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\EncapsulatedContentInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\EstablishPACEChannelInput.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\EstablishPACEChannelOutput.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Extension.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Extensions.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\FamilyNames.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\FieldElement.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\FieldID.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\FileID.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\GeneralizedTime.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\GeneralPlace.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\GivenNames.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\HtmlTermsOfUsage.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\IA5String.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ICAOCountry.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ICAOSex.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ICAOString.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\INTEGER.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\IssuerAndSerialNumber.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\IssuingState.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\KeyIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Name.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Nationality.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\NativeEnumerated.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\NativeInteger.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\NumericString.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OBJECT_IDENTIFIER.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OCTET_STRING.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OptionalData.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OptionalDataR.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OptionalDataRW.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OtherCertificateFormat.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\OtherRevocationInfoFormat.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PACECapabilities.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PACEDomainParameterInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PACEInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PdfTermsOfUsage.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\per_decoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\per_encoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\per_opentype.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\per_support.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Place.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PlaceOfBirth.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PlaceOfResidence.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PlainTermsOfUsage.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PrintableString.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ProtocolParams.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\PublicKey.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RDNSequence.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RelativeDistinguishedName.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ResidencePermitI.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ResidencePermitII.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RestrictedIdentificationInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RevocationInfoChoice.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RevocationInfoChoices.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RevokedCertificate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\RevokedCertificates.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SecurityInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SecurityInfos.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Sex.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignatureAlgorithmIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignatureValue.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignedAttribute.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignedAttributes.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignedData.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignerIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignerInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SignerInfos.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SubjectKeyIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\SubjectPublicKeyInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\TBSCertificate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\TBSCertList.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\TerminalAuthenticationInfo.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Text.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\UniqueIdentifier.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\UTCTime.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\UTF8String.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Validity.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\ValidityDate.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\Version.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\xer_decoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\xer_encoder.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\xer_support.h" />
+    <ClInclude Include="..\..\lib\eidasn1\generated\XTime.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
