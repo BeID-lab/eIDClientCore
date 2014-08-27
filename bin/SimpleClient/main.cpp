@@ -20,12 +20,14 @@ using namespace std;
 #define mutex_lock(X) WaitForSingleObject(X, INFINITE)
 #define mutex_unlock(X) ReleaseMutex(X)
 #define sleepMilliseconds(X) Sleep(X)
+#define sleepInfinite() Sleep(INFINITE)
 static HANDLE ghMutex;
 #else
 #define mutex_lock(X) pthread_mutex_lock(&X)
 #define mutex_unlock(X) pthread_mutex_unlock(&X)
 static pthread_mutex_t ghMutex = PTHREAD_MUTEX_INITIALIZER;
 #define sleepMilliseconds(X) usleep(X * 1000)
+#define sleepInfinite pause()
 typedef unsigned long DWORD;
 #endif
 
@@ -338,24 +340,25 @@ static int begin_request_handler(struct mg_connection *conn) {
 
 		retValue = callEcardLib(gAuthParams);
 
-		/*Wait for performAuthenticationThread to lock the Mutex,
-		so we can be sure to have the UserInteractionHtml*/
-		sleepMilliseconds(1000);
-		/*Wait until eID has finished*/
-		DWORD dwWaitResult = mutex_lock(ghMutex);
-		mutex_unlock(ghMutex);
+		if(retValue == NPACLIENT_ERROR_SUCCESS) {
+			/*Wait for performAuthenticationThread to lock the Mutex,
+			so we can be sure to have the UserInteractionHtml*/
+			sleepMilliseconds(1000);
+			/*Wait until eID has finished*/
+			DWORD dwWaitResult = mutex_lock(ghMutex);
+			mutex_unlock(ghMutex);
 
-		retValue = getSamlResponse(samlResponse, gAuthParams.m_strRefreshAddress);
-		string transferencoding = "Transfer-Encoding:";
-		string linefeeding = "\r\n\r\n";
-		string header = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
-		//size_t found = samlResponse.find(transferencoding);
-		size_t found = samlResponse.find(linefeeding);
-		samlResponse.erase(0, found);
-		samlResponse = header + samlResponse;
-		//samlResponse.erase(found, linefeeding.length());
- 		mg_write(conn, samlResponse.c_str(), samlResponse.length());
-	//}
+			retValue = getSamlResponse(samlResponse, gAuthParams.m_strRefreshAddress);
+			string transferencoding = "Transfer-Encoding:";
+			string linefeeding = "\r\n\r\n";
+			string header = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
+			//size_t found = samlResponse.find(transferencoding);
+			size_t found = samlResponse.find(linefeeding);
+			samlResponse.erase(0, found);
+			samlResponse = header + samlResponse;
+			//samlResponse.erase(found, linefeeding.length());
+			mg_write(conn, samlResponse.c_str(), samlResponse.length());
+		}
 
 	return 0;
 }
@@ -373,6 +376,7 @@ int main(void) {
 	CivetServer civetServer = CivetServer(options, &callbacks);
 	// Wait until user hits "enter". Server is running in separate thread.
 	puts("Client is running...");
+	sleepInfinite();
 	getchar();
 
 	return 0;
