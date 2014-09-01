@@ -1,0 +1,99 @@
+From b0ffdb58b07e436183f7671dc2457e1b189739e4 Mon Sep 17 00:00:00 2001
+From: Michael Gehring <mg@ebfe.org>
+Date: Sun, 26 Aug 2012 03:13:27 +0200
+Subject: [PATCH 3/3] add missing RSA_PSK cipher suites
+
+---
+ ssl/s3_lib.c | 49 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ ssl/tls1.h   |  8 ++++++--
+ 2 files changed, 54 insertions(+), 3 deletions(-)
+
+diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
+index e34ce15..8f5217b 100644
+--- a/ssl/s3_lib.c
++++ b/ssl/s3_lib.c
+@@ -1718,7 +1718,54 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[]={
+ 
+ #ifndef OPENSSL_NO_RSA
+ 	/** RSA-PSK ciphersuites **/
+-	// FIXME: add RSA-PSK ciphers 92-94
++
++	/* Cipher 92 */
++	{
++	1,
++	TLS1_TXT_RSA_PSK_WITH_RC4_128_SHA,
++	TLS1_CK_RSA_PSK_WITH_RC4_128_SHA,
++	SSL_kRSAPSK,
++	SSL_aRSA,
++	SSL_RC4,
++	SSL_SHA1,
++	SSL_TLSV1,
++	SSL_NOT_EXP|SSL_MEDIUM,
++	SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++	128,
++	128,
++	},
++
++	/* Cipher 93 */
++	{
++	1,
++	TLS1_TXT_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
++	TLS1_CK_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
++	SSL_kRSAPSK,
++	SSL_aRSA,
++	SSL_3DES,
++	SSL_SHA1,
++	SSL_TLSV1,
++	SSL_NOT_EXP|SSL_HIGH,
++	SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++	168,
++	168,
++	},
++
++	/* Cipher 94 */
++	{
++	1,
++	TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA,
++	TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA,
++	SSL_kRSAPSK,
++	SSL_aRSA,
++	SSL_AES128,
++	SSL_SHA1,
++	SSL_TLSV1,
++	SSL_NOT_EXP|SSL_HIGH,
++	SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++	128,
++	128,
++	},
+ 
+ 	/* Cipher 95 */
+ 	{
+diff --git a/ssl/tls1.h b/ssl/tls1.h
+index 81b6a82..eda8d56 100644
+--- a/ssl/tls1.h
++++ b/ssl/tls1.h
+@@ -412,7 +412,9 @@ SSL_CTX_ctrl(ctx, SSL_CTRL_SET_TLSEXT_AUTHZ_SERVER_AUDIT_PROOF_CB_ARG, 0, arg);
+ #define TLS1_CK_PSK_WITH_AES_128_CBC_SHA                0x0300008C
+ #define TLS1_CK_PSK_WITH_AES_256_CBC_SHA                0x0300008D
+ /* RSA-PSK */
+-// FIXME: add RSA-PSK ciphers 92-94 here, too
++#define TLS1_CK_RSA_PSK_WITH_RC4_128_SHA		0x03000092
++#define TLS1_CK_RSA_PSK_WITH_3DES_EDE_CBC_SHA		0x03000093
++#define TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA            0x03000094
+ #define TLS1_CK_RSA_PSK_WITH_AES_256_CBC_SHA            0x03000095
+ 
+ /* Additional TLS ciphersuites from expired Internet Draft
+@@ -628,7 +630,9 @@ SSL_CTX_ctrl(ctx, SSL_CTRL_SET_TLSEXT_AUTHZ_SERVER_AUDIT_PROOF_CB_ARG, 0, arg);
+ #define TLS1_TXT_PSK_WITH_3DES_EDE_CBC_SHA		"PSK-3DES-EDE-CBC-SHA"
+ #define TLS1_TXT_PSK_WITH_AES_128_CBC_SHA		"PSK-AES128-CBC-SHA"
+ #define TLS1_TXT_PSK_WITH_AES_256_CBC_SHA		"PSK-AES256-CBC-SHA"
+-// FIXME: add the 3 other RSA-PSK ciphers here, too
++#define TLS1_TXT_RSA_PSK_WITH_RC4_128_SHA		"RSA-PSK-RC4-SHA"
++#define TLS1_TXT_RSA_PSK_WITH_3DES_EDE_CBC_SHA		"RSA-PSK-3DES-EDE-CBC-SHA"
++#define TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA		"RSA-PSK-AES128-CBC-SHA"
+ #define TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA		"RSA-PSK-AES256-CBC-SHA"
+ 
+ /* SRP ciphersuite from RFC 5054 */
+-- 
+1.8.4
+
