@@ -11,14 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Software\civetweb\src\CivetServer.cpp" />
-    <ClCompile Include="..\..\..\Software\civetweb\src\civetweb.c" />
+    <ClCompile Include="..\..\bin\SimpleClient\civetweb\src\CivetServer.cpp" />
+    <ClCompile Include="..\..\bin\SimpleClient\civetweb\src\civetweb.c" />
     <ClCompile Include="..\..\bin\SimpleClient\CeIdObject.cpp" />
     <ClCompile Include="..\..\bin\SimpleClient\main.cpp" />
     <ClCompile Include="..\..\bin\Test_nPAClientLib\eidui_cli.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Software\civetweb\include\CivetServer.h" />
+    <ClInclude Include="..\..\bin\SimpleClient\civetweb\include\CivetServer.h" />
     <ClInclude Include="..\..\bin\SimpleClient\CeIdObject.h" />
     <ClInclude Include="..\..\bin\Test_nPAClientLib\eidui_cli.h" />
   </ItemGroup>
@@ -55,7 +55,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\Software\libcurl-vc10-x86-debug-static-ssl-static-ipv6-sspi-spnego\include;..\..\..\Software\expat\lib;..\..\..\Software\mongoose-master;..\..\lib\eIDClientConnection;..\..\lib\eIDClientCore\;..\..\lib\;..\..\bin\Test_nPAClientLib;..\..\..\Software\civetweb\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Software\libcurl-vc10-x86-debug-static-ssl-static-ipv6-sspi-spnego\include;..\..\..\Software\expat\lib;..\..\..\Software\mongoose-master;..\..\lib\eIDClientConnection;..\..\lib\eIDClientCore\;..\..\lib\;..\..\bin\Test_nPAClientLib;..\..\bin\SimpleClient\civetweb\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PreprocessorDefinitions>CURL_STATICLIB;_MBCS;SKIP_HOSTNAME_VERIFICATION;SKIP_PEER_VERIFICATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -79,7 +79,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\..\Software\libcurl-vc10-x86-debug-static-ssl-static-ipv6-sspi-spnego\include;..\..\..\Software\expat\lib;..\..\..\Software\mongoose-master;..\..\lib\eIDClientConnection;..\..\lib\eIDClientCore\;..\..\lib\;..\..\bin\Test_nPAClientLib;..\..\..\Software\civetweb\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Software\libcurl-vc10-x86-debug-static-ssl-static-ipv6-sspi-spnego\include;..\..\..\Software\expat\lib;..\..\..\Software\mongoose-master;..\..\lib\eIDClientConnection;..\..\lib\eIDClientCore\;..\..\lib\;..\..\bin\Test_nPAClientLib;..\..\bin\SimpleClient\civetweb\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>CURL_STATICLIB;_MBCS;SKIP_HOSTNAME_VERIFICATION;SKIP_PEER_VERIFICATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>true</WholeProgramOptimization>
