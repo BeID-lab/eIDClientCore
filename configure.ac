@@ -216,6 +216,7 @@ EOF
 AC_CONFIG_FILES([Makefile
                  bin/Makefile
                  bin/Test_nPAClientLib/Makefile
+                 bin/SimpleClient/Makefile
                  lib/Makefile
                  lib/eCardCore/Makefile
                  lib/eIDClientConnection/Makefile
