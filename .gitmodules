@@ -1,0 +1,3 @@
+[submodule "bin/SimpleClient/civetweb"]
+	path = bin/SimpleClient/civetweb
+	url = git@github.com:sunsetbrew/civetweb.git

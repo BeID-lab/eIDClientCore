@@ -8,6 +8,7 @@
 #include <eIDClientConnection.h>
 #include <sstream>
 #include "debug.h"
+#include "eidui_cli.h"
 #ifndef _WIN32
 #include <unistd.h>
 #include <pthread.h>
@@ -15,7 +16,6 @@
 using namespace std;
 
 #if _WIN32
-#include "eidui_cli.h"
 #define snprintf _snprintf
 #define mutex_lock(X) WaitForSingleObject(X, INFINITE)
 #define mutex_unlock(X) ReleaseMutex(X)
@@ -27,7 +27,7 @@ static HANDLE ghMutex;
 #define mutex_unlock(X) pthread_mutex_unlock(&X)
 static pthread_mutex_t ghMutex = PTHREAD_MUTEX_INITIALIZER;
 #define sleepMilliseconds(X) usleep(X * 1000)
-#define sleepInfinite pause()
+#define sleepInfinite() pause()
 typedef unsigned long DWORD;
 #endif
 

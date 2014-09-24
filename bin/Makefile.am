@@ -1,1 +1,1 @@
-SUBDIRS = Test_nPAClientLib
+SUBDIRS = Test_nPAClientLib SimpleClient
