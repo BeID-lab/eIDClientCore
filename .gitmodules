@@ -1,6 +1,6 @@
 [submodule "OpenSSL_1_0_2-stable"]
 	path = OpenSSL_1_0_2-stable
 	url = git://git.openssl.org/openssl.git
-[submodule "bin/SimpleClient/civetweb"]
-	path = bin/SimpleClient/civetweb
+[submodule "eIDClientCore/bin/SimpleClient/civetweb"]
+	path = eIDClientCore/bin/SimpleClient/civetweb
 	url = git://github.com/sunsetbrew/civetweb.git

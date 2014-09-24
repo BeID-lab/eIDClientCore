@@ -60,7 +60,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;..\..\..\src\lib\eIDASN1\generated</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\lib\eIDASN1\generated</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -102,11 +102,12 @@
   <ItemGroup>
     <CustomBuild Include="..\..\lib\eidasn1\definitions\tr31xx.asn1">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cd ..\..\lib\eidasn1\generated
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mkdir ..\..\lib\eidasn1\generated
+cd ..\..\lib\eidasn1\generated
 del /Q *.c
 del /Q *.h
 del /Q Makefile.am.sample
-..\..\..\..\Software\asn1c-0.9.24_win32\bin\asn1c.exe -S ..\..\..\..\Software\asn1c-0.9.24_win32\share\asn1c %(FullPath)</Command>
+$(ProjectDir)..\..\..\Software\asn1c-0.9.24_win32\bin\asn1c.exe -S $(ProjectDir)..\..\..\Software\asn1c-0.9.24_win32\share\asn1c %(FullPath)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compile ASN.1 definition for %(Filename)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\src\lib\eIDASN1\generated\SecurityInfo.h;%(Outputs)</Outputs>
     </CustomBuild>

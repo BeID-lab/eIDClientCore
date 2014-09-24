@@ -8,7 +8,7 @@
 #include <eIDClientConnection.h>
 #include <sstream>
 #include "debug.h"
-#include "eidui_cli.h"
+#include <eidui_cli.h>
 #ifndef _WIN32
 #include <unistd.h>
 #include <pthread.h>
