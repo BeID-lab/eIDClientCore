@@ -326,6 +326,11 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 	curlVal = curl_easy_setopt(curl, CURLOPT_URL, url);
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
+	
+	//Reads cookies from file
+	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, EIDCC_COOKIE_FILE);
+	//Writes cookies to file
+	curl_easy_setopt(curl, CURLOPT_COOKIEJAR, EIDCC_COOKIE_FILE);
 
 #ifdef SKIP_PEER_VERIFICATION
 	curlVal = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
