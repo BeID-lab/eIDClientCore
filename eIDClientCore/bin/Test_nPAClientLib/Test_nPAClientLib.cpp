@@ -46,6 +46,7 @@
 #define SAML_2 2
 #define NO_SAML 3
 #define SAML_SELBSTAUSKUNFT_WUERZBURG 4
+#define SAML_AUTENTAPP 5
 
 #if defined SAML_VERSION_SAML_1
 #define SAML_VERSION SAML_1
@@ -55,6 +56,8 @@
 #define SAML_VERSION NO_SAML
 #elif defined SELBSTAUSKUNFT_WUERZBURG
 #define SAML_VERSION SAML_SELBSTAUSKUNFT_WUERZBURG
+#elif defined AUTENTAPP
+#define SAML_VERSION SAML_AUTENTAPP
 #else
 #define SAML_VERSION NO_SAML
 #endif
@@ -292,6 +295,8 @@ void CeIdObject::CharacterDataHandler(void *pUserData, const XML_Char *pszName, 
 }
 
 void CeIdObject::OnCharacterData(const XML_Char *pszName, int len) {
+	if(!std::string(pszName, pszName+len).compare("&") && !m_strCurrentElement.compare("RefreshAddress"))
+		m_strRefreshAddress.append(std::string(pszName, pszName+len));
 	if(len == 1) //I often get Character Data of this length
 		return;
 
@@ -302,7 +307,7 @@ void CeIdObject::OnCharacterData(const XML_Char *pszName, int len) {
 		m_strSessionID = std::string(pszName, pszName+len);
 
 	else if(!m_strCurrentElement.compare("RefreshAddress"))
-		m_strRefreshAddress = std::string(pszName, pszName+len);
+		m_strRefreshAddress.append(std::string(pszName, pszName+len));
 
 	else if(!m_strCurrentElement.compare("PSK"))
 		m_strPSK = std::string(pszName, pszName+len);
@@ -465,6 +470,9 @@ int getSamlResponse2(std::string & response)
 	std::string result = "";
 	connection_status = dealWithForms(submits, 1, url, "", &result);
 	response = result;
+	return connection_status;
+#elif defined AUTENTAPP
+	response = strResult;
 	return connection_status;
 #else
 
@@ -1036,6 +1044,60 @@ int getAuthenticationParamsSelbstauskunftWuerzburg(const char *const SP_URL,
 }
 #endif
 
+int getAuthenticationParamsAutentApp(const char *const SP_URL,
+	std::string &strIdpAddress,
+	std::string &strSessionIdentifier,
+	std::string &strPathSecurityParameters){
+	
+	std::string  strResult = "";
+	EIDCLIENT_CONNECTION_HANDLE connection = 0x00;
+	EID_CLIENT_CONNECTION_ERROR connection_status;
+	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
+
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 0);
+
+	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+		printf("%s:%d Error\n", __FILE__, __LINE__);
+		return connection_status;
+	}
+	memset(sz, 0x00, READ_BUFFER);
+	connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
+
+	if(connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+	{
+		printf("%s:%d Error\n", __FILE__, __LINE__);
+		eIDClientConnectionEnd(connection);
+		connection = 0x00;
+		return connection_status;
+	}
+
+	strResult += std::string(sz, sz_len);
+
+	eIDClientConnectionEnd(connection);
+	connection = 0x00;
+
+	CeIdObject eIdObject;
+	std::string response2 = strResult;
+	//response2 = str_replace("<PSK>", "", response2);
+	//response2 = str_replace("</PSK>", "", response2);
+	//response2 = str_replace("&amp;", "", response2);
+	printf("response2: %s\n", response2.c_str());
+	eIdObject.GetParams(response2);
+	strIdpAddress = eIdObject.m_strServerAddress;
+	strSessionIdentifier = eIdObject.m_strSessionID;
+	strPathSecurityParameters = eIdObject.m_strPSK;
+	strRefresh = eIdObject.m_strRefreshAddress;
+	//dirty
+	//if(strRefresh.find("mode=") != strRefresh.find("&") + 1)
+	//	strRefresh.insert(strRefresh.find("mode="), "&");
+	printf("IdpAddress: %s\n", strIdpAddress.c_str());
+	printf("SessionID: %s\n", strSessionIdentifier.c_str());
+	printf("PSK: %s\n", strPathSecurityParameters.c_str());
+	printf("RefreshAddress: %s\n", strRefresh.c_str());
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	//std::vector<int> keksv;
@@ -1052,6 +1114,8 @@ int main(int argc, char **argv)
 
 #ifdef SELBSTAUSKUNFT_WUERZBURG
 	const char default_serviceURL[] = "https://www.buergerserviceportal.de/bayern/wuerzburg/bspx_selbstauskunft";
+#elif defined AUTENTAPP
+	const char default_serviceURL[] = "https://www.autentapp.de/AusweisAuskunft/WebServiceRequesterServlet?mode=autentappde";
 #else
 	const char default_serviceURL[] = "https://eidservices.bundesdruckerei.de"
 		":443"
@@ -1115,6 +1179,8 @@ int main(int argc, char **argv)
 		strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
 #elif defined SELBSTAUSKUNFT_WUERZBURG
 		retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+#elif defined AUTENTAPP
+		retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 #endif
 		if(retValue != 0)
 		{
@@ -1140,14 +1206,14 @@ int main(int argc, char **argv)
 		}
 
 
-#if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG
+#if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
 		retValue = getSamlResponse2(response);
 		if(retValue != ECARD_SUCCESS) {
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
 			continue;
 		}
-#ifndef SELBSTAUSKUNFT_WUERZBURG
+#if !defined SELBSTAUSKUNFT_WUERZBURG || !defined AUTENTAPP
 		printf(response.c_str());
 #endif
 #endif
@@ -1162,7 +1228,19 @@ int main(int argc, char **argv)
 //        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 #endif
 
-#ifdef SELBSTAUSKUNFT_WUERZBURG
+#if defined AUTENTAPP
+	printf("response: %s\n", response.c_str());
+	int found = response.find("<html");
+
+	if (found != std::string::npos) {
+		response = response.substr(found);
+	} else {
+		printf("%s:%d Error\n", __FILE__, __LINE__);
+		return -2;
+	}
+#endif
+
+#if defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
 		std::stringstream stream;
 		response = str_replace_ifnot("\"", "\\\"", "\\\"", response);
 		stream <<"echo \""<<response.c_str()<<"\" | lynx -stdin -xhtml-parsing";
