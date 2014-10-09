@@ -11,8 +11,28 @@ all:	$(MY_DEPS) eIDClient
 
 mydeps: $(MY_DEPS)
 
-clean: 
+delete_all: 
 	rm -rf *[^Makefile]*
+
+clean_cryptopp: 
+	make -C cryptopp*/ clean
+
+clean_asn1c:
+	make -C asn1c*/ clean
+
+clean_libexpat:
+	make -C expat*/ clean
+
+clean_openssl:
+	make -C OpenSSL*/ clean
+
+clean_libcurl:
+	make -C curl*/ clean
+
+clean_eIDClient:
+	make -C eIDClientCore/ clean
+
+clean: clean_cryptopp clean_asn1c clean_libexpat clean_openssl clean_libcurl clean_eIDClient
 
 cryptopp:
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 cryptopp
