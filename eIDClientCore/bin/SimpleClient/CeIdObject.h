@@ -38,6 +38,7 @@ public:
 
 protected:
 	std::string m_strCurrentElement;
+	std::string m_strRootElement;
 };
 
 #endif //_CEIDOBJECT_H_

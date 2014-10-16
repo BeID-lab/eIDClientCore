@@ -5,17 +5,6 @@ using namespace std;
 
 CeIdObject::CeIdObject()
 {
-	m_strAction = "";
-	m_strMethod = "";
-	m_strSAMLRequest = "";
-	m_strSigAlg = "";
-	m_strSignature = "";
-	m_strRelayState = "";
-	m_strSessionID = "";
-	m_strPSK = "";
-	m_strRefreshAddress = "";
-	m_strServerAddress = "";
-	m_strCurrentElement = "";
 }
 
 CeIdObject::~CeIdObject(void)
@@ -30,24 +19,15 @@ void CeIdObject::StartElementHandler(void *pUserData, const XML_Char *pszName, c
 
 void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszAttrs)
 {
+	//Current Element
 	string  strElement = pszName;
+
+	if(m_strRootElement.empty()) {
+		m_strRootElement.assign(strElement);
+	}
 
 	//We have an eCard-Object, save State for subelements
 	if(!strElement.compare("object")) {
-		for (int i = 0; papszAttrs[i]; i += 2) {
-			string strParam(papszAttrs[i]);
-
-			if (!strParam.compare("type")) {
-				if(!strcmp(papszAttrs[i + 1], "application/vnd.ecard-client")) {
-					m_strCurrentElement.assign(pszName);
-					return;
-				}
-
-			}
-		}
-	}
-
-	if(!strElement.compare("tcToken")) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
 			string strParam(papszAttrs[i]);
 
@@ -104,6 +84,11 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 			return;
 		}
 	}
+
+	//Element inside a TCToken Element
+	if(!m_strRootElement.compare("TCTokenType")) {
+		m_strCurrentElement.assign(strElement);
+	}
 }
 
 void CeIdObject::EndElementHandler(void *pUserData, const XML_Char *pszName)
@@ -133,7 +118,7 @@ void CeIdObject::OnCharacterData(const XML_Char *pszName, int len) {
 	else if(!m_strCurrentElement.compare("SessionIdentifier"))
 		m_strSessionID = string(pszName, pszName+len);
 
-	else if(!m_strCurrentElement.compare("RefreshAddress"))
+	else if(!m_strCurrentElement.compare("RefreshAddress") && m_strRefreshAddress.empty())
 		m_strRefreshAddress = string(pszName, pszName+len);
 
 	else if(!m_strCurrentElement.compare("PSK"))

@@ -235,7 +235,7 @@ static int getTcToken(string & tcToken, const string & tcTokenURL)
 	char sz[0x10000];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, 0);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -297,7 +297,7 @@ static bool unmarshall(struct mg_connection *conn) {
 		string tcToken;
 		//SAML Profile 2 First Call
 		if(!getTcToken(tcToken, dst)) {
-			gAuthParams.GetParams(dst);
+			gAuthParams.GetParams(tcToken);
 			rVal = true;
 		}
 	}
