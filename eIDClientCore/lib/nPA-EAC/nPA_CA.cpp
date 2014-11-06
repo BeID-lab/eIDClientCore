@@ -37,19 +37,9 @@ static CAPDU build_CA_Step_C(const OBJECT_IDENTIFIER_t& CA_OID,
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
 	std::vector<unsigned char> puk;
-	OBJECT_IDENTIFIER_t ca_dh = makeOID(id_CA_DH);
-	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
-	if (ca_dh < CA_OID) {
-		puk = Puk_IFD_DH;
-	} else if (ca_ecdh < CA_OID) {
-		puk.push_back(0x04);
-		puk.insert(puk.end(), Puk_IFD_DH.begin(), Puk_IFD_DH.end());
-	} else {
-		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Invalid CA OID.");
-	}
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_dh, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
-
+	puk.push_back(0x04);
+	puk.insert(puk.end(), Puk_IFD_DH.begin(), Puk_IFD_DH.end());
+	
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, puk)));
 
 	return authenticate;
