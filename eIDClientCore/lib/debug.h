@@ -22,9 +22,9 @@ extern "C" {
 
 #ifdef __ANDROID__
 /* stlport doesn't provide vector.data() */
-#define DATA(v) (v.size()?&v[0]:NULL)
+#define DATA(v) ((v).size()?&v[0]:NULL)
 #else
-#define DATA(v) (v.data())
+#define DATA(v) ((v).data())
 #endif
 
 #define hexdump(level, caption, buffer, length) { \
@@ -48,11 +48,76 @@ extern "C" {
 #include <windows.h>
 #endif
 
+#if defined(_WIN32)
+static void timestamp()
+{
+	SYSTEMTIME tv;
+	char buffer[30];
+	memset(buffer, 0, sizeof buffer);
+
+	GetLocalTime(&tv);
+
+	sprintf(buffer, "%02d:%02d:%02d.%03d ", tv.wHour, tv.wMinute, tv.wSecond, tv.wMilliseconds);
+
+	OutputDebugStringA(buffer);
+}
+#else
+#include <sys/time.h>
+#include <string.h>
+static void timestamp()
+{
+	time_t curtime;
+	struct timeval tv;
+	char buffer[30];
+	memset(buffer, 0, sizeof buffer);
+
+	gettimeofday(&tv, NULL); 
+	curtime=tv.tv_sec;
+
+	strftime(buffer,30,"%T",localtime(&curtime));
+
+	printf("%s.%03d ",buffer,tv.tv_usec/1000);
+}
+#endif
+
+#ifdef CEBIT2013
+	static void my_puts(const char * s)
+	{
+		char logFile[32];
+		char * fileDummy = "%d.log";
+		FILE * hFile;
+		time_t currtime;
+		struct tm * currtm;
+		int day;
+		time(&currtime);
+		currtm = localtime(&currtime);
+		day = currtm->tm_mday;
+		sprintf(logFile, fileDummy, day);
+
+		hFile = fopen(logFile, "a");
+		if(hFile != NULL)
+		{
+			fwrite(s, strlen(s), 1, hFile);
+			fwrite("\n", 1, 1, hFile);
+			fclose(hFile);
+		}
+		else
+		{
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+			OutputDebugStringA(s);
+			OutputDebugStringA("\n");
+#else
+			puts(s);
+#endif
+		}
+	}
+#else
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 #include <windows.h>
-#define my_puts(s) { OutputDebugStringA(s); OutputDebugStringA("\n"); }
+#define my_puts(s) { timestamp(); OutputDebugStringA(s); OutputDebugStringA("\n"); }
 #else
-#define my_puts(s) { puts(s);fflush(stdout); }
+#define my_puts(s) { timestamp(); puts(s);fflush(stdout); }
+#endif
 #endif
 
 
