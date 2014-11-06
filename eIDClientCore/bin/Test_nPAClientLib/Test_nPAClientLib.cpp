@@ -919,11 +919,17 @@ int getAuthenticationParams(const char *const SP_URL,
 	CeIdObject      eIdObject;
 	eIdObject.GetParams(strResult);
 	std::string strData = "SAMLRequest=";
+	//OL-Server wants url-encoded POST-Data..
+	urlEncode(eIdObject.m_strSAMLRequest);
 	strData += eIdObject.m_strSAMLRequest;
-	strData += "&SigAlg=";
-	strData += eIdObject.m_strSigAlg;
-	strData += "&Signature=";
-	strData += eIdObject.m_strSignature;
+	if(!eIdObject.m_strSigAlg.empty()) {
+		strData += "&SigAlg=";
+		strData += eIdObject.m_strSigAlg;
+	}
+	if(!eIdObject.m_strSignature.empty()) {
+		strData += "&Signature=";
+		strData += eIdObject.m_strSignature;
+	}
 
 	if (eIdObject.m_strRelayState.size() > 1) {
 		strData += "&RelayState=";
@@ -940,7 +946,6 @@ int getAuthenticationParams(const char *const SP_URL,
 
 	memset(sz, 0x00, READ_BUFFER);
 	sz_len = sizeof sz;
-
 
 	connection_status = eIDClientConnectionTransceive(connection, strData.c_str(), strData.size(), sz, &sz_len);
 
