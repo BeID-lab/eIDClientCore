@@ -136,7 +136,7 @@ std::vector<unsigned char> calculate_PuK_IFD_DH2(
 		hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK.IFD.DH2 in calculate_PuK_IFD_DH2", (void *) DATA(PrK_IFD_DH2), PrK_IFD_DH2.size());
 		Integer k1(DATA(PrK_IFD_DH2), PrK_IFD_DH2.size());
 		ECP::Point result = ecp.Multiply(k1, G1);
-		result_buffer = point2vector(result);
+		result_buffer = point2vector(result, 0x20);
 	} else if (OID_ == PACE_DH_3DES_CBC_CBC ||
 			OID_ == PACE_DH_AES_CBC_CMAC_128 ||
 			OID_ == PACE_DH_AES_CBC_CMAC_192 ||
@@ -494,8 +494,8 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 				return status;
 			}
 
-			std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx(PACE_OID_);
-			std::vector<unsigned char> PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(PACE_OID_, PrK_IFD_DH1_);
+			std::vector<unsigned char> PrK_IFD_DH1_ = generate_PrK_IFD_DHx(0x0D);//FIXME
+			std::vector<unsigned char> PuK_IFD_DH1_ = calculate_PuK_IFD_DH1(0x0D, PrK_IFD_DH1_);//FIXME
 			std::vector<unsigned char> PuK_ICC_DH1_;
 
 			hexdump(DEBUG_LEVEL_CRYPTO, "###-> PrK_IFD_DH1", DATA(PrK_IFD_DH1_), PrK_IFD_DH1_.size());
@@ -506,7 +506,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 				return status;
 			}
 
-			std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx(PACE_OID_);
+			std::vector<unsigned char> PrK_IFD_DH2_ = generate_PrK_IFD_DHx(0x0D);//FIXME
 			std::vector<unsigned char> PuK_IFD_DH2_ = calculate_PuK_IFD_DH2(PACE_OID_,
 					PrK_IFD_DH1_, PrK_IFD_DH2_, PuK_ICC_DH1_, rndICC_);
 			std::vector<unsigned char> PuK_ICC_DH2_;
@@ -549,7 +549,7 @@ ECARD_STATUS __STDCALL__ ePAPerformPACE(
 			ePA_.setKeys(kEnc_, kMac_);
 			car_cvca = std::vector<unsigned char> (car_cvca_.begin(), car_cvca_.end());
 
-			idPICC = calculate_ID_ICC(PACE_OID_, PuK_ICC_DH2_);
+			idPICC = calculate_ID_ICC(PuK_ICC_DH2_);
 
 			hexdump(DEBUG_LEVEL_CRYPTO, "###-> ID ICC", DATA(idPICC), idPICC.size());
 		}

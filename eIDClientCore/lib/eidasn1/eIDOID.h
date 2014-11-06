@@ -7,6 +7,8 @@
 
 #define bsi_de                              "0.4.0.127.0.7"
 
+#define id_STANDARDIZED_DP					bsi_de ".1.2"
+
 #define id_PACE                             bsi_de ".2.2.4"
 #define id_PACE_DH                          id_PACE ".1"
 #define id_PACE_DH_3DES_CBC_CBC             id_PACE_DH ".1"

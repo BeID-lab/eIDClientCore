@@ -344,17 +344,13 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 #endif
 
-#ifdef SKIP_HOSTNAME_VERIFICATION
-	curlVal = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
 	/*Set Useragent because its required by some servers*/
 	curlVal = curl_easy_setopt(curl, CURLOPT_USERAGENT, "eIDClientCore/1.1");
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
 #ifdef _DEBUG
-	//curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 #endif
 
 	/*Hmm.. when we lookup the TCToken, we have to get the SSL-Certs after each redirect,
@@ -454,12 +450,8 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 	body.memory = (char*) malloc(1);
 	body.size = 0;
 
-	if(dataLength > 0)
+	if(dataLength > 0 && data[0] == '<')
 	{
-		if(data[0] != '<')
-		{
-
-		}
 		curlVal = curl_easy_setopt (curl, CURLOPT_POST, 1);
 		curlVal = curl_easy_setopt (curl, CURLOPT_POSTFIELDS, data);
 		curlVal = curl_easy_setopt (curl, CURLOPT_POSTFIELDSIZE, dataLength);
@@ -476,7 +468,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 		curlVal = curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)&header);
 	}
 
-	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %s", data);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %.*s", dataLength, data);
 
 	/* Perform the request*/
 	curlVal = curl_easy_perform(curl);

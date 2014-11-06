@@ -108,12 +108,9 @@ CAPDU build_TA_Step_E(
 	dataField.insert(dataField.end(), do83.begin(), do83.end());
 
 	// x(Puk.IFD.CA)
-	OBJECT_IDENTIFIER_t ca_ecdh = makeOID(id_CA_ECDH);
-	if (ca_ecdh < CA_OID)
-		encoded_Puk_IFD_DH.push_back(0x04);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &ca_ecdh, 1);
+	encoded_Puk_IFD_DH.push_back(0x04);
 	encoded_Puk_IFD_DH.insert(encoded_Puk_IFD_DH.end(), Puk_IFD_DH.begin(),	Puk_IFD_DH.end());
-	do91 = TLV_encode(0x91, calculate_ID_ICC(CA_OID, encoded_Puk_IFD_DH));
+	do91 = TLV_encode(0x91, calculate_ID_ICC(encoded_Puk_IFD_DH));
 	dataField.insert(dataField.end(), do91.begin(), do91.end());
 
 	dataField.insert(dataField.end(), authenticatedAuxiliaryData.begin(), authenticatedAuxiliaryData.end());
@@ -197,19 +194,21 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 		/* TODO verify the chain of certificates in the middle ware */
 		std::vector<unsigned char> _current_car = carCVCA;
 		std::string current_car;
-		for (size_t i = 0; i < list_certificates.size(); i++) {
-			hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
-
-			capdus.push_back(build_TA_Step_Set_CAR(_current_car));
-
-			std::vector<unsigned char> cert;
-			cert = list_certificates[i];
-			hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(cert), cert.size());
-
-			capdus.push_back(build_TA_Step_Verify_Certificate(cert));
-
-			current_car = getCHR(cert);
-			_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
+		if(!list_certificates.empty()){
+			for (size_t i = 0; i < list_certificates.size(); i++) {
+				hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
+	
+				capdus.push_back(build_TA_Step_Set_CAR(_current_car));
+	
+				std::vector<unsigned char> cert;
+				cert = list_certificates[i];
+				hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(cert), cert.size());
+	
+				capdus.push_back(build_TA_Step_Verify_Certificate(cert));
+	
+				current_car = getCHR(cert);
+				_current_car = std::vector<unsigned char>(current_car.begin(), current_car.end());
+			}
 		}
 
 		std::string chrTerm_ = getCHR(terminalCertificate);
