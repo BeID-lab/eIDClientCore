@@ -18,7 +18,7 @@ ICard::~ICard()
 
 void ICard::debug_CAPDU(const char *label, const CAPDU& capdu) const
 {
-	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sC-APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
+	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sC-APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-5u  Ne=%u",
 			label, label ? " " : "", capdu.getCLA(), capdu.getINS(), capdu.getP1(),
 			capdu.getP2(), capdu.getData().size(), capdu.getNe());
 	hexdump(DEBUG_LEVEL_APDU, NULL,
