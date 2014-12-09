@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">eIDCC AusweisApp 2</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_exit">Exit</string>
+    <string name="button_start">Start</string>
+    <string name="tap_npa">Please tap smartphone on your nPA and push the start button.\n</string>
+
+</resources>
