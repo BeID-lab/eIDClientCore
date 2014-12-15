@@ -25,5 +25,4 @@ Afterwards, you can import the project to eclipse and build the app.
 # TODO
 
 * Add Makefile for building eIDCC for Android and the Android app afterwards
-* Open keyboard automatically when asking for PIN
 * Make it possible to enable / disable parts of the CHAT

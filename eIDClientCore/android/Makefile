@@ -39,9 +39,9 @@ EIDCLIENT = $(abs_builddir)/eIDClientLib
 EIDCLIENT_JAR = $(abs_builddir)/eIDClientLib/bin/classes.jar
 
 
-all: $(EIDCLIENT_JAR)
-
-
+all: 
+	test -e .dependencies_built && $(MAKE) rebuild || true
+	test -e .dependencies_built || $(MAKE) $(EIDCLIENT_JAR)
 
 $(EXPAT_CONFIGURE):
 	wget http://sourceforge.net/projects/expat/files/expat/$(EXPAT_VERSION)/$(EXPAT).tar.gz
@@ -51,8 +51,6 @@ $(EXPAT_CONFIGURE):
 $(LIBEXPAT): $(EXPAT_CONFIGURE)
 	$(MAKE) cross builddir=$(EXPAT_DIR)
 
-
-
 $(CURL_CONFIGURE):
 	wget http://curl.haxx.se/download/$(CURL).tar.bz2
 	tar xvjf $(CURL_DIR).tar.bz2
@@ -61,8 +59,6 @@ $(CURL_CONFIGURE):
 
 $(LIBCURL): $(CURL_CONFIGURE) $(LIBCRYPTO)
 	$(MAKE) cross builddir=$(CURL_DIR)
-
-
 
 $(CRYPTO_MAKEFILE):
 	wget http://www.openssl.org/source/$(CRYPTO).tar.gz
@@ -94,14 +90,21 @@ $(LIBCRYPTOPP): $(CRYPTOPP_MAKEFILE)
 		$(MAKE) -C $(CRYPTOPP_DIR) PREFIX=$(ANDROID_TARGETDIR) \
 			IS_ANDROID=1 ANDROID_STL_INC=$(ANDROID_TOOL_DIR)/include/g++ dynamic static install
 
-
-
-$(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
+$(LIBEIDCLIENTCORE):
+	$(MAKE) $(LIBEXPAT) && $(MAKE) $(LIBCURL) && $(MAKE) $(LIBCRYPTOPP) && touch .dependencies_built
+	$(MAKE) crosscommand
+			
+crosscommand:
 	$(MAKE) cross builddir=$(EIDCLIENTCORE_DIR) EXTRA_OPTS="--enable-reader-external CRYPTOPP_LIBS=-lcryptopp CFLAGS='-D_EMULATE_TIMEGM'" \
 		|| env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			$(MAKE) -C $(EIDCLIENTCORE_DIR)/lib install DESTDIR=$(ANDROID_TARGETDIR)
-
-
+	
+android_stuff:
+	$(ANDROID_SDK_ROOT)/tools/android update lib-project -p $(EIDCLIENT) --target $(ANDROID_API)
+	$(ANDROID_NDK_ROOT)/ndk-build -C $(EIDCLIENT)
+	cd $(EIDCLIENT) && ant release
+	
+rebuild: crosscommand android_stuff
 
 clean:
 	rm -rf $(ANDROID_TARGETDIR)
@@ -114,8 +117,6 @@ clean:
 	make clean -C $(EIDCLIENTCORE_DIR) || true
 	rm -f $(EIDCLIENTCORE_DIR)/Makefile
 	rm -f $(EIDCLIENT_JAR)
-
-
 
 cross:
 	test -d $(ANDROID_TOOL_DIR) \
@@ -139,9 +140,4 @@ cross:
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(builddir) install DESTDIR=$(ANDROID_TARGETDIR)
 
-
-
-$(EIDCLIENT_JAR): $(LIBEIDCLIENTCORE)
-	$(ANDROID_SDK_ROOT)/tools/android update lib-project -p $(EIDCLIENT) --target $(ANDROID_API)
-	$(ANDROID_NDK_ROOT)/ndk-build -C $(EIDCLIENT)
-	cd $(EIDCLIENT) && ant release
+$(EIDCLIENT_JAR): $(LIBEIDCLIENTCORE) android_stuff
