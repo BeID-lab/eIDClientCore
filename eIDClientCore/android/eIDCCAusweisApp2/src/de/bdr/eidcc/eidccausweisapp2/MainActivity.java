@@ -2,7 +2,9 @@ package de.bdr.eidcc.eidccausweisapp2;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnShowListener;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.os.Build;
@@ -15,6 +17,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -190,7 +193,17 @@ public class MainActivity extends Activity implements EacCallback,
 							handler.sendMessage(handler.obtainMessage());
 						}
 					});
-			alert2.show();
+			AlertDialog dialog = alert2.create();
+			//Show and hide keyboard automatically
+			dialog.setOnShowListener(new OnShowListener() {
+			    @Override
+			    public void onShow(DialogInterface dialog) {
+			        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+			    }
+			});
+			
+			dialog.show();
 			try {
 				Looper.loop();
 			} catch (RuntimeException e2) {
