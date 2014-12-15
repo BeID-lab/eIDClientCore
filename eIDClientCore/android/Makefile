@@ -38,7 +38,6 @@ CRYPTO_MAKEFILE = $(CRYPTO_DIR)/Makefile
 EIDCLIENT = $(abs_builddir)/eIDClientLib
 EIDCLIENT_JAR = $(abs_builddir)/eIDClientLib/bin/classes.jar
 
-
 all: 
 	test -e .dependencies_built && $(MAKE) rebuild || true
 	test -e .dependencies_built || $(MAKE) $(EIDCLIENT_JAR)
@@ -78,8 +77,6 @@ $(LIBCRYPTO): $(CRYPTO_MAKEFILE)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(CRYPTO_DIR) install_sw INSTALL_PREFIX=$(ANDROID_TARGETDIR)
 
-
-
 $(CRYPTOPP_MAKEFILE):
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 $(CRYPTOPP_DIR)
 	patch -d $(CRYPTOPP_DIR) -p0 < GNUmakefile-android.patch
@@ -117,6 +114,7 @@ clean:
 	make clean -C $(EIDCLIENTCORE_DIR) || true
 	rm -f $(EIDCLIENTCORE_DIR)/Makefile
 	rm -f $(EIDCLIENT_JAR)
+	rm -f .dependencies_built
 
 cross:
 	test -d $(ANDROID_TOOL_DIR) \
