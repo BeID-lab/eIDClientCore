@@ -87,8 +87,8 @@ $(LIBCRYPTOPP): $(CRYPTOPP_MAKEFILE)
 		$(MAKE) -C $(CRYPTOPP_DIR) PREFIX=$(ANDROID_TARGETDIR) \
 			IS_ANDROID=1 ANDROID_STL_INC=$(ANDROID_TOOL_DIR)/include/g++ dynamic static install
 
-$(LIBEIDCLIENTCORE):
-	$(MAKE) $(LIBEXPAT) && $(MAKE) $(LIBCURL) && $(MAKE) $(LIBCRYPTOPP) && touch .dependencies_built
+$(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
+	touch .dependencies_built
 	$(MAKE) crosscommand
 			
 crosscommand:
