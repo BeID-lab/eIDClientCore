@@ -18,11 +18,21 @@ We used a modified Android to be able to send extended APDUs, see https://code.g
 
 We used eclipse to create this app.
 
-To use the app, you need to build eIDCC for Android (see the tutorial on https://github.com/BeID-lab/eIDClientCore ) and copy the generated shared object files to the libs/armeabi folder.
+To use the app, build it using the makefile in the following way:
 
-Afterwards, you can import the project to eclipse and build the app.
+```sh
+make ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_API=$ANDROID_API
+```
+
+We used android-ndk-r10b-target-32-bit as NDK, adt-bundle-linux-x86_64-20140702 as SDK and android-19 as API. The OS on which we build the app is OpenSUSE 13.1 (64 Bit).
+
+Afterwards, you can install the app like this:
+
+```sh
+adb install -r bin/MainActivity-debug.apk
+```
+
 
 # TODO
 
-* Add Makefile for building eIDCC for Android and the Android app afterwards
 * Make it possible to enable / disable parts of the CHAT
