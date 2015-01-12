@@ -545,7 +545,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitialize(IReaderManager* hReader, IC
             if (hTempCard_) {
                 // We have more than one card ... So we have to close the old one.
                 if (*hCard != 0x00)
-                    delete hCard;
+                    delete *hCard;
                 
                 *hCard = hTempCard_;
                 ePACounter++;
