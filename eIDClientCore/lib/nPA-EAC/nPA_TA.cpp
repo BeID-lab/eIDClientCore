@@ -14,8 +14,6 @@
 #include "eidasn1/eIDOID.h"
 #include "nPACommon.h"
 
-USING_NAMESPACE(CryptoPP)
-
 #include <cstdio>
 #include <fstream>
 
