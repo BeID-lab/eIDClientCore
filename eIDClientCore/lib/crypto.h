@@ -32,3 +32,4 @@ template <class T> using CMAC = CryptoPP::CMAC<T>;
 using AutoSeededRandomPool = CryptoPP::AutoSeededRandomPool;
 using ECP = CryptoPP::ECP;
 using SHA1 = CryptoPP::SHA1;
+using SHA224 = CryptoPP::SHA224;
