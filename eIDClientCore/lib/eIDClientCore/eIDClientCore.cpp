@@ -15,11 +15,7 @@
 #include <eIDOID.h>
 #include <eIDHelper.h>
 
-#if defined(WIN32)
-#include <cryptopp-5.6.0/sha.h>
-#else
-#include <cryptopp/sha.h>
-#endif
+#include "../crypto.h"
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;
