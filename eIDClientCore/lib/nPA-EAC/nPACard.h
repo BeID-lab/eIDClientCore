@@ -10,14 +10,13 @@
 
 class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 {
-	private:
-		std::vector<unsigned char> m_ef_cardaccess;
-		std::vector<unsigned char> m_ef_cardsecurity;
+	public:
 		std::vector<unsigned char> m_kEnc;
 		std::vector<unsigned char> m_kMac;
+		std::vector<unsigned char> m_ef_cardaccess;
+		std::vector<unsigned char> m_ef_cardsecurity;
 		unsigned long long m_ssc;
 
-	public:
 		static const unsigned short FID_EF_CARDACCESS    = 0x011C;
 		static const unsigned short FID_EF_CARDSECURITY  = 0x011D;
 		static const unsigned char  SFID_EF_CARDACCESS   = 0x1C;
@@ -88,7 +87,7 @@ class ePACard : public ICard, BatchTransceiver<CAPDU, RAPDU>
 		RAPDU transceive(const CAPDU& cmd);
 		std::vector<RAPDU> transceive(const std::vector<CAPDU>& cmds);
 
-		void setKeys(std::vector<unsigned char>& kEnc, std::vector<unsigned char>& kMac);
+		void setKeys(const std::vector<unsigned char>& kEnc, const std::vector<unsigned char>& kMac);
         void setSSC(unsigned long long ssc);
 };
 

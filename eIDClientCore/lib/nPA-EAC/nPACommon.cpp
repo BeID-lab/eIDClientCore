@@ -101,41 +101,37 @@ std::vector<unsigned char> calculateMAC(
 	return result_;
 }
 
-std::string getCAR(
+std::vector<unsigned char> getCAR(
 	const std::vector<unsigned char>& certificate)
 {
-	std::string car_;
+	std::vector<unsigned char> car_;
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
 				   DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCAR failed ...");
-		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-		return car_;
+	} else {
+		car_.insert(car_.end(), CVCertificate->certBody.certAuthRef.buf, 
+				CVCertificate->certBody.certAuthRef.buf + CVCertificate->certBody.certAuthRef.size);
 	}
-
-	for (size_t i = 0; i < CVCertificate->certBody.certAuthRef.size; i++)
-		car_.push_back((char) CVCertificate->certBody.certAuthRef.buf[i]);
 
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return car_;
 }
 
-std::string getCHR(
+std::vector<unsigned char> getCHR(
 	const std::vector<unsigned char>& certificate)
 {
-	std::string chr_;
+	std::vector<unsigned char> chr_;
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   DATA(certificate), certificate.size()).code != RC_OK) {
+				DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCHR failed ...");
-		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-		return chr_;
+	} else {
+		chr_.insert(chr_.end(), CVCertificate->certBody.certHolderRef.buf, 
+				CVCertificate->certBody.certHolderRef.buf + CVCertificate->certBody.certHolderRef.size);
 	}
-
-	for (int i = 0; i < CVCertificate->certBody.certHolderRef.size; i++)
-		chr_.push_back((char) CVCertificate->certBody.certHolderRef.buf[i]);
 
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return chr_;
@@ -487,11 +483,9 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 	return result_buffer;
 }
 
-std::vector<unsigned char> calculate_ID_ICC(const std::vector<unsigned char>& PuK_ICC_DH2){
-	
-	std::vector<unsigned char> result_buffer;
-	result_buffer = get_x(PuK_ICC_DH2);
-	return result_buffer;
+std::vector<unsigned char> calculate_ID_ICC(const std::vector<unsigned char>& PuK_ICC_DH2)
+{
+	return get_x(PuK_ICC_DH2);
 }
 
 #define INT_LEN (10)
