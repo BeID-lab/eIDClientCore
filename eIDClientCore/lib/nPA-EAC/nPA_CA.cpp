@@ -11,17 +11,25 @@
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 
-static CAPDU build_CA_Step_B(const OBJECT_IDENTIFIER_t& CA_OID)
+CAPDU build_CA_Step_B(const OBJECT_IDENTIFIER_t& CA_OID, const unsigned char sessionid)
 {
 	MSE mse = MSE(MSE::P1_SET | MSE::P1_COMPUTE, MSE::P2_AT);
 	// Build up command data field
 	std::vector<unsigned char> oid(CA_OID.buf, CA_OID.buf+CA_OID.size);;
-	mse.setData(TLV_encode(0x80, oid));
+	std::vector<unsigned char> data = TLV_encode(0x80, oid);
+	if (sessionid) {
+		data.push_back(0xE0);
+		data.push_back(0x03);
+		data.push_back(0x81);
+		data.push_back(0x01);
+		data.push_back(sessionid);
+	}
+	mse.setData(data);
 
 	return mse;
 }
 
-static ECARD_STATUS process_CA_Step_B(const RAPDU& rapdu)
+ECARD_STATUS process_CA_Step_B(const RAPDU& rapdu)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
 		return EAC_CA_STEP_B_FAILED;
@@ -29,8 +37,7 @@ static ECARD_STATUS process_CA_Step_B(const RAPDU& rapdu)
 	return EAC_SUCCESS;
 }
 
-static CAPDU build_CA_Step_C(const OBJECT_IDENTIFIER_t& CA_OID,
-	const std::vector<unsigned char>& Puk_IFD_DH)
+CAPDU build_CA_Step_C(const std::vector<unsigned char>& Puk_IFD_DH)
 {
 	GeneralAuthenticate authenticate = GeneralAuthenticate(
 			GeneralAuthenticate::P1_NO_INFO, GeneralAuthenticate::P2_NO_INFO);
@@ -45,7 +52,7 @@ static CAPDU build_CA_Step_C(const OBJECT_IDENTIFIER_t& CA_OID,
 	return authenticate;
 }
 
-static ECARD_STATUS process_CA_Step_C(const RAPDU rapdu,
+ECARD_STATUS process_CA_Step_C(const RAPDU rapdu,
 	std::vector<unsigned char>& GeneralAuthenticationResult)
 {
 	if (rapdu.getSW() != RAPDU::ISO_SW_NORMAL)
@@ -68,8 +75,8 @@ ECARD_STATUS __STDCALL__ ePAPerformCA(
 		const OBJECT_IDENTIFIER_t ca_oid = {(unsigned char *) DATA(CA_OID), static_cast<int>(CA_OID.size())};
 
 		std::vector<CAPDU> capdus;
-		capdus.push_back(build_CA_Step_B(ca_oid));
-		capdus.push_back(build_CA_Step_C(ca_oid, Puk_IFD_DH));
+		capdus.push_back(build_CA_Step_B(ca_oid, 0));
+		capdus.push_back(build_CA_Step_C(Puk_IFD_DH));
 
 		std::vector<RAPDU> rapdus = hCard.transceive(capdus);
 		std::vector<RAPDU>::const_iterator it = rapdus.begin();

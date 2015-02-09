@@ -19,13 +19,13 @@ std::vector<unsigned char> calculateMAC(
 /**
  *
  */
-std::string getCAR(
+std::vector<unsigned char> getCAR(
 	const std::vector<unsigned char>& certificate);
 
 /**
  *
  */
-std::string getCHR(
+std::vector<unsigned char> getCHR(
 	const std::vector<unsigned char>& certificate);
 
 std::vector<unsigned char> generate_PrK_IFD_DHx(uint8_t standardizedDP);

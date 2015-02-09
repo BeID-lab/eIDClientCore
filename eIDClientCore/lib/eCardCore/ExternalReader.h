@@ -22,6 +22,8 @@ class ExternalReader : public IndividualReader
     	EIDCLIENT_CARD_READER_HANDLE m_hCardReader;
 		void m_libcleanup(void);
 		bool m_libload(void);
+		static const size_t MAX_BUFFER_SIZE = 0xFFF;
+		unsigned char buffer[MAX_BUFFER_SIZE];
 
 	public:
 		ExternalReader(const std::string &, std::vector<ICardDetector *>&);

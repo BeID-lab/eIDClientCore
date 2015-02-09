@@ -27,13 +27,43 @@ static std::vector<unsigned char> decryptResponse_AES(
 	const std::vector<unsigned char>& returnedData,
 	unsigned long long ssc);
 
+static short getSW(
+	const std::vector<unsigned char>& rapdu);
+
 ePACard::ePACard(IReader *hSubSystem) : ICard(hSubSystem)
 {
-	if (!selectMF()
-		/* read EF.CardAccess in chunks that fit into short length APDU */
-		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_SHORT_MAX, m_ef_cardaccess))
-//		|| !readFile(SFID_EF_CARDACCESS, CAPDU::DATA_EXTENDED_MAX, m_ef_cardaccess))
+	/* read EF.CardAccess in chunks that fit into short length APDU */
+	size_t chunk_size = CAPDU::DATA_SHORT_MAX;
+
+	SelectFile select(SelectFile::P1_SELECT_FID, SelectFile::P2_NO_RESPONSE);
+	ReadBinary read = ReadBinary(0, SFID_EF_CARDACCESS);
+	read.setNe(chunk_size);
+
+	std::vector<CAPDU> apdus;
+	apdus.push_back(select);
+	apdus.push_back(read);
+
+	/* check result of SELECT */
+	std::vector<RAPDU> responses = transceive(apdus);
+	if (!responses[0].isOK()) {
 		throw WrongHandle();
+	}
+
+	/* check result of READ BINARY */
+	RAPDU response = responses[1];
+	while (response.isOK() && response.getData().size() == chunk_size) {
+		m_ef_cardaccess.insert(m_ef_cardaccess.end(), response.getData().begin(), response.getData().end());
+
+		read = ReadBinary(m_ef_cardaccess.size());
+		read.setNe(chunk_size);
+		response = transceive(read);
+	}
+
+	m_ef_cardaccess.insert(m_ef_cardaccess.end(), response.getData().begin(), response.getData().end());
+
+	if (m_ef_cardaccess.empty()) {
+		throw WrongHandle();
+	}
 }
 
 ePACard::ePACard(IReader *hSubSystem,
@@ -330,6 +360,12 @@ std::vector<unsigned char> decryptResponse_AES(
 	return result_;
 }
 
+short getSW(const std::vector<unsigned char>& rdata)
+{
+	short sw = (rdata.at(rdata.size() - 12) << 8) + rdata.at(rdata.size() - 11);
+	return sw;
+}
+
 CAPDU ePACard::applySM(const CAPDU &capdu)
 {
 	std::vector<unsigned char> do87_, do8E_, do97_, Le, sm_data;
@@ -383,8 +419,10 @@ RAPDU ePACard::removeSM(const RAPDU &sm_rapdu)
 		throw WrongSM();
 
 	response = decryptResponse_AES(m_kEnc, sm_rdata, m_ssc);
-	/* TODO compare DO99 with SW */
-	RAPDU rapdu(response, sm_rapdu.getSW());
+	
+	short sw = getSW(sm_rdata);
+
+	RAPDU rapdu(response, sw);
 
 	debug_RAPDU("Decrypted", rapdu);
 
@@ -451,7 +489,7 @@ RAPDU ePACard::transceive(const CAPDU &cmd)
 	return BatchTransceiver<CAPDU, RAPDU>::transceive(cmd);
 }
 
-void ePACard::setKeys(std::vector<unsigned char>& kEnc, std::vector<unsigned char>& kMac)
+void ePACard::setKeys(const std::vector<unsigned char>& kEnc, const std::vector<unsigned char>& kMac)
 {
 	m_kEnc = kEnc;
 	m_kMac = kMac;

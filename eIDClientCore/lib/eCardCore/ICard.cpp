@@ -12,8 +12,6 @@ ICard::ICard(
 
 ICard::~ICard()
 {
-	if (m_subSystem)
-		m_subSystem->close();
 }
 
 void ICard::debug_CAPDU(const char *label, const CAPDU& capdu) const
