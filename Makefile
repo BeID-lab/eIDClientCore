@@ -35,7 +35,8 @@ clean_eIDClient:
 clean: clean_cryptopp clean_asn1c clean_libexpat clean_openssl clean_libcurl clean_eIDClient
 
 cryptopp:
-	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 cryptopp
+	wget http://sourceforge.net/projects/cryptopp/files/cryptopp/5.6.2/cryptopp562.zip
+	unzip cryptopp562.zip -d cryptopp
 	sed -i.org -e "s%^#.*\(CXXFLAGS += -fPIC.*\)%\1%g" $(PREFIX)/cryptopp/GNUmakefile	
 	make -C cryptopp all libcryptopp.so
 	make -C cryptopp install PREFIX=$(PREFIX)
