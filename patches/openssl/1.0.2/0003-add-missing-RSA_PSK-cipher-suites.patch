@@ -94,6 +94,3 @@ index 81b6a82..eda8d56 100644
  #define TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA		"RSA-PSK-AES256-CBC-SHA"
  
  /* SRP ciphersuite from RFC 5054 */
--- 
-1.8.4
-

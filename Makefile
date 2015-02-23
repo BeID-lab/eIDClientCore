@@ -61,10 +61,10 @@ openssl:
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
-	find . -name *.rej ;\
+	find . -name "*.rej" | grep -e ".*" ;\
 	if test $$? -eq 0 ; then \
-	echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
-	exit 1 ;\
+		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
+		exit 1 ;\
 	fi ;\
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
