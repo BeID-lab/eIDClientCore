@@ -61,9 +61,19 @@ openssl:
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
+	find . -name *.rej ;\
+	if test $$? -eq 0 ; then \
+	echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
+	exit 1 ;\
+	fi ;\
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
-	make install_sw
+	make install_sw ;\
+	$(PREFIX)/OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v ;\
+	if test $$? -eq 1 ; then \
+	echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
+	exit 1 ;\
+	fi
 
 libcurl:
 	wget http://curl.haxx.se/download/curl-7.32.0.tar.gz
