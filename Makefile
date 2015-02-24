@@ -76,9 +76,9 @@ openssl:
 	fi
 
 libcurl:
-	wget http://curl.haxx.se/download/curl-7.32.0.tar.gz
-	tar xzf curl-7.32.0.tar.gz
-	cd curl-7.32.0 ;\
+	wget http://curl.haxx.se/download/curl-7.40.0.tar.gz
+	tar xzf curl-7.40.0.tar.gz
+	cd curl-7.40.0 ;\
 	./configure --prefix=$(PREFIX) PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig ;\
 	make install
 
