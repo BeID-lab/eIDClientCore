@@ -23,6 +23,10 @@ typedef int ssize_t;
 #include <debug.h>
 #include "eIDClientConnection.h"
 
+#ifdef _DEBUG_TLS
+#define _DEBUG
+#endif
+
 typedef enum {
 	EIDCLIENT_CONNECTION_MODE_RAW,
 	EIDCLIENT_CONNECTION_MODE_HTTP
@@ -117,8 +121,8 @@ static char * psk_key;
 static int numOfHttpHandles = 0;
 
 
-#ifdef _DEBUG 	//usage: 	make CPPFLAGS=-D_DEBUG
-//usage only for eIDClientCore: make eIDClient CPPFLAGS=-D_DEBUG
+#ifdef _DEBUG 	
+//usage: make eIDClient CPPFLAGS=-D_DEBUG_TLS
 //Originally http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
 static void curl_dump(const char *text,   FILE *stream, unsigned char *ptr, size_t size) 
 {   
