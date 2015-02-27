@@ -23,6 +23,10 @@ typedef int ssize_t;
 #include <debug.h>
 #include "eIDClientConnection.h"
 
+#ifdef _DEBUG_TLS
+#define _DEBUG
+#endif
+
 typedef enum {
 	EIDCLIENT_CONNECTION_MODE_RAW,
 	EIDCLIENT_CONNECTION_MODE_HTTP
@@ -115,6 +119,73 @@ static char * psk_identity = "Client_identity"; /*Default*/
 static char * psk_key;
 /*Only globally initialize libcurl on the first call*/
 static int numOfHttpHandles = 0;
+
+
+#ifdef _DEBUG 	
+//usage: make eIDClient CPPFLAGS=-D_DEBUG_TLS
+//Originally http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
+static void curl_dump(const char *text,   FILE *stream, unsigned char *ptr, size_t size) 
+{   
+	size_t i;
+	size_t c;
+	unsigned int width=0x10;
+
+  	fprintf(stream, "%s, %10.10ld bytes (0x%8.8lx)n", text, (long)size, (long)size);
+
+  	for(i=0; i<size; i+= width) {   
+		fprintf(stream, "%4.4lx: ", (long)i);
+  		/* show hex to the left */   
+		for(c = 0; c < width; c++) {   
+			if(i+c < size)   
+				fprintf(stream, "%02x ", ptr[i+c]);   
+			else   
+				fputs(" ", stream);   
+		}
+
+		/* show data on the right */   
+		for(c = 0; (c < width) && (i+c < size); c++) 
+			fputc( (ptr[i+c]>=0x20) && (ptr[i+c]<0x80) ? ptr[i+c] : '.', stream);
+
+  		fputc('\n', stream); /* newline */   
+	} 
+}
+
+//Originally from http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
+static int curl_my_trace(CURL *handle, curl_infotype type, char *data, size_t size,   void *userp) 
+{   
+	const char *text;
+	(void)handle; /* prevent compiler warning */
+
+  	switch (type) {   
+		case CURLINFO_TEXT:   
+			fprintf(stderr, "== Info: %s", data);
+		default: /* in case a new one is introduced to shock us */   
+			return 0;
+
+		/*case CURLINFO_HEADER_OUT:   
+			text = "=> Send header";   
+			break;   
+		case CURLINFO_DATA_OUT:   
+			text = "=> Send data";   
+			break;*/
+		case CURLINFO_SSL_DATA_OUT:   
+			text = "=> Send SSL data";
+			break;   
+		/*case CURLINFO_HEADER_IN:   
+			text = "<= Recv header";   
+			break;   
+		case CURLINFO_DATA_IN:   
+			text = "<= Recv data";   
+			break;*/
+		case CURLINFO_SSL_DATA_IN:   
+			text = "<= Recv SSL data";   
+			break;   
+	}
+
+  	curl_dump(text, stderr, (unsigned char *)data, size);   
+	return 0; 
+}
+#endif
 
 #if _WIN32
 static HANDLE * lockarray;
@@ -350,7 +421,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
 #ifdef _DEBUG
-	curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_my_trace);
+  	/* the DEBUGFUNCTION has no effect until we enable VERBOSE */
+	curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 #endif
 
 	/*Hmm.. when we lookup the TCToken, we have to get the SSL-Certs after each redirect,
@@ -463,7 +536,8 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 	body.memory = (char*) malloc(1);
 	body.size = 0;
 
-	if(dataLength > 0 && data[0] == '<')
+	//if(dataLength > 0 && data[0] == '<') /* SAML1 don't working */
+	if(dataLength > 0 )
 	{
 		curlVal = curl_easy_setopt (curl, CURLOPT_POST, 1);
 		curlVal = curl_easy_setopt (curl, CURLOPT_POSTFIELDS, data);
