@@ -29,12 +29,16 @@
 #include <fstream>
 #include <streambuf>
 
+#include <getopt.h>
+
 #define XML_STATIC
 #include <expat.h>
 
 #include <eIDClientCore.h>
 #include <eIDClientConnection.h>
 #include <eCardCore/eCardStatus.h>
+
+#include <debug.h>
 
 #ifndef DISABLE_EIDGUI
 #include "eIDmfcUI.h"
@@ -1105,12 +1109,6 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 
 int main(int argc, char **argv)
 {
-	//std::vector<int> keksv;
-	//for (int i = 0; i < 100; i++)
-	//	keksv.push_back(i);
-	//printf("Hallo bla " << keksv.size() << " bla\n");
-	//return 0;
-
 	int loopCount = 1;
 	int retValue = 0;
 	int serverErrorCounter = 0;
@@ -1128,40 +1126,81 @@ int main(int argc, char **argv)
 #endif
 	const char *serviceURL = default_serviceURL;
 	std::string cardReaderName;
-
-	if(argc > 4)
-	{
-		for(int i = 4; i < argc; i++)
-		{
-			cardReaderName.append(argv[i]);
-			cardReaderName.push_back(' ');
+	
+	std::string usageString = "Usage: ";
+	usageString.append(argv[0]);
+	usageString.append(" [OPTIONS]\n"
+	"\tOptions:\n"
+	"\t\t-s : Service Provider URL\n"
+	"\t\t-c : Part of Card Reader Name (This parameter may consist of multiple strings)\n"
+	"\t\t-p : PIN\n"
+	"\t\t-l : Loopcount\n"
+	"\t\t-d : Debug level as a number. Debug levels are:\n"
+	"\t\t\t APDU :\t\t1\n"
+	"\t\t\t CRYPTO :\t2\n"
+	"\t\t\t SSL :\t\t4\n"
+	"\t\t\t PAOS :\t\t8\n"
+	"\t\t\t CARD :\t\t16\n"
+	"\t\t\t CLIENT :\t32\n"
+	"\t\t\t To choose multiple Debug Levels at the same time, just sum "
+	"the corresponding numbers and take the result as parameter.\n");
+	
+	USED_DEBUG_LEVEL = 0;
+	int c;
+	bool appendToCardReaderName = false;
+	while ((c = getopt (argc, argv, "-s:p:l:d:c:")) != -1){
+		if(c != 1){
+			appendToCardReaderName = false;
 		}
-		/*pop_back() would be nicer, but isnt implemented by clang*/
-		//cardReaderName.pop_back();
-		cardReaderName.erase(cardReaderName.end()-1);
-		argc = 4; /*So the following switch works properly*/
+		switch (c){
+			case 's':
+				serviceURL = optarg;
+				break;
+			case 'p':
+				pin = optarg;
+				break;
+			case 'l':
+				loopCount = atoi(optarg);
+				break;
+			case 'd':
+				USED_DEBUG_LEVEL = atoi(optarg);
+				break;
+			case 'c':
+				cardReaderName.append(optarg);
+				appendToCardReaderName = true;
+				break;
+			//Get all the strings of the Card Reader Name
+			case 1:
+				if(appendToCardReaderName == true){
+					cardReaderName.push_back(' ');
+					cardReaderName.append(optarg);
+					break;
+				} else {
+					printf(usageString.c_str());
+					printf("Unknown non-option argument: %s\n", optarg);
+					return 1;
+				}
+			case '?':
+				printf(usageString.c_str());
+				if (isprint (optopt))
+				  fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+				  fprintf (stderr,
+						   "Unknown option character `\\x%x'.\n",
+						   optopt);
+				return 1;
+			default:
+				printf(usageString.c_str());
+				return 1;
+		}
 	}
-
-	switch (argc) {
-	case 4:
-		loopCount = atoi(argv[3]);
-	case 3:
-		pin = argv[2];
-	case 2:
-		serviceURL = argv[1];
-
-	case 1:
-
-		printf("Connection Parameters:\n");
-		printf("SP URL\t\t%s\n", serviceURL);
-		printf("eID PIN\t\t%s\n", pin);
-		printf("Cardreader Substring\t%s\n", cardReaderName.c_str());
-		break;
-
-	default:
-		printf("Usage: %s [\"Service Provider URL\" [\"eID PIN\" [\"Loopcount\" [\"Part of Cardreadername\"]]]]\n", argv[0]);
-		return 1;
-	}
+	
+	printf("Connection Parameters:\n");
+	printf("SP URL\t\t%s\n", serviceURL);
+	printf("eID PIN\t\t%s\n", pin);
+	printf("Cardreader Substring\t%s\n", cardReaderName.c_str());
+	printf("Loop Count\t%i\n", loopCount);
+	printf("Debug Level\t%i\n", USED_DEBUG_LEVEL);
 
 	int n = 0;
 	srand(time(0));

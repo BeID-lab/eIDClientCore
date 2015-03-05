@@ -120,9 +120,6 @@ static char * psk_key;
 /*Only globally initialize libcurl on the first call*/
 static int numOfHttpHandles = 0;
 
-
-#ifdef _DEBUG 	
-//usage: make eIDClient CPPFLAGS=-D_DEBUG_TLS
 //Originally http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
 static void curl_dump(const char *text,   FILE *stream, unsigned char *ptr, size_t size) 
 {   
@@ -185,7 +182,6 @@ static int curl_my_trace(CURL *handle, curl_infotype type, char *data, size_t si
   	curl_dump(text, stderr, (unsigned char *)data, size);   
 	return 0; 
 }
-#endif
 
 #if _WIN32
 static HANDLE * lockarray;
@@ -420,11 +416,11 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
-#ifdef _DEBUG
-	curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_my_trace);
-  	/* the DEBUGFUNCTION has no effect until we enable VERBOSE */
-	curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-#endif
+	if(USED_DEBUG_LEVEL & DEBUG_LEVEL_SSL){
+		curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_my_trace);
+		/* the DEBUGFUNCTION has no effect until we enable VERBOSE */
+		curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	}
 
 	/*Hmm.. when we lookup the TCToken, we have to get the SSL-Certs after each redirect,
 	so I think its better to deactivate the automatic redirect Feature*/
@@ -555,7 +551,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 		curlVal = curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)&header);
 	}
 
-	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %.*s", dataLength, data);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %s", data);
 
 	/* Perform the request*/
 	curlVal = curl_easy_perform(curl);
