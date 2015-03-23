@@ -65,8 +65,8 @@ eIDClient:
 
 eIDClient_gui:
 	cd eIDClientCore/bin/Test_gui/ ;\
-	qmake-qt5 -project main.cpp mainwindow.cpp mainwindow.h QT=widgets QMAKE_CXXFLAGS+=-std=c++11 INCLUDEPATH+="../../lib/eIDClientCore ../../lib ../../bin/SimpleClient" LIBS+="-L../../../lib64 -leIDClientCore -lSimpleClient" ;\
-	make-qt5 -makefile ;\
+	qmake-qt5 -project main.cpp mainwindow.cpp mainwindow.h QT=widgets QMAKE_CXXFLAGS+=-std=c++11 INCLUDEPATH+="../../lib/eIDClientCore ../../lib ../../bin/SimpleClient" LIBS+="-L../../../lib -L../../../lib64 -leIDClientCore -lSimpleClient" ;\
+	qmake-qt5 -makefile ;\
 	make
 
 
