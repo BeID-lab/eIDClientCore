@@ -1135,7 +1135,7 @@ int main(int argc, char **argv)
 	"\t\t-c : Part of Card Reader Name (This parameter may consist of multiple strings)\n"
 	"\t\t-p : PIN\n"
 	"\t\t-l : Loopcount\n"
-	"\t\t-d : Debug level as a number. Debug levels are:\n"
+	"\t\t-v : Debug level (verbosity) as a number. Debug levels are:\n"
 	"\t\t\t APDU :\t\t1\n"
 	"\t\t\t CRYPTO :\t2\n"
 	"\t\t\t SSL :\t\t4\n"
@@ -1148,7 +1148,7 @@ int main(int argc, char **argv)
 	USED_DEBUG_LEVEL = 0;
 	int c;
 	bool appendToCardReaderName = false;
-	while ((c = getopt (argc, argv, "-s:p:l:d:c:")) != -1){
+	while ((c = getopt (argc, argv, "-s:p:l:v:c:")) != -1){
 		if(c != 1){
 			appendToCardReaderName = false;
 		}
@@ -1162,7 +1162,7 @@ int main(int argc, char **argv)
 			case 'l':
 				loopCount = atoi(optarg);
 				break;
-			case 'd':
+			case 'v':
 				USED_DEBUG_LEVEL = atoi(optarg);
 				break;
 			case 'c':
