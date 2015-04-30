@@ -88,7 +88,7 @@ eIDClient:
 	env LD_LIBRARY_PATH=$(PREFIX)/lib:$(PREFIX)/lib64 ./configure --prefix=$(PREFIX) \
     	--with-openssl=$(PREFIX) --with-libcurl=$(PREFIX) \
     	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig\
-    	ASN1C=$(PREFIX)/bin/asn1c ;\
+    	ASN1C=$(PREFIX)/bin/asn1c CRYPTOPP_CFLAGS="-I$(PREFIX)/include" CRYPTOPP_LIBS="-L$(PREFIX)/lib -lcryptopp" ;\
 	sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g" \
 	$(PREFIX)/eIDClientCore/lib/eIDClientConnection/Makefile ;\
 	make install
