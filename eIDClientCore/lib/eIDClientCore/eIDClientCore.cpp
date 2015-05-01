@@ -15,11 +15,7 @@
 #include <eIDOID.h>
 #include <eIDHelper.h>
 
-#if defined(WIN32)
-#include <cryptopp-5.6.0/sha.h>
-#else
-#include <cryptopp/sha.h>
-#endif
+#include "../crypto.h"
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;
@@ -545,7 +541,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAInitialize(IReaderManager* hReader, IC
             if (hTempCard_) {
                 // We have more than one card ... So we have to close the old one.
                 if (*hCard != 0x00)
-                    delete hCard;
+                    delete *hCard;
                 
                 *hCard = hTempCard_;
                 ePACounter++;
@@ -579,7 +575,7 @@ bool validateTransactionData(unsigned char* transaction_data, int transaction_da
 	//TODO: use asn1c to determine hash length + offset
 	//TODO: support for other Hash algorithms
 
-	CryptoPP::SHA224 sha;
+	SHA224 sha;
 	unsigned char result[sha.DIGESTSIZE];
 
 	sha.CalculateDigest(result, transaction_data, transaction_data_length);

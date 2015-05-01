@@ -11,8 +11,28 @@ all:	$(MY_DEPS) eIDClient eIDClient_gui
 
 mydeps: $(MY_DEPS)
 
-clean: 
+delete_all: 
 	rm -rf *[^Makefile]*
+
+clean_cryptopp: 
+	make -C cryptopp*/ clean
+
+clean_asn1c:
+	make -C asn1c*/ clean
+
+clean_libexpat:
+	make -C expat*/ clean
+
+clean_openssl:
+	make -C OpenSSL*/ clean
+
+clean_libcurl:
+	make -C curl*/ clean
+
+clean_eIDClient:
+	make -C eIDClientCore/ clean
+
+clean: clean_cryptopp clean_asn1c clean_libexpat clean_openssl clean_libcurl clean_eIDClient
 
 cryptopp:
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 cryptopp
@@ -41,14 +61,24 @@ openssl:
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
 	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
+	find . -name "*.rej" | grep -e ".*" ;\
+	if test $$? -eq 0 ; then \
+		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
+		exit 1 ;\
+	fi ;\
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
-	make install_sw
+	make install_sw ;\
+	$(PREFIX)/OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v ;\
+	if test $$? -eq 1 ; then \
+	echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
+	exit 1 ;\
+	fi
 
 libcurl:
-	wget http://curl.haxx.se/download/curl-7.32.0.tar.gz
-	tar xzf curl-7.32.0.tar.gz
-	cd curl-7.32.0 ;\
+	wget http://curl.haxx.se/download/curl-7.40.0.tar.gz
+	tar xzf curl-7.40.0.tar.gz
+	cd curl-7.40.0 ;\
 	./configure --prefix=$(PREFIX) PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig ;\
 	make install
 
@@ -58,7 +88,7 @@ eIDClient:
 	env LD_LIBRARY_PATH=$(PREFIX)/lib:$(PREFIX)/lib64 ./configure --prefix=$(PREFIX) \
     	--with-openssl=$(PREFIX) --with-libcurl=$(PREFIX) \
     	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig\
-    	ASN1C=$(PREFIX)/bin/asn1c ;\
+    	ASN1C=$(PREFIX)/bin/asn1c CRYPTOPP_CFLAGS="-I$(PREFIX)/include" CRYPTOPP_LIBS="-L$(PREFIX)/lib -lcryptopp" ;\
 	sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g" \
 	$(PREFIX)/eIDClientCore/lib/eIDClientConnection/Makefile ;\
 	make install

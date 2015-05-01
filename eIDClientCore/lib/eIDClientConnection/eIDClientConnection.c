@@ -23,6 +23,10 @@ typedef int ssize_t;
 #include <debug.h>
 #include "eIDClientConnection.h"
 
+#ifdef _DEBUG_TLS
+#define _DEBUG
+#endif
+
 typedef enum {
 	EIDCLIENT_CONNECTION_MODE_RAW,
 	EIDCLIENT_CONNECTION_MODE_HTTP
@@ -115,6 +119,69 @@ static char * psk_identity = "Client_identity"; /*Default*/
 static char * psk_key;
 /*Only globally initialize libcurl on the first call*/
 static int numOfHttpHandles = 0;
+
+//Originally http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
+static void curl_dump(const char *text,   FILE *stream, unsigned char *ptr, size_t size) 
+{   
+	size_t i;
+	size_t c;
+	unsigned int width=0x10;
+
+  	fprintf(stream, "%s, %10.10ld bytes (0x%8.8lx)n", text, (long)size, (long)size);
+
+  	for(i=0; i<size; i+= width) {   
+		fprintf(stream, "%4.4lx: ", (long)i);
+  		/* show hex to the left */   
+		for(c = 0; c < width; c++) {   
+			if(i+c < size)   
+				fprintf(stream, "%02x ", ptr[i+c]);   
+			else   
+				fputs(" ", stream);   
+		}
+
+		/* show data on the right */   
+		for(c = 0; (c < width) && (i+c < size); c++) 
+			fputc( (ptr[i+c]>=0x20) && (ptr[i+c]<0x80) ? ptr[i+c] : '.', stream);
+
+  		fputc('\n', stream); /* newline */   
+	} 
+}
+
+//Originally from http://curl.haxx.se/libcurl/c/CURLOPT_DEBUGFUNCTION.html 
+static int curl_my_trace(CURL *handle, curl_infotype type, char *data, size_t size,   void *userp) 
+{   
+	const char *text;
+	(void)handle; /* prevent compiler warning */
+
+  	switch (type) {   
+		case CURLINFO_TEXT:   
+			fprintf(stderr, "== Info: %s", data);
+		default: /* in case a new one is introduced to shock us */   
+			return 0;
+
+		/*case CURLINFO_HEADER_OUT:   
+			text = "=> Send header";   
+			break;   
+		case CURLINFO_DATA_OUT:   
+			text = "=> Send data";   
+			break;*/
+		case CURLINFO_SSL_DATA_OUT:   
+			text = "=> Send SSL data";
+			break;   
+		/*case CURLINFO_HEADER_IN:   
+			text = "<= Recv header";   
+			break;   
+		case CURLINFO_DATA_IN:   
+			text = "<= Recv data";   
+			break;*/
+		case CURLINFO_SSL_DATA_IN:   
+			text = "<= Recv SSL data";   
+			break;   
+	}
+
+  	curl_dump(text, stderr, (unsigned char *)data, size);   
+	return 0; 
+}
 
 #if _WIN32
 static HANDLE * lockarray;
@@ -326,6 +393,11 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 	curlVal = curl_easy_setopt(curl, CURLOPT_URL, url);
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
+	
+	//Reads cookies from file
+	curl_easy_setopt(curl, CURLOPT_COOKIEFILE, EIDCC_COOKIE_FILE);
+	//Writes cookies to file
+	curl_easy_setopt(curl, CURLOPT_COOKIEJAR, EIDCC_COOKIE_FILE);
 
 #ifdef SKIP_PEER_VERIFICATION
 	curlVal = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -339,18 +411,16 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 #endif
 
-#ifdef SKIP_HOSTNAME_VERIFICATION
-	curlVal = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-#endif
-
 	/*Set Useragent because its required by some servers*/
 	curlVal = curl_easy_setopt(curl, CURLOPT_USERAGENT, "eIDClientCore/1.1");
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
-#ifdef _DEBUG
-	//curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-#endif
+	if(USED_DEBUG_LEVEL & DEBUG_LEVEL_SSL){
+		curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_my_trace);
+		/* the DEBUGFUNCTION has no effect until we enable VERBOSE */
+		curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+	}
 
 	/*Hmm.. when we lookup the TCToken, we have to get the SSL-Certs after each redirect,
 	so I think its better to deactivate the automatic redirect Feature*/
@@ -370,7 +440,20 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
-	curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "RSA-PSK-AES256-CBC-SHA:HIGH");
+	/* The following cipher suites are supported by our OpenSSL:
+	 * OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v
+	 * RSA-PSK-AES256-CBC-SHA  SSLv3 Kx=RSAPSK   Au=RSA  Enc=AES(256)  Mac=SHA1
+	 * RSA-PSK-3DES-EDE-CBC-SHA SSLv3 Kx=RSAPSK   Au=RSA  Enc=3DES(168) Mac=SHA1
+	 * RSA-PSK-AES128-CBC-SHA  SSLv3 Kx=RSAPSK   Au=RSA  Enc=AES(128)  Mac=SHA1
+	 * RSA-PSK-RC4-SHA         SSLv3 Kx=RSAPSK   Au=RSA  Enc=RC4(128)  Mac=SHA1
+	 * 
+	 * I would not recommend RC4 due to security reasons.
+	 */
+	if(psk != NULL){
+		curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "RSA-PSK-AES256-CBC-SHA:RSA-PSK-AES128-CBC-SHA:RSA-PSK-3DES-EDE-CBC-SHA");
+	} else {
+		curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "HIGH");
+	}
 	if(CURLE_OK != curlVal)
 		return EID_CLIENT_CONNECTION_CURL_ERROR;
 
@@ -449,12 +532,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 	body.memory = (char*) malloc(1);
 	body.size = 0;
 
-	if(dataLength > 0)
+	//if(dataLength > 0 && data[0] == '<') /* SAML1 don't working */
+	if(dataLength > 0 )
 	{
-		if(data[0] != '<')
-		{
-
-		}
 		curlVal = curl_easy_setopt (curl, CURLOPT_POST, 1);
 		curlVal = curl_easy_setopt (curl, CURLOPT_POSTFIELDS, data);
 		curlVal = curl_easy_setopt (curl, CURLOPT_POSTFIELDSIZE, dataLength);

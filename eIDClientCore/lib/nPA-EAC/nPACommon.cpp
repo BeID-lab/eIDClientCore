@@ -64,20 +64,20 @@ ECP::Point vector2point(const std::vector<unsigned char> &v)
 	return p;
 }
 
-std::vector<unsigned char> point2vector(const ECP::Point &p)
+std::vector<unsigned char> point2vector(const ECP::Point &p, int curveLength)
 {
 	std::vector<unsigned char> v;
 
 	std::vector<unsigned char> x_;
 	x_.resize(p.x.ByteCount());
 	p.x.Encode(DATA(x_), p.x.ByteCount());
-	while (x_.size() < 0x20)
+	while (x_.size() < curveLength)
 		x_.insert(x_.begin(), 0x00);
 
 	std::vector<unsigned char> y_;
 	y_.resize(p.y.ByteCount());
 	p.y.Encode(DATA(y_), p.y.ByteCount());
-	while (y_.size() < 0x20)
+	while (y_.size() < curveLength)
 		y_.insert(y_.begin(), 0x00);
 
 	v.push_back(0x04);
@@ -101,41 +101,37 @@ std::vector<unsigned char> calculateMAC(
 	return result_;
 }
 
-std::string getCAR(
+std::vector<unsigned char> getCAR(
 	const std::vector<unsigned char>& certificate)
 {
-	std::string car_;
+	std::vector<unsigned char> car_;
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
 				   DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCAR failed ...");
-		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-		return car_;
+	} else {
+		car_.insert(car_.end(), CVCertificate->certBody.certAuthRef.buf, 
+				CVCertificate->certBody.certAuthRef.buf + CVCertificate->certBody.certAuthRef.size);
 	}
-
-	for (size_t i = 0; i < CVCertificate->certBody.certAuthRef.size; i++)
-		car_.push_back((char) CVCertificate->certBody.certAuthRef.buf[i]);
 
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return car_;
 }
 
-std::string getCHR(
+std::vector<unsigned char> getCHR(
 	const std::vector<unsigned char>& certificate)
 {
-	std::string chr_;
+	std::vector<unsigned char> chr_;
 	CVCertificate_t *CVCertificate = 0x00;
 
 	if (ber_decode(0, &asn_DEF_CVCertificate, (void **)&CVCertificate,
-				   DATA(certificate), certificate.size()).code != RC_OK) {
+				DATA(certificate), certificate.size()).code != RC_OK) {
 		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "getCHR failed ...");
-		asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
-		return chr_;
+	} else {
+		chr_.insert(chr_.end(), CVCertificate->certBody.certHolderRef.buf, 
+				CVCertificate->certBody.certHolderRef.buf + CVCertificate->certBody.certHolderRef.size);
 	}
-
-	for (int i = 0; i < CVCertificate->certBody.certHolderRef.size; i++)
-		chr_.push_back((char) CVCertificate->certBody.certHolderRef.buf[i]);
 
 	asn_DEF_CVCertificate.free_struct(&asn_DEF_CVCertificate, CVCertificate, 0);
 	return chr_;
@@ -165,147 +161,85 @@ DH get_std_dp_0(void)
 	return dh;
 }
 
-std::vector<unsigned char> generate_PrK_IFD_DHx(
-	const OBJECT_IDENTIFIER_t &OID_)
-{
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+std::vector<unsigned char> generate_PrK_IFD_DHx (uint8_t standardizedDP){
 
-	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
-
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
-
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
-
-	std::vector<unsigned char> result;
 	AutoSeededRandomPool rng;
+	std::vector<unsigned char> result;
+	
+	switch(standardizedDP){
 
-	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_128 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_256) {
+	case 0x08:
+	case 0x09:
+		result.resize(24);
+		break;
+	case 0x0A:
+	case 0x0B:
+		result.resize(28);
+		break;
+	case 0x0C:
+	case 0x0D:
 		result.resize(32);
-		rng.GenerateBlock(DATA(result), result.size());
-	} else if (OID_ == PACE_DH_3DES_CBC_CBC ||
-			OID_ == PACE_DH_AES_CBC_CMAC_128 ||
-			OID_ == PACE_DH_AES_CBC_CMAC_192 ||
-			OID_ ==  PACE_DH_AES_CBC_CMAC_256 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_128 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_192 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_256) {
-		DH dh = get_std_dp_0();
-
-		result.resize(dh.PrivateKeyLength());
-		dh.GeneratePrivateKey(rng, DATA(result));
+		break;
+	case 0x0E:
+		result.resize(40);
+		break;
+	case 0x0F:
+	case 0x10:
+		result.resize(48);
+		break;
+	case 0x11:
+	case 0x12:
+		result.resize(64);
+		break;
+	default:
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Domainparameters invalid");
+		break;
 	}
 
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
+	rng.GenerateBlock(DATA(result), result.size());
 
 	return result;
 }
 
-std::vector<unsigned char> calculate_PuK_IFD_DH1(
-	const OBJECT_IDENTIFIER_t &OID_,
-	const std::vector<unsigned char>& PrK_IFD_DH1)
-{
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	 = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+std::vector<unsigned char> calculate_PuK_IFD_DH1(uint8_t standardizedDP, const std::vector<unsigned char>& PrK_IFD_DH1){
 
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
-
-	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
-
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
-
+	int curveLength;
+	Integer a;
+	Integer b;
+	Integer Mod;
+	Integer G_X;
+	Integer G_Y;
 	std::vector<unsigned char> result_buffer;
+	
+	switch(standardizedDP){
 
-	if (OID_ == PACE_ECDH_3DES_CBC_CBC ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_128 ||
-		OID_ == PACE_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  PACE_ECDH_AES_CBC_CMAC_256 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_128 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_192 ||
-		OID_ ==  CA_ECDH_AES_CBC_CMAC_256) {
-		Integer k(DATA(PrK_IFD_DH1), PrK_IFD_DH1.size());
-		Integer a("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
-		Integer b("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
-		Integer Mod("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
-		ECP ecp(Mod, a, b);
-		Integer X("8BD2AEB9CB7E57CB2C4B482FFC81B7AFB9DE27E1E3BD23C23A4453BD9ACE3262h");
-		Integer Y("547EF835C3DAC4FD97F8461A14611DC9C27745132DED8E545C1D54C72F046997h");
-		ECP::Point G(X, Y);
-		ECP::Point result = ecp.Multiply(k, G);
-
-		result_buffer = point2vector(result);
-	} else if (OID_ == PACE_DH_3DES_CBC_CBC ||
-			OID_ == PACE_DH_AES_CBC_CMAC_128 ||
-			OID_ == PACE_DH_AES_CBC_CMAC_192 ||
-			OID_ ==  PACE_DH_AES_CBC_CMAC_256 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_128 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_192 ||
-			OID_ ==  CA_DH_AES_CBC_CMAC_256) {
-		DH dh = get_std_dp_0();
-
-		AutoSeededRandomPool rng;
-		result_buffer.resize(dh.PublicKeyLength());
-		dh.GeneratePublicKey(rng, DATA(PrK_IFD_DH1), DATA(result_buffer));
+	case 0x09:
+		curveLength = 0x18;
+		a = Integer("6A91174076B1E0E19C39C031FE8685C1CAE040E5C69A28EFh");
+		b = Integer("469A28EF7C28CCA3DC721D044F4496BCCA7EF4146FBF25C9h");
+		Mod = Integer("C302F41D932A36CDA7A3463093D18DB78FCE476DE1A86297h");
+		G_X = Integer("C0A0647EAAB6A48753B033C56CB0F0900A2F5C4853375FD6h");
+		G_Y = Integer("14B690866ABD5BB88B5F4828C1490002E6773FA2FA299B8Fh");
+		break;
+	case 0x0D:
+		curveLength = 0x20;
+		a = Integer("7D5A0975FC2C3057EEF67530417AFFE7FB8055C126DC5C6CE94A4B44F330B5D9h");
+		b = Integer("26DC5C6CE94A4B44F330B5D9BBD77CBF958416295CF7E1CE6BCCDC18FF8C07B6h");
+		Mod = Integer("A9FB57DBA1EEA9BC3E660A909D838D726E3BF623D52620282013481D1F6E5377h");
+		G_X = Integer("8BD2AEB9CB7E57CB2C4B482FFC81B7AFB9DE27E1E3BD23C23A4453BD9ACE3262h");
+		G_Y = Integer("547EF835C3DAC4FD97F8461A14611DC9C27745132DED8E545C1D54C72F046997h");
+		break;
+	default:
+		eCardCore_warn(DEBUG_LEVEL_CRYPTO, "Domainparameters not supported");
+		break;
 	}
 
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
+	ECP ecp(Mod, a, b);
+	ECP::Point G(G_X, G_Y);
+	Integer k(DATA(PrK_IFD_DH1), PrK_IFD_DH1.size());
+	ECP::Point result = ecp.Multiply(k, G);
 
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
-
+	result_buffer = point2vector(result, curveLength);
 	return result_buffer;
 }
 
@@ -501,7 +435,7 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 		// Calculate: H = PrK.IFD.DH2 * PuK.ICC.DH2
 		ECP::Point kifd_icc_ = ecp.Multiply(k, PuK_ICC_DH2_);
 
-		result_buffer = get_x(point2vector(kifd_icc_));
+		result_buffer = get_x(point2vector(kifd_icc_, 0x20));
 	} else if (OID_ == PACE_DH_3DES_CBC_CBC
 			|| OID_ == PACE_DH_AES_CBC_CMAC_128
 			|| OID_ == PACE_DH_AES_CBC_CMAC_192
@@ -549,73 +483,80 @@ std::vector<unsigned char> calculate_KIFD_ICC(
 	return result_buffer;
 }
 
-std::vector<unsigned char> calculate_ID_ICC(
-	const OBJECT_IDENTIFIER_t &OID_,
-	const std::vector<unsigned char>& PuK_ICC_DH2)
+std::vector<unsigned char> calculate_ID_ICC(const std::vector<unsigned char>& PuK_ICC_DH2)
 {
-	OBJECT_IDENTIFIER_t PACE_ECDH_3DES_CBC_CBC	   = makeOID(id_PACE_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_128 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_192 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_ECDH_AES_CBC_CMAC_256 = makeOID(id_PACE_ECDH_AES_CBC_CMAC_256);
+	return get_x(PuK_ICC_DH2);
+}
 
-	OBJECT_IDENTIFIER_t PACE_DH_3DES_CBC_CBC	 = makeOID(id_PACE_DH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_128 = makeOID(id_PACE_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_192 = makeOID(id_PACE_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t PACE_DH_AES_CBC_CMAC_256 = makeOID(id_PACE_DH_AES_CBC_CMAC_256);
+#define INT_LEN (10)
+#define HEX_LEN (8)
+#define BIN_LEN (32)
+#define OCT_LEN (11)
 
-	OBJECT_IDENTIFIER_t CA_ECDH_3DES_CBC_CBC	 = makeOID(id_CA_ECDH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_128 = makeOID(id_CA_ECDH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_192 = makeOID(id_CA_ECDH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_ECDH_AES_CBC_CMAC_256 = makeOID(id_CA_ECDH_AES_CBC_CMAC_256);
+char*  my_itoa ( int value, char * str, int base )
+{
+    int i,n =2,tmp;
+    char buf[BIN_LEN+1];
 
-	OBJECT_IDENTIFIER_t CA_DH_3DES_CBC_CBC	   = makeOID(id_CA_DH_3DES_CBC_CBC);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_128 = makeOID(id_CA_DH_AES_CBC_CMAC_128);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_192 = makeOID(id_CA_DH_AES_CBC_CMAC_192);
-	OBJECT_IDENTIFIER_t CA_DH_AES_CBC_CMAC_256 = makeOID(id_CA_DH_AES_CBC_CMAC_256);
 
-	std::vector<unsigned char> result_buffer;
-
-	if (       OID_ == PACE_ECDH_3DES_CBC_CBC
-		   	|| OID_ == PACE_ECDH_AES_CBC_CMAC_128
-			|| OID_ == PACE_ECDH_AES_CBC_CMAC_192
-			|| OID_ == PACE_ECDH_AES_CBC_CMAC_256
-			|| OID_ == CA_ECDH_3DES_CBC_CBC
-		   	|| OID_ == CA_ECDH_AES_CBC_CMAC_128
-			|| OID_ == CA_ECDH_AES_CBC_CMAC_192
-			|| OID_ == CA_ECDH_AES_CBC_CMAC_256) {
-		result_buffer = get_x(PuK_ICC_DH2);
-	} else if (OID_ == PACE_DH_3DES_CBC_CBC
-		   	|| OID_ == PACE_DH_AES_CBC_CMAC_128
-		   	|| OID_ == PACE_DH_AES_CBC_CMAC_192
-		   	|| OID_ == PACE_DH_AES_CBC_CMAC_256
-			|| OID_ == CA_DH_3DES_CBC_CBC
-		   	|| OID_ == CA_DH_AES_CBC_CMAC_128
-		   	|| OID_ == CA_DH_AES_CBC_CMAC_192
-		   	|| OID_ == CA_DH_AES_CBC_CMAC_256) {
-		CryptoPP::SHA1 sha1;
-		result_buffer.resize(sha1.DigestSize());
-		sha1.CalculateDigest(DATA(result_buffer), DATA(PuK_ICC_DH2), PuK_ICC_DH2.size());
-	}
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_ECDH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &PACE_DH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_ECDH_AES_CBC_CMAC_256, 1);
-
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_3DES_CBC_CBC, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_128, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_192, 1);
-	asn_DEF_OBJECT_IDENTIFIER.free_struct(&asn_DEF_OBJECT_IDENTIFIER, &CA_DH_AES_CBC_CMAC_256, 1);
-
-	return result_buffer;
+    switch(base)
+    {
+        case 16:
+            for(i = 0;i<HEX_LEN;++i)
+            {
+                if(value/base>0)
+                {
+                    n++;
+                }
+            }
+            snprintf(str, n, "%x" ,value);
+            break;
+        case 10:
+            for(i = 0;i<INT_LEN;++i)
+            {
+                if(value/base>0)
+                {
+                    n++;
+                }
+            }
+            snprintf(str, n, "%d" ,value);
+            break;
+        case 8:
+            for(i = 0;i<OCT_LEN;++i)
+            {
+                if(value/base>0)
+                {
+                    n++;
+                }
+            }
+            snprintf(str, n, "%o" ,value);
+            break;
+        case 2:
+            for(i = 0,tmp = value;i<BIN_LEN;++i)
+            {
+                if(tmp/base>0)
+                {
+                    n++;
+                }
+                tmp/=base;
+            }
+            for(i = 1 ,tmp = value; i<n;++i)
+            {
+                if(tmp%2 != 0)
+                {
+                    buf[n-i-1] ='1';
+                }
+                else
+                {
+                    buf[n-i-1] ='0';
+                }
+                tmp/=base;
+            }
+            buf[n-1] = '\0';
+            strcpy(str,buf);
+            break;
+        default:
+            return NULL;
+    }
+    return str;
 }

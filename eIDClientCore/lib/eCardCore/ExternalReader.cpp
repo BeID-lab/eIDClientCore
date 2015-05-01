@@ -131,14 +131,13 @@ void ExternalReader::close(void)
 std::vector<unsigned char> ExternalReader::getATRForPresentCard(void)
 {
     std::vector<unsigned char> atr;
-	unsigned char	result[2048];
-	unsigned long	nLengthResult = sizeof(result);
+	unsigned long	nLengthResult = MAX_BUFFER_SIZE;
 
 	if (!m_hGetATR)
 		goto err;
 
-	if (ECARD_SUCCESS == m_hGetATR(m_hCardReader, result, &nLengthResult))
-		atr.insert(atr.end(), result, result+nLengthResult);
+	if (ECARD_SUCCESS == m_hGetATR(m_hCardReader, buffer, &nLengthResult))
+		atr.insert(atr.end(), buffer, buffer+nLengthResult);
 	else
 		eCardCore_warn(DEBUG_LEVEL_CARD, "external get atr failed");
 
@@ -150,12 +149,11 @@ std::vector<unsigned char> ExternalReader::transceive(const std::vector<unsigned
 {
     std::vector<unsigned char> response;
 	
-	unsigned char	result[2048];
-	unsigned long	nLengthResult = sizeof(result);
+	unsigned long	nLengthResult = MAX_BUFFER_SIZE;
 
-	if (ECARD_SUCCESS == m_hSend(m_hCardReader, DATA(cmd), cmd.size(), result, &nLengthResult)) {
+	if (ECARD_SUCCESS == m_hSend(m_hCardReader, DATA(cmd), cmd.size(), buffer, &nLengthResult)) {
 		response.clear();
-		response.insert(response.end(), result, result+nLengthResult);
+		response.insert(response.end(), buffer, buffer+nLengthResult);
 	} else
 		eCardCore_warn(DEBUG_LEVEL_CARD, "external send failed");
   

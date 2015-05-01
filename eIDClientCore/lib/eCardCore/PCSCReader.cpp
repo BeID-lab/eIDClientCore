@@ -145,7 +145,7 @@ bool PCSCReader::open(
 
 	long retValue = SCARD_S_SUCCESS;
 	retValue = SCardReconnect(m_hCard, SCARD_SHARE_SHARED, SCARD_PROTOCOL_ANY,
-							  SCARD_LEAVE_CARD, &m_dwProtocol);
+							  SCARD_RESET_CARD, &m_dwProtocol);
 	if(0x00 == m_hCard)
 		return false;
 
@@ -183,8 +183,10 @@ std::vector <unsigned char> PCSCReader::transceive(
 	DWORD r = SCARD_S_SUCCESS;
 	std::vector <unsigned char> result;
 
-	if (0x00 == m_hCard)
+	if (0x00 == m_hCard) {
+		eCardCore_info(DEBUG_LEVEL_CARD, "Not connected to any card");
 		throw WrongHandle();
+	}
 
 	r = SCardTransmit(m_hCard, SCARD_PCI_T1, DATA(cmd),
 					  (DWORD) cmd.size(), NULL, res, &reslen);

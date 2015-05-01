@@ -123,7 +123,10 @@ ECARD_STATUS CardReaderSend(EIDCLIENT_CARD_READER_HANDLE hCardReader,
 			rsp_j = (jbyteArray) ctx->env->CallObjectMethod(ctx->reader,
 					ctx->processAPDU, cmd_j);
 
-			len = (unsigned long) ctx->env->GetArrayLength(rsp_j);
+			if(rsp_j)
+				len = (unsigned long) ctx->env->GetArrayLength(rsp_j);
+			else
+				len = nlen + 1;
 
 			if (len <= nlen) {
 				rsp = ctx->env->GetByteArrayElements(rsp_j, NULL);

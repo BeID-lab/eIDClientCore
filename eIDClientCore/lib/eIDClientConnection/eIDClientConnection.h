@@ -29,6 +29,12 @@ typedef unsigned long EID_CLIENT_CONNECTION_ERROR;
 #define EID_CLIENT_CONNECTION_MODE_ERROR                 EID_CLIENT_CONNECTION_ERRO + 0x00000007
 #define EID_CLIENT_CONNECTION_BUFF_TOO_SMALL_ERROR		 EID_CLIENT_CONNECTION_ERRO + 0x00010000
 
+#ifdef _WIN32
+#define EIDCC_COOKIE_FILE "%temp%\eidcc_cookie_file"
+#else
+#define EIDCC_COOKIE_FILE "/tmp/eidcc_cookie_file"
+#endif
+
 #if defined(__cplusplus)
 extern "C"
 {
