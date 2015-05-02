@@ -115,6 +115,7 @@
     <ClInclude Include="..\..\lib\eIDClientConnection\eIDClientConnection.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\debug.c" />
     <ClCompile Include="..\..\lib\eIDClientConnection\eIDClientConnection.c" />
     <ClCompile Include="..\..\lib\eIDClientConnection\socket.c" />
   </ItemGroup>

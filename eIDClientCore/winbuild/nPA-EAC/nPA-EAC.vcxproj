@@ -95,6 +95,7 @@
     <ClInclude Include="..\..\lib\nPA-EAC\nPAStatus.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\lib\debug.c" />
     <ClCompile Include="..\..\lib\nPA-EAC\nPACard.cpp" />
     <ClCompile Include="..\..\lib\nPA-EAC\nPACommon.cpp" />
     <ClCompile Include="..\..\lib\nPA-EAC\nPA_CA.cpp" />

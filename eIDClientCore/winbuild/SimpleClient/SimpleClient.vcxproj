@@ -16,6 +16,7 @@
     <ClCompile Include="..\..\bin\SimpleClient\CeIdObject.cpp" />
     <ClCompile Include="..\..\bin\SimpleClient\main.cpp" />
     <ClCompile Include="..\..\bin\Test_nPAClientLib\eidui_cli.cpp" />
+    <ClCompile Include="..\..\lib\debug.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\bin\SimpleClient\civetweb\include\CivetServer.h" />
