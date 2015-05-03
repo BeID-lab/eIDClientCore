@@ -265,18 +265,20 @@ static int getTcToken(string & tcToken, const string & tcTokenURL)
 	char sz[0x10000];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-		return connection_status;
-	}
+	//TODO save all encountered server-certificates and later match them against the cv-certificate
+	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, DontGetHttpHeader, FollowHttpRedirect);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
 
-	connection_status = eIDClientConnectionTransceive(connection, NULL, 0 , sz, &sz_len);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-		return connection_status;
-	}
+		connection_status = eIDClientConnectionTransceive(connection, NULL, 0 , sz, &sz_len);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
 	
-	tcToken.assign(sz, sz_len);
 
+
+	tcToken.assign(sz, sz_len);
 	connection_status = eIDClientConnectionEnd(connection);
 	return connection_status;
 }
@@ -288,7 +290,7 @@ static int getSamlResponse(string & samlResponse, const string & refreshAddress)
 	char sz[0x10000];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, refreshAddress.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
+	connection_status = eIDClientConnectionStartHttp(&connection, refreshAddress.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
