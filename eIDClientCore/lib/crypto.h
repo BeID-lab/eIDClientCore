@@ -24,12 +24,12 @@
 #include <cryptopp/dh.h>
 #endif
 
-using DH = CryptoPP::DH;
-using Integer = CryptoPP::Integer;
-template <class CIPHER> using CBC_Mode = CryptoPP::CBC_Mode<CIPHER>;
-using AES = CryptoPP::AES;
-template <class T> using CMAC = CryptoPP::CMAC<T>;
-using AutoSeededRandomPool = CryptoPP::AutoSeededRandomPool;
-using ECP = CryptoPP::ECP;
-using SHA1 = CryptoPP::SHA1;
-using SHA224 = CryptoPP::SHA224;
+using CryptoPP::DH;
+using CryptoPP::Integer;
+using CryptoPP::CBC_Mode;
+using CryptoPP::AES;
+using CryptoPP::CMAC;
+using CryptoPP::AutoSeededRandomPool;
+using CryptoPP::ECP;
+using CryptoPP::SHA1;
+using CryptoPP::SHA224;
