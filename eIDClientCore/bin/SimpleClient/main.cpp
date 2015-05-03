@@ -265,7 +265,7 @@ static int getTcToken(string & tcToken, const string & tcTokenURL)
 	char sz[0x10000];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -288,7 +288,7 @@ static int getSamlResponse(string & samlResponse, const string & refreshAddress)
 	char sz[0x10000];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, refreshAddress.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, refreshAddress.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -344,6 +344,7 @@ static int begin_request_handler(struct mg_connection *conn) {
 	char transactionURL[URLLENGTH];
 	char cssURL[URLLENGTH];
 	char pin[PINLENGTH];
+	/*ToDo: Use the correct type for retvalue*/
 	int retValue = 0;
 	tcTokenURL[0] = '\0';
 	transactionURL[0] = '\0';
@@ -379,7 +380,10 @@ static int begin_request_handler(struct mg_connection *conn) {
 			mutex_unlock(ghMutex);
 
 			retValue = getSamlResponse(samlResponse, gAuthParams.m_strRefreshAddress);
-			string transferencoding = "Transfer-Encoding:";
+			if(retValue != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+				//ToDo Error Handling
+			}
+			//string transferencoding = "Transfer-Encoding:";
 			string linefeeding = "\r\n\r\n";
 			string header = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
 			//size_t found = samlResponse.find(transferencoding);

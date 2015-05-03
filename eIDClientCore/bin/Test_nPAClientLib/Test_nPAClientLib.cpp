@@ -349,7 +349,7 @@ void *
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -395,7 +395,7 @@ void *
 	strData += SAMLResponse;
 
 	strResult = "";
-	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -444,7 +444,7 @@ int getSamlResponse2(std::string & response)
 #if SAML_VERSION == NO_SAML
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 0);
 #else
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 #endif
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -494,7 +494,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -520,7 +520,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -781,7 +781,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	//Send Form with selected Attributes
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -816,7 +816,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	//strResult = str_replace("https", "http", strResult);
 
 	//Get AuthnRequest
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, HttpHeaderInclusion::GetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -847,7 +847,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	strResult = strResult.substr(locationBegin, locationEnd-locationBegin);
 
 	//Get tcToken
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -889,7 +889,7 @@ int getAuthenticationParams(const char *const SP_URL,
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -941,7 +941,7 @@ int getAuthenticationParams(const char *const SP_URL,
 	}
 
 	strResult = "";
-	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -1064,7 +1064,7 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, HttpHeaderInclusion::DontGetHttpHeader);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);

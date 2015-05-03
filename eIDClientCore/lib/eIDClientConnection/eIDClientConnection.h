@@ -29,6 +29,11 @@ typedef unsigned long EID_CLIENT_CONNECTION_ERROR;
 #define EID_CLIENT_CONNECTION_MODE_ERROR                 EID_CLIENT_CONNECTION_ERRO + 0x00000007
 #define EID_CLIENT_CONNECTION_BUFF_TOO_SMALL_ERROR		 EID_CLIENT_CONNECTION_ERRO + 0x00010000
 
+enum HttpHeaderInclusion {
+	GetHttpHeader = 0,
+	DontGetHttpHeader = 1
+};
+
 #ifdef _WIN32
 #define EIDCC_COOKIE_FILE "%temp%\eidcc_cookie_file"
 #else
@@ -47,7 +52,7 @@ extern "C"
 	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartRaw(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const hostname, const char *const port, const char *const sid, const char *const pskKey);
 
 	/*After a successfull Call to eIDClientConnectionStartHttp you MUST call eIDClientConnectionEnd*/
-	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const pskKey, int includeHeader);
+	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const pskKey, enum HttpHeaderInclusion includeHeader);
 
 	EID_CLIENT_CONNECTION_ERROR eIDClientConnectionEnd(EIDCLIENT_CONNECTION_HANDLE hConnection);
 
