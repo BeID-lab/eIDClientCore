@@ -385,14 +385,20 @@ static int begin_request_handler(struct mg_connection *conn) {
 			if(retValue != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 				//ToDo Error Handling
 			}
-			//string transferencoding = "Transfer-Encoding:";
-			string linefeeding = "\r\n\r\n";
-			string header = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
-			//size_t found = samlResponse.find(transferencoding);
-			size_t found = samlResponse.find(linefeeding);
-			samlResponse.erase(0, found);
-			samlResponse = header + samlResponse;
-			//samlResponse.erase(found, linefeeding.length());
+
+			//We have to parse the HTTP-Response, because civetweb cant handle some http-parameters from the eID-Server
+			size_t locBegin = samlResponse.find("location");
+			size_t locEnd = samlResponse.find("\r\n", locBegin);
+			size_t bodyBegin = samlResponse.find("\r\n\r\n");
+			//HTTP-Response should be a redirect?
+			if(string::npos != locBegin && string::npos != locEnd && locBegin <= bodyBegin) {				
+				string locString = samlResponse.substr(locBegin, locEnd - locBegin);
+				string header = "HTTP/1.1 302 Found\r\n";
+				//Only send Redirect-Header and location, erase all other parameters
+				samlResponse = header + locString + "\r\n\r\n";
+			}
+			//ToDo do the same for 2xx, 4xx, 5xx
+			//(or do some investigation on the parameters which cant be handled by civetweb and erase them
 			mg_write(conn, samlResponse.c_str(), samlResponse.length());
 		}
 
