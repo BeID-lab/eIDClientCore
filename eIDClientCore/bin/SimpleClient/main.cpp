@@ -37,6 +37,14 @@ static CeIdObject gAuthParams;
 static string gUserInteractionHtml;
 static string gPin;
 
+void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error);
+NPACLIENT_ERROR nPAeIdUserInteractionCallback(
+	const SPDescription_t *description, UserInput_t *input);
+
+
+static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback;
+static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback;
+
 //Loggingfunctions
 void debugOut(
 	const char* format,
@@ -174,8 +182,8 @@ performAuthenticationThread(void *lpParam)
 		authParams->m_strPSK.c_str(),
 		0x00,
 		authParams->m_strTransactionURL.empty() ? NULL : authParams->m_strTransactionURL.c_str(),
-		nPAeIdUserInteractionCallback,
-		nPAeIdProtocolStateCallback);
+		fnUserInteractionCallback,
+		fnCurrentStateCallback);
 
 	if(rVal != NPACLIENT_ERROR_SUCCESS)
 	{
