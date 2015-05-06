@@ -37,36 +37,6 @@ static CeIdObject gAuthParams;
 static string gUserInteractionHtml;
 static string gPin;
 
-static int begin_request_handler(struct mg_connection *conn); 
-void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error);
-NPACLIENT_ERROR nPAeIdUserInteractionCallback(
-	const SPDescription_t *description, UserInput_t *input);
-
-
-static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback;
-static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback;
-
-
-void startSimpleClient(const nPAeIdUserInteractionCallback_t fnUserInteractionCallback_=nPAeIdUserInteractionCallback, const nPAeIdProtocolStateCallback_t fnCurrentStateCallback_ = nPAeIdProtocolStateCallback)
-{
-	fnUserInteractionCallback = fnUserInteractionCallback_;
-	fnCurrentStateCallback = fnCurrentStateCallback_;
-
-	struct mg_context *ctx;
-	struct mg_callbacks callbacks;
-
-	// List of options. Last element must be NULL.
-	const char *options[] = {"listening_ports", "24727", NULL};
-	// Prepare callbacks structure. We have only one callback, the rest are NULL.
-	memset(&callbacks, 0, sizeof(callbacks));
-	callbacks.begin_request = begin_request_handler;
-
-	CivetServer civetServer = CivetServer(options, &callbacks);
-	// Wait until user hits "enter". Server is running in separate thread.
-	puts("Client is running...");
-	sleepInfinite();
-}
-
 //Loggingfunctions
 void debugOut(
 	const char* format,
@@ -204,8 +174,8 @@ performAuthenticationThread(void *lpParam)
 		authParams->m_strPSK.c_str(),
 		0x00,
 		authParams->m_strTransactionURL.empty() ? NULL : authParams->m_strTransactionURL.c_str(),
-		fnUserInteractionCallback,
-		fnCurrentStateCallback);
+		nPAeIdUserInteractionCallback,
+		nPAeIdProtocolStateCallback);
 
 	if(rVal != NPACLIENT_ERROR_SUCCESS)
 	{
@@ -406,6 +376,19 @@ static int begin_request_handler(struct mg_connection *conn) {
 }
 
 int main(void) {
-	startSimpleClient();
+	struct mg_context *ctx;
+	struct mg_callbacks callbacks;
+
+	// List of options. Last element must be NULL.
+	const char *options[] = {"listening_ports", "24727", NULL};
+	// Prepare callbacks structure. We have only one callback, the rest are NULL.
+	memset(&callbacks, 0, sizeof(callbacks));
+	callbacks.begin_request = begin_request_handler;
+	
+	CivetServer civetServer = CivetServer(options, &callbacks);
+	// Wait until user hits "enter". Server is running in separate thread.
+	puts("Client is running...");
+	sleepInfinite();
+	getchar();
 	return 0;
 }

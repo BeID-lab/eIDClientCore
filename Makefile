@@ -7,7 +7,7 @@ PREFIX= $(shell pwd)
 ALL_DEPS = cryptopp asn1c libexpat openssl libcurl
 MY_DEPS = cryptopp asn1c libexpat openssl libcurl
 
-all:	$(MY_DEPS) eIDClient eIDClient_gui
+all:	$(MY_DEPS) eIDClient
 
 mydeps: $(MY_DEPS)
 
@@ -92,12 +92,3 @@ eIDClient:
 	sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g" \
 	$(PREFIX)/eIDClientCore/lib/eIDClientConnection/Makefile ;\
 	make install
-
-eIDClient_gui:
-	cd eIDClientCore/bin/Test_gui/ ;\
-	qmake-qt5 -project main.cpp mainwindow.cpp mainwindow.h QT=widgets QMAKE_CXXFLAGS+=-std=c++11 INCLUDEPATH+="../../lib/eIDClientCore ../../lib ../../bin/SimpleClient" LIBS+="-L../../../lib -L../../../lib64 -leIDClientCore -lSimpleClient" ;\
-	qmake-qt5 -makefile ;\
-	make
-
-
-
