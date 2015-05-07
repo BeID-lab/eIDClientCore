@@ -2,6 +2,8 @@
 #include <eIDClientCore.h>
 #include <iomanip>
 #include <cstring>
+#include <string>
+#include <iostream>
 #if _MSC_VER
 #define snprintf _snprintf
 #endif
@@ -161,6 +163,26 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 	}
 
 	input->chat_selected = description->chat_required;
+
+	if(!input->pin_required) {
+		return NPACLIENT_ERROR_SUCCESS;
+	}
+
+	std::cout << "Please enter your PIN: ";
+ 
+	//std::string password;
+	//std::cin.clear();
+	//std::getline(std::cin, password);
+	//std::cin.unget();
+	std::cin.getline((char*) input->pin.pDataBuffer, MAX_PIN_SIZE);
+	input->pin.bufferSize = strlen((char*) input->pin.pDataBuffer);
+
+	//if (password.length() > MAX_PIN_SIZE) {
+	//	return NPACLIENT_ERROR_GUI_PIN_TOO_LONG;
+	//}
+
+	//memcpy(input->pin.pDataBuffer, password.data(), password.length());
+	//input->pin.bufferSize = password.length();
 
 	return NPACLIENT_ERROR_SUCCESS;
 }

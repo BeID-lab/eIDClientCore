@@ -92,6 +92,3 @@ eIDClient:
 	sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g" \
 	$(PREFIX)/eIDClientCore/lib/eIDClientConnection/Makefile ;\
 	make install
-
-
-

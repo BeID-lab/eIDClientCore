@@ -9,6 +9,8 @@
 *.lai
 *.la
 *.a
+*.sdf
+*.suo
 
 INSTALL
 Makefile.in
@@ -35,3 +37,7 @@ config.sub
 bin/Test_nPAClientLib/Test_nPAClientLib
 lib/eIDClientConnection/gnutls-2.10.2.tar.bz2
 lib/eIDClientConnection/gnutls-2.10.2/
+eIDClientCore/winbuild/Debug
+eIDClientCore/winbuild/Release
+eIDClientCore/winbuild/*/Debug
+eIDClientCore/winbuild/*/Release

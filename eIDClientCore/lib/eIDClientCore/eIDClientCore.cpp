@@ -347,7 +347,7 @@ bool StartConnection(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char* cons
 		if (std::string::npos != pos1 && std::string::npos != pos2) {
 			strPSKKey = strPSKKey.substr(pos1, pos2 - pos1);
 		}
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str(), 0);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str(), DontGetHttpHeader, DontFollowHttpRedirect);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -357,7 +357,7 @@ bool StartConnection(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char* cons
     else
     {
         strPSKKey.assign("");
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), NULL, NULL, 0);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -1035,7 +1035,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
         EID_CLIENT_CONNECTION_ERROR err;
         strURL.assign(paraMap.m_transactionURL);
 
-		err = eIDClientConnectionStartHttp(&hConnection, strURL.c_str(), NULL, NULL, 0);
+		err = eIDClientConnectionStartHttp(&hConnection, strURL.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
         if(err != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
         {
             // remove card first !!
