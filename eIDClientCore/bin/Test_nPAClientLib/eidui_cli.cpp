@@ -135,8 +135,8 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 			if (description->chat_required.authorization.at.read_dg9        				) printf("\tRead Place of Birth\n");
 			if (description->chat_required.authorization.at.read_dg10                		) printf("\tRead Nationality\n");
 			if (description->chat_required.authorization.at.read_dg11     					) printf("\tRead Sex\n");
-			if (description->chat_required.authorization.at.read_dg12						) printf("\tRead OptionalDataR\n");
-			if (description->chat_required.authorization.at.read_dg13						) printf("\tRead DG 13\n");
+			if (description->chat_required.authorization.at.read_dg12						) printf("\tRead OptionalDataR (DG12)\n");
+			if (description->chat_required.authorization.at.read_dg13						) printf("\tRead Birth Name\n");
 			if (description->chat_required.authorization.at.read_dg14						) printf("\tRead DG 14\n");
 			if (description->chat_required.authorization.at.read_dg15						) printf("\tRead DG 15\n");
 			if (description->chat_required.authorization.at.read_dg16						) printf("\tRead DG 16\n");
@@ -144,8 +144,8 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 			if (description->chat_required.authorization.at.read_dg18             			) printf("\tRead Community ID\n");
 			if (description->chat_required.authorization.at.read_dg19     					) printf("\tRead Residence Permit I\n");
 			if (description->chat_required.authorization.at.read_dg20						) printf("\tRead Residence Permit II\n");
-			if (description->chat_required.authorization.at.read_dg21						) printf("\tRead OptionalDataRW\n");
-			if (description->chat_required.authorization.at.write_dg21						) printf("\tWrite OptionalDataRW\n");
+			if (description->chat_required.authorization.at.read_dg21						) printf("\tRead OptionalDataRW (DG21)\n");
+			if (description->chat_required.authorization.at.write_dg21						) printf("\tWrite OptionalDataRW (DG21)\n");
 			if (description->chat_required.authorization.at.write_dg20        				) printf("\tWrite Residence Permit I\n");
 			if (description->chat_required.authorization.at.write_dg19                		) printf("\tWrite Residence Permit II\n");
 			if (description->chat_required.authorization.at.write_dg18    					) printf("\tWrite Community ID\n");
