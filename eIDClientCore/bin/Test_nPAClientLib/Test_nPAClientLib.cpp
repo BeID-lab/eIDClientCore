@@ -1107,6 +1107,10 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	return 0;
 }
 
+void printStatistics(int retValue, unsigned int size, int serverErrorCounter){
+	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
+}
+
 int main(int argc, char **argv)
 {
 	int loopCount = 1;
@@ -1230,6 +1234,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 
@@ -1239,6 +1244,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 
@@ -1246,6 +1252,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 
@@ -1255,9 +1262,10 @@ int main(int argc, char **argv)
 		if(retValue != ECARD_SUCCESS) {
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
-#if !defined SELBSTAUSKUNFT_WUERZBURG || !defined AUTENTAPP
+#if !defined SELBSTAUSKUNFT_WUERZBURG && !defined AUTENTAPP
 		printf(response.c_str());
 #endif
 #endif
@@ -1273,13 +1281,13 @@ int main(int argc, char **argv)
 #endif
 
 #if defined AUTENTAPP
-	printf("response: %s\n", response.c_str());
 	int found = response.find("<html");
 
 	if (found != std::string::npos) {
 		response = response.substr(found);
 	} else {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 		return -2;
 	}
 #endif
@@ -1292,7 +1300,7 @@ int main(int argc, char **argv)
 			printf(response.c_str());
 #endif
 		
-		sprintf(buffer, " - Read Count: %u - Server Errors: %u\n", (unsigned int) diffv.size(), serverErrorCounter);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 	}
 
 	std::vector<double>::iterator it;
