@@ -1132,9 +1132,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 
 	fnCurrentStateCallback(NPACLIENT_STATE_GOT_PACE_INFO, error);
 
-	getCertificateInformation(certificateDescriptionRaw, &description_type, &certificateDescription, &serviceName, &serviceURL);
-    getCertificateValidDates(certificate, &certificateValidFrom, &certificateValidTo);
-    getChatInformation(requiredCHAT, optionalCHAT, &chatRequired, &chatOptional);
+	if(!getCertificateInformation(certificateDescriptionRaw, &description_type, &certificateDescription, &serviceName, &serviceURL)) return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
+    if(!getCertificateValidDates(certificate, &certificateValidFrom, &certificateValidTo)) return NPACLIENT_ERROR_READ_VALID_DATES;
+    if(!getChatInformation(requiredCHAT, optionalCHAT, &chatRequired, &chatOptional)) return NPACLIENT_ERROR_READ_CHAT;
 
 	SPDescription_t descriptionNew = {
 		description_type,

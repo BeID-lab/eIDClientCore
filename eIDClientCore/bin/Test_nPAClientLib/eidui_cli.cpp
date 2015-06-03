@@ -36,7 +36,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_PACE_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed PACE successfully\n");
+				printf("nPA client performed PACE successfully\n");
 
 			} else {
 				printf("nPA client perform PACE failed with code : %08lX\n", error);
@@ -46,7 +46,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_TA_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed TA successfully\n");
+				printf("nPA client performed TA successfully\n");
 
 			} else {
 				printf("nPA client perform TA failed with code : %08lX\n", error);
@@ -56,7 +56,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_CA_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed CA successfully\n");
+				printf("nPA client performed CA successfully\n");
 
 			} else {
 				printf("nPA client perform CA failed with code : %08lX\n", error);
