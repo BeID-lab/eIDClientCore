@@ -77,7 +77,7 @@ time_t BDRDate::timeFromBCD(
 	tempValue =  internalData[2] << 4;
 	tempValue += internalData[3];
 	sprintf(buf, "%02x", tempValue);
-	tmReturn.tm_mon = atoi(buf);
+	tmReturn.tm_mon = atoi(buf) - 1;
 	tempValue =  internalData[0] << 4;
 	tempValue += internalData[1];
 	sprintf(buf, "20%02x", tempValue);

@@ -110,9 +110,9 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 
 	if (!suc) {
 		err = NPACLIENT_ERROR_GUI_ABORT;
+	} else {
+		err = uin_jobject_to_struct(user_input, *input, chat_desc);
 	}
-
-	err = uin_jobject_to_struct(user_input, *input, chat_desc);
 
 	//cleanup
 	EID_env->DeleteLocalRef(clazz);
