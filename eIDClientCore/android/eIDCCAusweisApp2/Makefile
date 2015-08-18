@@ -3,3 +3,6 @@ all:
 	make -C ../ ANDROID_NDK_ROOT=$(ANDROID_NDK_ROOT) ANDROID_SDK_ROOT=$(ANDROID_SDK_ROOT) ANDROID_API=$(ANDROID_API)
 	$(ANDROID_SDK_ROOT)/tools/android update project --path . --target $(ANDROID_API)
 	ant debug
+
+install:
+	adb install -r bin/MainActivity-debug.apk
