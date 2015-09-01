@@ -37,6 +37,7 @@ using namespace Bundesdruckerei::eIDUtils;
 #include <cstring>
 
 #include <debug.h>
+#include <testing.h>
 
 #include "eCardCore/ICard.h"
 #include "nPA-EAC/nPAAPI.h"
@@ -1109,6 +1110,10 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
             delete hReader;
         return paoserr;
     }
+    
+    if(CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT == 1){
+		return NPACLIENT_ERROR_SUCCESS;
+	}
 
 	paoserr = getEACSessionInfo(hConnection, strSessionIdentifier.c_str(),
 		&requiredCHAT, &optionalCHAT,

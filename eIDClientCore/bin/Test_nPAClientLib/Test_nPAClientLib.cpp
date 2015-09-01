@@ -39,6 +39,7 @@
 #include <eCardCore/eCardStatus.h>
 
 #include <debug.h>
+#include <testing.h>
 
 #ifndef DISABLE_EIDGUI
 #include "eIDmfcUI.h"
@@ -1135,6 +1136,7 @@ int main(int argc, char **argv)
 	"\t\t-c : Part of Card Reader Name (This parameter may consist of multiple strings)\n"
 	"\t\t-p : PIN\n"
 	"\t\t-l : Loopcount\n"
+	"\t\t-a : Cancel after PAOS connection establishment\n"
 	"\t\t-v : Debug level (verbosity) as a number. Debug levels are:\n"
 	"\t\t\t APDU :\t\t1\n"
 	"\t\t\t CRYPTO :\t2\n"
@@ -1146,9 +1148,10 @@ int main(int argc, char **argv)
 	"the corresponding numbers and take the result as parameter.\n");
 	
 	USED_DEBUG_LEVEL = 0;
+	CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 0;
 	int c;
 	bool appendToCardReaderName = false;
-	while ((c = getopt (argc, argv, "-s:p:l:v:c:")) != -1){
+	while ((c = getopt (argc, argv, "-s:p:l:av:c:")) != -1){
 		if(c != 1){
 			appendToCardReaderName = false;
 		}
@@ -1164,6 +1167,9 @@ int main(int argc, char **argv)
 				break;
 			case 'v':
 				USED_DEBUG_LEVEL = atoi(optarg);
+				break;
+			case 'a':
+				CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 1;
 				break;
 			case 'c':
 				cardReaderName.append(optarg);
@@ -1248,7 +1254,10 @@ int main(int argc, char **argv)
 			serverErrorCounter++;
 			continue;
 		}
-
+		
+		if(CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT == 1){
+			continue;
+		}
 
 #if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
 		retValue = getSamlResponse2(response);
