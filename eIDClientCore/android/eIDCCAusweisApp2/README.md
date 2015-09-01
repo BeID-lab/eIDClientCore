@@ -10,6 +10,10 @@ production environments
 
 # Tested platforms:
 
+* Android 5.0.2 Lollipop on LG G2 Mini
+
+On this system, the app worked without changing anything on the smartphone.
+
 * Android 4.4 Kitkat on Nexus 5
 
 We used a modified Android to be able to send extended APDUs, see https://code.google.com/p/android/issues/detail?id=76598 . A tutorial for building Android for Nexus 5 can be found on http://nosemaj.org/howto-build-android-kitkat-nexus-5 .
@@ -29,10 +33,11 @@ We used android-ndk-r10b-target-32-bit as NDK, adt-bundle-linux-x86_64-20140702 
 Afterwards, you can install the app like this:
 
 ```sh
-adb install -r bin/MainActivity-debug.apk
+make install
 ```
 
+Make sure, that your device is connected to your computer and that USB debugging is enabled.
 
 # TODO
 
-* Make it possible to enable / disable parts of the CHAT
+* -

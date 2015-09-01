@@ -10,34 +10,27 @@
     tools:context="de.bdr.eidcc.eidccausweisapp2.MainActivity" >
 
     <TextView
-        android:id="@+id/showOutputToUser"
+        android:id="@+id/showOutputToUserInMainActivity"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:text="@string/tap_npa"
         android:textSize="17sp"
         android:scrollbars="vertical" />
     
-    <RelativeLayout 
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/showProgressToUserInMainActivity"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="fitCenter" 
+        android:contentDescription="@string/progress_image_description" />
     
-        <Button
-	        android:id="@+id/buttonStart"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/button_start"
-	        android:onClick="startTestcase" />
-        
-	    <Button
-	        android:id="@+id/buttonExit"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentEnd="true"
-	        android:text="@string/button_exit"
-	        android:onClick="exit" />
-    
-    </RelativeLayout>
+    <Button
+        android:id="@+id/buttonExitInShowResultsActivity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/button_exit"
+        android:onClick="exit" />
 
 </LinearLayout>

@@ -348,7 +348,7 @@ bool StartConnection(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char* cons
 		if (std::string::npos != pos1 && std::string::npos != pos2) {
 			strPSKKey = strPSKKey.substr(pos1, pos2 - pos1);
 		}
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str(), 0);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), strSessionIdentifier.c_str(), strPSKKey.c_str(), DontGetHttpHeader, DontFollowHttpRedirect);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -358,7 +358,7 @@ bool StartConnection(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char* cons
     else
     {
         strPSKKey.assign("");
-		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), NULL, NULL, 0);
+		EID_CLIENT_CONNECTION_ERROR rVal = eIDClientConnectionStartHttp(hConnection, strUrl.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 		if (rVal != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			eCardCore_warn(DEBUG_LEVEL_PAOS, "eIDClientConnectionStart failed (0x%08X)", rVal);
@@ -1036,7 +1036,7 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
         EID_CLIENT_CONNECTION_ERROR err;
         strURL.assign(paraMap.m_transactionURL);
 
-		err = eIDClientConnectionStartHttp(&hConnection, strURL.c_str(), NULL, NULL, 0);
+		err = eIDClientConnectionStartHttp(&hConnection, strURL.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
         if(err != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
         {
             // remove card first !!
@@ -1137,9 +1137,9 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
 
 	fnCurrentStateCallback(NPACLIENT_STATE_GOT_PACE_INFO, error);
 
-	getCertificateInformation(certificateDescriptionRaw, &description_type, &certificateDescription, &serviceName, &serviceURL);
-    getCertificateValidDates(certificate, &certificateValidFrom, &certificateValidTo);
-    getChatInformation(requiredCHAT, optionalCHAT, &chatRequired, &chatOptional);
+	if(!getCertificateInformation(certificateDescriptionRaw, &description_type, &certificateDescription, &serviceName, &serviceURL)) return NPACLIENT_ERROR_READ_CERTIFICATE_DESCRIPTION;
+    if(!getCertificateValidDates(certificate, &certificateValidFrom, &certificateValidTo)) return NPACLIENT_ERROR_READ_VALID_DATES;
+    if(!getChatInformation(requiredCHAT, optionalCHAT, &chatRequired, &chatOptional)) return NPACLIENT_ERROR_READ_CHAT;
 
 	SPDescription_t descriptionNew = {
 		description_type,

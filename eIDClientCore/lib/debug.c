@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include "debug.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 unsigned char USED_DEBUG_LEVEL;
 
 #if defined(_WIN32) && !defined(_WIN32_WCE)

@@ -350,7 +350,7 @@ void *
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -396,7 +396,7 @@ void *
 	strData += SAMLResponse;
 
 	strResult = "";
-	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -443,9 +443,9 @@ int getSamlResponse2(std::string & response)
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
 #if SAML_VERSION == NO_SAML
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 #else
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 #endif
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -495,7 +495,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -521,7 +521,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -739,7 +739,7 @@ static EID_CLIENT_CONNECTION_ERROR dealWithForms(std::string *submits, int numbe
 		else
 			url = eIdObject.m_strAction;
 
-		connection_status = eIDClientConnectionStartHttp(&connection, url.c_str(), NULL, NULL, 0);
+		connection_status = eIDClientConnectionStartHttp(&connection, url.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			printf("%s:%d Error\n", __FILE__, __LINE__);
 			return connection_status;
@@ -782,7 +782,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	//Send Form with selected Attributes
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -817,7 +817,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	//strResult = str_replace("https", "http", strResult);
 
 	//Get AuthnRequest
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 1);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -848,7 +848,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	strResult = strResult.substr(locationBegin, locationEnd-locationBegin);
 
 	//Get tcToken
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -890,7 +890,7 @@ int getAuthenticationParams(const char *const SP_URL,
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -942,7 +942,7 @@ int getAuthenticationParams(const char *const SP_URL,
 	}
 
 	strResult = "";
-	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, eIdObject.m_strAction.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -1065,7 +1065,7 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, 0);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -1106,6 +1106,10 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	printf("PSK: %s\n", strPathSecurityParameters.c_str());
 	printf("RefreshAddress: %s\n", strRefresh.c_str());
 	return 0;
+}
+
+void printStatistics(int retValue, unsigned int size, int serverErrorCounter){
+	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
 }
 
 int main(int argc, char **argv)
@@ -1236,6 +1240,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 
@@ -1245,6 +1250,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 
@@ -1252,6 +1258,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
 		
@@ -1264,9 +1271,10 @@ int main(int argc, char **argv)
 		if(retValue != ECARD_SUCCESS) {
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 			continue;
 		}
-#if !defined SELBSTAUSKUNFT_WUERZBURG || !defined AUTENTAPP
+#if !defined SELBSTAUSKUNFT_WUERZBURG && !defined AUTENTAPP
 		printf(response.c_str());
 #endif
 #endif
@@ -1282,13 +1290,13 @@ int main(int argc, char **argv)
 #endif
 
 #if defined AUTENTAPP
-	printf("response: %s\n", response.c_str());
 	int found = response.find("<html");
 
 	if (found != std::string::npos) {
 		response = response.substr(found);
 	} else {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 		return -2;
 	}
 #endif
@@ -1301,7 +1309,7 @@ int main(int argc, char **argv)
 			printf(response.c_str());
 #endif
 		
-		sprintf(buffer, " - Read Count: %u - Server Errors: %u\n", (unsigned int) diffv.size(), serverErrorCounter);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
 	}
 
 	std::vector<double>::iterator it;

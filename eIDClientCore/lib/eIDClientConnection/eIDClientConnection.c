@@ -112,7 +112,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceive(EIDCLIENT_CONNECTION_H
 #include <openssl/ssl.h>
 typedef struct {
 	CURL * curlHandle;
-	int includeHeader;
+	enum HttpHeaderInclusion includeHeader;
 } http_st;
 
 static char * psk_identity = "Client_identity"; /*Default*/
@@ -348,7 +348,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 }
 #endif
 
-EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const psk, int includeHeader)
+EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_HANDLE hConnection, const char *const url, const char *const sid, const char *const psk, enum HttpHeaderInclusion includeHeader, enum HttpRedirect httpRedirect)
 {
 #ifdef HAVE_LIBCURL
 	CURL *curl = 0x00;
@@ -422,9 +422,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 		curlVal = curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 	}
 
-	/*Hmm.. when we lookup the TCToken, we have to get the SSL-Certs after each redirect,
-	so I think its better to deactivate the automatic redirect Feature*/
-	//curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	if(httpRedirect == FollowHttpRedirect) {
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	}
 	
 	/*Required for multithreading*/
 	curlVal |= curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
@@ -546,7 +546,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 	/* we pass our 'chunk' struct to the callback function */
 	curlVal = curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&body);
 
-	if(hConnection->includeHeader)
+	if(hConnection->includeHeader == GetHttpHeader)
 	{
 		curlVal = curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)&header);
 	}

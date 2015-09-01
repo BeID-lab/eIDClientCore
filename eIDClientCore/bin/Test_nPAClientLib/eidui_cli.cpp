@@ -2,6 +2,8 @@
 #include <eIDClientCore.h>
 #include <iomanip>
 #include <cstring>
+#include <string>
+#include <iostream>
 #if _MSC_VER
 #define snprintf _snprintf
 #endif
@@ -34,7 +36,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_PACE_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed PACE successfully\n");
+				printf("nPA client performed PACE successfully\n");
 
 			} else {
 				printf("nPA client perform PACE failed with code : %08lX\n", error);
@@ -44,7 +46,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_TA_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed TA successfully\n");
+				printf("nPA client performed TA successfully\n");
 
 			} else {
 				printf("nPA client perform TA failed with code : %08lX\n", error);
@@ -54,7 +56,7 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 		case NPACLIENT_STATE_CA_PERFORMED:
 
 			if (error == NPACLIENT_ERROR_SUCCESS) {
-				printf("nPA client perfomed CA successfully\n");
+				printf("nPA client performed CA successfully\n");
 
 			} else {
 				printf("nPA client perform CA failed with code : %08lX\n", error);
@@ -133,8 +135,8 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 			if (description->chat_required.authorization.at.read_dg9        				) printf("\tRead Place of Birth\n");
 			if (description->chat_required.authorization.at.read_dg10                		) printf("\tRead Nationality\n");
 			if (description->chat_required.authorization.at.read_dg11     					) printf("\tRead Sex\n");
-			if (description->chat_required.authorization.at.read_dg12						) printf("\tRead OptionalDataR\n");
-			if (description->chat_required.authorization.at.read_dg13						) printf("\tRead DG 13\n");
+			if (description->chat_required.authorization.at.read_dg12						) printf("\tRead OptionalDataR (DG12)\n");
+			if (description->chat_required.authorization.at.read_dg13						) printf("\tRead Birth Name\n");
 			if (description->chat_required.authorization.at.read_dg14						) printf("\tRead DG 14\n");
 			if (description->chat_required.authorization.at.read_dg15						) printf("\tRead DG 15\n");
 			if (description->chat_required.authorization.at.read_dg16						) printf("\tRead DG 16\n");
@@ -142,8 +144,8 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 			if (description->chat_required.authorization.at.read_dg18             			) printf("\tRead Community ID\n");
 			if (description->chat_required.authorization.at.read_dg19     					) printf("\tRead Residence Permit I\n");
 			if (description->chat_required.authorization.at.read_dg20						) printf("\tRead Residence Permit II\n");
-			if (description->chat_required.authorization.at.read_dg21						) printf("\tRead OptionalDataRW\n");
-			if (description->chat_required.authorization.at.write_dg21						) printf("\tWrite OptionalDataRW\n");
+			if (description->chat_required.authorization.at.read_dg21						) printf("\tRead OptionalDataRW (DG21)\n");
+			if (description->chat_required.authorization.at.write_dg21						) printf("\tWrite OptionalDataRW (DG21)\n");
 			if (description->chat_required.authorization.at.write_dg20        				) printf("\tWrite Residence Permit I\n");
 			if (description->chat_required.authorization.at.write_dg19                		) printf("\tWrite Residence Permit II\n");
 			if (description->chat_required.authorization.at.write_dg18    					) printf("\tWrite Community ID\n");
@@ -161,6 +163,26 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 	}
 
 	input->chat_selected = description->chat_required;
+
+	if(!input->pin_required) {
+		return NPACLIENT_ERROR_SUCCESS;
+	}
+
+	std::cout << "Please enter your PIN: ";
+ 
+	//std::string password;
+	//std::cin.clear();
+	//std::getline(std::cin, password);
+	//std::cin.unget();
+	std::cin.getline((char*) input->pin.pDataBuffer, MAX_PIN_SIZE);
+	input->pin.bufferSize = strlen((char*) input->pin.pDataBuffer);
+
+	//if (password.length() > MAX_PIN_SIZE) {
+	//	return NPACLIENT_ERROR_GUI_PIN_TOO_LONG;
+	//}
+
+	//memcpy(input->pin.pDataBuffer, password.data(), password.length());
+	//input->pin.bufferSize = password.length();
 
 	return NPACLIENT_ERROR_SUCCESS;
 }
