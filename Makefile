@@ -42,7 +42,7 @@ cryptopp:
 
 asn1c:
 	#wget http://lionet.info/soft/asn1c-0.9.24.tar.gz
-	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.crt
+	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
 	./configure --prefix=$(PREFIX) ;\
