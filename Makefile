@@ -41,7 +41,6 @@ cryptopp:
 	make -C cryptopp install PREFIX=$(PREFIX)
 
 asn1c:
-	#wget http://lionet.info/soft/asn1c-0.9.24.tar.gz
 	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
@@ -76,7 +75,6 @@ openssl:
 	fi
 
 libcurl:
-	#wget http://curl.haxx.se/download/curl-7.40.0.tar.gz
 	wget https://github.com/bagder/curl/releases/download/curl-7_44_0/curl-7.44.0.tar.gz
 	tar xzf curl-7.44.0.tar.gz
 	cd curl-7.44.0 ;\
