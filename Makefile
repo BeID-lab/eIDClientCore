@@ -58,7 +58,7 @@ openssl:
 	cd $(PREFIX)/OpenSSL_1_0_2-stable ;\
 	git submodule init ;\
 	git submodule update ;\
-	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch
+	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch ;\
 	find . -name "*.rej" | grep -e ".*" ;\
 	if test $$? -eq 0 ; then \
 		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
