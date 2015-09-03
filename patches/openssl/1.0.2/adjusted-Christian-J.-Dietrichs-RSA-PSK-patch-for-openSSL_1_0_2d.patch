@@ -22,7 +22,7 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_clnt.c OpenSSL_1_0_2-stable_patched/ssl/s
  #ifndef OPENSSL_NO_RSA
 -    if (alg_k & SSL_kRSA) {
 +    /* handle PSK identity hint */
-+   if (alg_k & (SSL_kPSK|SSL_kRSAPSK)) // CJD
++   if (alg_k & (SSL_kPSK|SSL_kRSAPSK)) { // CJD
          /* Temporary RSA keys only allowed in export ciphersuites */
          if (!SSL_C_IS_EXPORT(s->s3->tmp.new_cipher)) {
              al = SSL_AD_UNEXPECTED_MESSAGE;
