@@ -1,3 +1,8 @@
+Original patch from Christian J. Dietrich: cd@cj2s.de
+http://blog.cj2s.de/archives/21-TLS-RSA-PSK-Cipher-Suites-for-OpenSSL.html
+
+Patch adjusted for OpenSSL_1_0_2d-stable by Erik Nellessen: erik.nellessen@informatik.hu-berlin.de and Ole Richter: ole.richter@hu-berlin.de
+---
 diff -rupN OpenSSL_1_0_2-stable/ssl/s3_clnt.c OpenSSL_1_0_2-stable_patched/ssl/s3_clnt.c
 --- OpenSSL_1_0_2-stable/ssl/s3_clnt.c	2015-08-18 16:32:46.000000000 +0200
 +++ OpenSSL_1_0_2-stable_patched/ssl/s3_clnt.c	2015-08-25 16:38:09.209363296 +0200
@@ -215,8 +220,8 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_clnt.c OpenSSL_1_0_2-stable_patched/ssl/s
                         SSL_R_MISSING_EXPORT_TMP_RSA_KEY);
 diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3_lib.c
 --- OpenSSL_1_0_2-stable/ssl/s3_lib.c	2015-08-18 16:32:46.000000000 +0200
-+++ OpenSSL_1_0_2-stable_patched/ssl/s3_lib.c	2015-08-25 16:03:00.215854933 +0200
-@@ -1711,6 +1711,28 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[]
++++ OpenSSL_1_0_2-stable_patched/ssl/s3_lib.c	2015-09-03 13:48:47.627927582 +0200
+@@ -1711,6 +1711,76 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[]
       256,
       256,
       },
@@ -224,6 +229,54 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3
 +#ifndef OPENSSL_NO_RSA
 +    /** RSA-PSK ciphersuites **/
 +    // FIXME: add RSA-PSK ciphers 92-94
++
++/* Cipher 92 */
++    {
++    1,
++    TLS1_TXT_RSA_PSK_WITH_RC4_128_SHA,
++    TLS1_CK_RSA_PSK_WITH_RC4_128_SHA,
++    SSL_kRSAPSK,
++    SSL_aRSA,
++    SSL_RC4,
++    SSL_SHA1,
++    SSL_TLSV1,
++    SSL_NOT_EXP|SSL_MEDIUM,
++    SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++    128,
++    128,
++    },
++
++    /* Cipher 93 */
++    {
++    1,
++    TLS1_TXT_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
++    TLS1_CK_RSA_PSK_WITH_3DES_EDE_CBC_SHA,
++    SSL_kRSAPSK,
++    SSL_aRSA,
++    SSL_3DES,
++    SSL_SHA1,
++    SSL_TLSV1,
++    SSL_NOT_EXP|SSL_HIGH,
++    SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++    168,
++    168,
++    },
++
++    /* Cipher 94 */
++    {
++    1,
++    TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA,
++    TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA,
++    SSL_kRSAPSK,
++    SSL_aRSA,
++    SSL_AES128,
++    SSL_SHA1,
++    SSL_TLSV1,
++    SSL_NOT_EXP|SSL_HIGH,
++    SSL_HANDSHAKE_MAC_DEFAULT|TLS1_PRF,
++    128,
++    128,
++    },
 +
 +    /* Cipher 95 */
 +    {
@@ -245,7 +298,7 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3
  #endif                          /* OPENSSL_NO_PSK */
  
  #ifndef OPENSSL_NO_SEED
-@@ -4126,7 +4148,7 @@ SSL_CIPHER *ssl3_choose_cipher(SSL *s, S
+@@ -4126,7 +4196,7 @@ SSL_CIPHER *ssl3_choose_cipher(SSL *s, S
  #endif                          /* OPENSSL_NO_KRB5 */
  #ifndef OPENSSL_NO_PSK
          /* with PSK there must be server callback set */
@@ -826,22 +879,28 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/ssl_locl.h OpenSSL_1_0_2-stable_patched/ssl/
  /* RSA auth */
 diff -rupN OpenSSL_1_0_2-stable/ssl/tls1.h OpenSSL_1_0_2-stable_patched/ssl/tls1.h
 --- OpenSSL_1_0_2-stable/ssl/tls1.h	2015-08-18 16:32:46.000000000 +0200
-+++ OpenSSL_1_0_2-stable_patched/ssl/tls1.h	2015-08-18 16:41:30.103566739 +0200
-@@ -411,6 +411,9 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
++++ OpenSSL_1_0_2-stable_patched/ssl/tls1.h	2015-09-03 13:52:18.519710311 +0200
+@@ -411,6 +411,12 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
  # define TLS1_CK_PSK_WITH_3DES_EDE_CBC_SHA               0x0300008B
  # define TLS1_CK_PSK_WITH_AES_128_CBC_SHA                0x0300008C
  # define TLS1_CK_PSK_WITH_AES_256_CBC_SHA                0x0300008D
 +/* RSA-PSK */
 +// FIXME: add RSA-PSK ciphers 92-94 here, too
++#define TLS1_CK_RSA_PSK_WITH_RC4_128_SHA    0x03000092
++#define TLS1_CK_RSA_PSK_WITH_3DES_EDE_CBC_SHA    0x03000093
++#define TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA            0x03000094
 +#define TLS1_CK_RSA_PSK_WITH_AES_256_CBC_SHA            0x03000095
  
  /*
   * Additional TLS ciphersuites from expired Internet Draft
-@@ -631,6 +634,8 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
+@@ -631,6 +637,11 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
  # define TLS1_TXT_PSK_WITH_3DES_EDE_CBC_SHA              "PSK-3DES-EDE-CBC-SHA"
  # define TLS1_TXT_PSK_WITH_AES_128_CBC_SHA               "PSK-AES128-CBC-SHA"
  # define TLS1_TXT_PSK_WITH_AES_256_CBC_SHA               "PSK-AES256-CBC-SHA"
 + // FIXME: add the 3 other RSA-PSK ciphers here, too
++#define TLS1_TXT_RSA_PSK_WITH_RC4_128_SHA   "RSA-PSK-RC4-SHA"
++#define TLS1_TXT_RSA_PSK_WITH_3DES_EDE_CBC_SHA   "RSA-PSK-3DES-EDE-CBC-SHA"
++#define TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA    "RSA-PSK-AES128-CBC-SHA"
 +#define TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA    "RSA-PSK-AES256-CBC-SHA"
  
  /* SRP ciphersuite from RFC 5054 */
