@@ -23,25 +23,119 @@ public final class R {
     }
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
+        public static final int personalausweis_logo_0_completed=0x7f020001;
+        public static final int personalausweis_logo_1_completed=0x7f020002;
+        public static final int personalausweis_logo_2_completed=0x7f020003;
+        public static final int personalausweis_logo_3_completed=0x7f020004;
+        public static final int personalausweis_logo_4_completed=0x7f020005;
+        public static final int personalausweis_logo_5_completed=0x7f020006;
+        public static final int personalausweis_logo_6_completed=0x7f020007;
     }
     public static final class id {
-        public static final int action_settings=0x7f080003;
-        public static final int buttonExit=0x7f080002;
-        public static final int buttonStart=0x7f080001;
-        public static final int showOutputToUser=0x7f080000;
+        public static final int action_settings=0x7f08002d;
+        public static final int buttonExitInShowResultsActivity=0x7f080002;
+        public static final int buttonShowServiceProviderInformation=0x7f080004;
+        public static final int checkboxAgeVerification=0x7f080006;
+        public static final int checkboxCanAllowed=0x7f08000a;
+        public static final int checkboxCommunityIdVerification=0x7f080007;
+        public static final int checkboxInstallCertificate=0x7f08000c;
+        public static final int checkboxInstallQualifiedCert=0x7f08000d;
+        public static final int checkboxPinManagement=0x7f08000b;
+        public static final int checkboxPrivileged=0x7f080009;
+        public static final int checkboxReadAcademicTitle=0x7f080014;
+        public static final int checkboxReadArtisticName=0x7f080013;
+        public static final int checkboxReadCommunityId=0x7f08001f;
+        public static final int checkboxReadDateOfBirth=0x7f080015;
+        public static final int checkboxReadDateOfExpiry=0x7f080010;
+        public static final int checkboxReadDg12=0x7f080019;
+        public static final int checkboxReadDg13=0x7f08001a;
+        public static final int checkboxReadDg14=0x7f08001b;
+        public static final int checkboxReadDg15=0x7f08001c;
+        public static final int checkboxReadDg16=0x7f08001d;
+        public static final int checkboxReadDg21=0x7f080022;
+        public static final int checkboxReadDocumentType=0x7f08000e;
+        public static final int checkboxReadFamilyNames=0x7f080012;
+        public static final int checkboxReadGivenNames=0x7f080011;
+        public static final int checkboxReadIssuingState=0x7f08000f;
+        public static final int checkboxReadNationality=0x7f080017;
+        public static final int checkboxReadPlaceOfBirth=0x7f080016;
+        public static final int checkboxReadPlaceOfResidence=0x7f08001e;
+        public static final int checkboxReadResidencePermit1=0x7f080020;
+        public static final int checkboxReadResidencePermit2=0x7f080021;
+        public static final int checkboxReadSex=0x7f080018;
+        public static final int checkboxRestrictedId=0x7f080008;
+        public static final int checkboxRfu1=0x7f080028;
+        public static final int checkboxRfu2=0x7f080029;
+        public static final int checkboxRfu3=0x7f08002a;
+        public static final int checkboxRfu4=0x7f08002b;
+        public static final int checkboxRole=0x7f08002c;
+        public static final int checkboxWriteCommunityId=0x7f080024;
+        public static final int checkboxWriteDg21=0x7f080027;
+        public static final int checkboxWritePlaceOfResidence=0x7f080023;
+        public static final int checkboxWriteResidencePermit1=0x7f080025;
+        public static final int checkboxWriteResidencePermit2=0x7f080026;
+        public static final int showOutputToUserInMainActivity=0x7f080000;
+        public static final int showOutputToUserInShowResultsActivity=0x7f080003;
+        public static final int showProgressToUserInMainActivity=0x7f080001;
+        public static final int showSpDescription=0x7f080005;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
+        public static final int activity_show_results=0x7f030001;
+        public static final int chat=0x7f030002;
     }
     public static final class menu {
         public static final int main=0x7f070000;
+        public static final int perform_eac=0x7f070001;
+        public static final int show_results=0x7f070002;
     }
     public static final class string {
+        public static final int RFU1=0x7f050029;
+        public static final int RFU2=0x7f05002a;
+        public static final int RFU3=0x7f05002b;
+        public static final int RFU4=0x7f05002c;
         public static final int action_settings=0x7f050001;
+        public static final int age_verification=0x7f050007;
         public static final int app_name=0x7f050000;
         public static final int button_exit=0x7f050002;
-        public static final int button_start=0x7f050003;
-        public static final int tap_npa=0x7f050004;
+        public static final int button_hide_service_provider_information=0x7f050004;
+        public static final int button_show_service_provider_information=0x7f050003;
+        public static final int can_allowed=0x7f05000b;
+        public static final int community_id_verification=0x7f050008;
+        public static final int install_cert=0x7f05000d;
+        public static final int install_qualified_cert=0x7f05000e;
+        public static final int pin_management=0x7f05000c;
+        public static final int privileged=0x7f05000a;
+        public static final int progress_image_description=0x7f050005;
+        public static final int read_academic_title=0x7f050015;
+        public static final int read_artistic_name=0x7f050014;
+        public static final int read_community_id=0x7f050020;
+        public static final int read_date_of_birth=0x7f050016;
+        public static final int read_date_of_expiry=0x7f050011;
+        public static final int read_dg12=0x7f05001a;
+        public static final int read_dg13=0x7f05001b;
+        public static final int read_dg14=0x7f05001c;
+        public static final int read_dg15=0x7f05001d;
+        public static final int read_dg16=0x7f05001e;
+        public static final int read_dg21=0x7f050023;
+        public static final int read_document_type=0x7f05000f;
+        public static final int read_family_names=0x7f050013;
+        public static final int read_given_names=0x7f050012;
+        public static final int read_issuing_state=0x7f050010;
+        public static final int read_nationality=0x7f050018;
+        public static final int read_place_of_birth=0x7f050017;
+        public static final int read_place_of_residence=0x7f05001f;
+        public static final int read_residence_permit_I=0x7f050021;
+        public static final int read_residence_permit_II=0x7f050022;
+        public static final int read_sex=0x7f050019;
+        public static final int restricted_id=0x7f050009;
+        public static final int role=0x7f05002d;
+        public static final int title_activity_show_results=0x7f050006;
+        public static final int write_community_id=0x7f050025;
+        public static final int write_dg21=0x7f050028;
+        public static final int write_place_of_residence=0x7f050024;
+        public static final int write_residence_permit_I=0x7f050026;
+        public static final int write_residence_permit_II=0x7f050027;
     }
     public static final class style {
         /** 

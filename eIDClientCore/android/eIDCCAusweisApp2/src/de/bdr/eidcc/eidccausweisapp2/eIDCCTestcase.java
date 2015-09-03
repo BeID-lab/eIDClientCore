@@ -15,4 +15,8 @@ public interface eIDCCTestcase {
 	 */
 	public String getResultPage(StringBuilder error);
 	
+	/**
+	 * Gets a webpage as input and provides a string to show to the user in the UI.
+	 */
+	public String[] parseResult(String result);
 }

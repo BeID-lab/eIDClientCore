@@ -77,14 +77,17 @@ $(LIBCRYPTO): $(CRYPTO_MAKEFILE)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(CRYPTO_DIR) install_sw INSTALL_PREFIX=$(ANDROID_TARGETDIR)
 
-$(CRYPTOPP_MAKEFILE):
+$(LIBCRYPTOPP):
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 $(CRYPTOPP_DIR)
-	patch -d $(CRYPTOPP_DIR) -p0 < GNUmakefile-android.patch
-	touch $(CRYPTOPP_MAKEFILE)
-
-$(LIBCRYPTOPP): $(CRYPTOPP_MAKEFILE)
+	cd $(CRYPTOPP_DIR) ;\
+	wget http://www.cryptopp.com/w/images/0/0a/Setenv-android.sh.zip ;\
+	unzip Setenv-android.sh.zip ;\
+	sed -i 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh ;\
+	wget http://www.cryptopp.com/w/images/a/a0/Cryptopp-mobile.zip ;\
+	unzip -o Cryptopp-mobile.zip;\
+	. ./setenv-android.sh ;\
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
-		$(MAKE) -C $(CRYPTOPP_DIR) PREFIX=$(ANDROID_TARGETDIR) \
+		$(MAKE) PREFIX=$(ANDROID_TARGETDIR) \
 			IS_ANDROID=1 ANDROID_STL_INC=$(ANDROID_TOOL_DIR)/include/g++ dynamic static install
 
 $(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
