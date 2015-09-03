@@ -41,7 +41,7 @@ cryptopp:
 	make -C cryptopp install PREFIX=$(PREFIX)
 
 asn1c:
-	wget http://lionet.info/soft/asn1c-0.9.24.tar.gz
+	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
 	./configure --prefix=$(PREFIX) ;\
@@ -49,6 +49,7 @@ asn1c:
 
 libexpat:
 	wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
+	echo "b08197d146930a5543a7b99e871cba3da614f6f0 expat-2.1.0.tar.gz" | sha1sum -c -
 	tar xzf expat-2.1.0.tar.gz
 	cd expat-2.1.0 ;\
 	./configure --prefix=$(PREFIX) ;\
@@ -58,9 +59,7 @@ openssl:
 	cd $(PREFIX)/OpenSSL_1_0_2-stable ;\
 	git submodule init ;\
 	git submodule update ;\
-	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch ;\
-	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch ;\
-	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch ;\
+	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch ;\
 	find . -name "*.rej" | grep -e ".*" ;\
 	if test $$? -eq 0 ; then \
 		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
@@ -76,9 +75,9 @@ openssl:
 	fi
 
 libcurl:
-	wget http://curl.haxx.se/download/curl-7.40.0.tar.gz
-	tar xzf curl-7.40.0.tar.gz
-	cd curl-7.40.0 ;\
+	wget https://github.com/bagder/curl/releases/download/curl-7_44_0/curl-7.44.0.tar.gz
+	tar xzf curl-7.44.0.tar.gz
+	cd curl-7.44.0 ;\
 	./configure --prefix=$(PREFIX) PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig ;\
 	make install
 
