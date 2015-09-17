@@ -1,6 +1,10 @@
 SHELL=/bin/bash
 
-PREFIX= $(shell pwd)
+PREFIX ?= $(shell pwd)
+
+ASN1C ?= "$(PREFIX)/bin/asn1c"
+
+#INSECURE = "1"
 
 #BASIERT auf: https://github.com/BeID-lab/eIDClientCore/blob/master/README.md
 
@@ -41,7 +45,11 @@ cryptopp:
 	make -C cryptopp install PREFIX=$(PREFIX)
 
 asn1c:
-	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem
+	if [ "$(INSECURE)" != "1" ]; then \
+		wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem; \
+	else \
+		wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --no-check-certificate; \
+	fi
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
 	./configure --prefix=$(PREFIX) ;\
@@ -49,7 +57,9 @@ asn1c:
 
 libexpat:
 	wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
-	echo "b08197d146930a5543a7b99e871cba3da614f6f0 expat-2.1.0.tar.gz" | sha1sum -c -
+	if [ "$(INSECURE)" != "1" ]; then \
+		echo "b08197d146930a5543a7b99e871cba3da614f6f0 `pwd`/expat-2.1.0.tar.gz" | sha1sum -c -;\
+	fi
 	tar xzf expat-2.1.0.tar.gz
 	cd expat-2.1.0 ;\
 	./configure --prefix=$(PREFIX) ;\
@@ -87,7 +97,9 @@ eIDClient:
 	env LD_LIBRARY_PATH=$(PREFIX)/lib:$(PREFIX)/lib64 ./configure --prefix=$(PREFIX) \
     	--with-openssl=$(PREFIX) --with-libcurl=$(PREFIX) \
     	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig:$(PREFIX)/lib64/pkgconfig\
-    	ASN1C=$(PREFIX)/bin/asn1c CRYPTOPP_CFLAGS="-I$(PREFIX)/include" CRYPTOPP_LIBS="-L$(PREFIX)/lib -lcryptopp" ;\
-	sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g" \
-	$(PREFIX)/eIDClientCore/lib/eIDClientConnection/Makefile ;\
-	make install
+    	ASN1C="$(ASN1C)" CRYPTOPP_CFLAGS="-I$(PREFIX)/include" CRYPTOPP_LIBS="-L$(PREFIX)/lib -lcryptopp"
+	if [ "$(INSECURE)" == "1" ]; then\
+		sed -i.org -e "s%^\(CPPFLAGS = .*\)%\1 -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION%g"\
+			eIDClientCore/lib/eIDClientConnection/Makefile ;\
+	fi
+	make -C eIDClientCore install
