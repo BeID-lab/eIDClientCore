@@ -40,7 +40,7 @@ clean: clean_cryptopp clean_asn1c clean_libexpat clean_openssl clean_libcurl cle
 
 cryptopp:
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 cryptopp
-	sed -i.org -e "s%^#.*\(CXXFLAGS += -fPIC.*\)%\1%g" $(PREFIX)/cryptopp/GNUmakefile	
+	sed -i.org -e "s%^#.*\(CXXFLAGS += -fPIC.*\)%\1%g" cryptopp/GNUmakefile	
 	make -C cryptopp all libcryptopp.so
 	make -C cryptopp install PREFIX=$(PREFIX)
 
@@ -66,10 +66,10 @@ libexpat:
 	make install
 	
 openssl:
-	cd $(PREFIX)/OpenSSL_1_0_2-stable ;\
+	cd OpenSSL_1_0_2-stable ;\
 	git submodule init ;\
 	git submodule update ;\
-	patch -p1 <$(PREFIX)/patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch ;\
+	patch -p1 <../patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch ;\
 	find . -name "*.rej" | grep -e ".*" ;\
 	if test $$? -eq 0 ; then \
 		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
@@ -78,7 +78,7 @@ openssl:
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
 	make install_sw ;\
-	$(PREFIX)/OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v ;\
+	OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v ;\
 	if test $$? -eq 1 ; then \
 	echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
 	exit 1 ;\
