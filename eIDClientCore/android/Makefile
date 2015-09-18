@@ -86,7 +86,6 @@ $(LIBCRYPTOPP):
 	unzip Setenv-android.sh.zip ;\
 	sed -i 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh ;\
 	wget https://www.cryptopp.com/w/images/a/a0/Cryptopp-mobile.zip --ca-certificate=../../trusted_ca/CAcert.pem ;\
-	echo "1b9129b05563879d6a6b67ec235b9e024f0c589e  Cryptopp-mobile.zip" | sha1sum -c - ;\
 	unzip -o Cryptopp-mobile.zip;\
 	. ./setenv-android.sh ;\
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
