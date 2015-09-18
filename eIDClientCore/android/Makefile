@@ -18,7 +18,7 @@ EXPAT_DIR = $(abs_builddir)/$(EXPAT)
 LIBEXPAT = $(ANDROID_TARGETDIR)/lib/libexpat.so
 EXPAT_CONFIGURE = $(EXPAT_DIR)/configure
 
-CURL = curl-7.32.0
+CURL = curl-7.44.0
 CURL_DIR = $(abs_builddir)/$(CURL)
 LIBCURL = $(ANDROID_TARGETDIR)/lib/libcurl.so
 CURL_CONFIGURE = $(CURL_DIR)/configure
@@ -44,6 +44,7 @@ all:
 
 $(EXPAT_CONFIGURE):
 	wget http://sourceforge.net/projects/expat/files/expat/$(EXPAT_VERSION)/$(EXPAT).tar.gz
+	echo "b08197d146930a5543a7b99e871cba3da614f6f0  expat-2.1.0.tar.gz" | sha1sum -c -
 	tar xvzf $(EXPAT_DIR).tar.gz
 	touch $(EXPAT_CONFIGURE)
 
@@ -51,8 +52,8 @@ $(LIBEXPAT): $(EXPAT_CONFIGURE)
 	$(MAKE) cross builddir=$(EXPAT_DIR)
 
 $(CURL_CONFIGURE):
-	wget http://curl.haxx.se/download/$(CURL).tar.bz2
-	tar xvjf $(CURL_DIR).tar.bz2
+	wget https://github.com/bagder/curl/releases/download/curl-7_44_0/$(CURL).tar.gz
+	tar zxvf $(CURL_DIR).tar.gz
 	rm -f $(CURL_DIR)/Makefile
 	touch $(CURL_CONFIGURE)
 
@@ -60,9 +61,10 @@ $(LIBCURL): $(CURL_CONFIGURE) $(LIBCRYPTO)
 	$(MAKE) cross builddir=$(CURL_DIR)
 
 $(CRYPTO_MAKEFILE):
-	wget http://www.openssl.org/source/$(CRYPTO).tar.gz
+	wget https://www.openssl.org/source/$(CRYPTO).tar.gz
 	tar xvzf $(CRYPTO_DIR).tar.gz
 	wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
+	echo "7b00a9003c4b7136afaf87d3e6756ba691b8792b openssl-1.0.0c.tls-rsa-psk.tar" | sha1sum -c -
 	tar xf openssl-1.0.0c.tls-rsa-psk.tar
 	patch -d $(CRYPTO_DIR) -p1 < openssl-1.0.0c.tls-rsa-psk.patch || true
 	cd $(CRYPTO_DIR) \
@@ -84,6 +86,7 @@ $(LIBCRYPTOPP):
 	unzip Setenv-android.sh.zip ;\
 	sed -i 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh ;\
 	wget https://www.cryptopp.com/w/images/a/a0/Cryptopp-mobile.zip --ca-certificate=../../trusted_ca/CAcert.pem ;\
+	echo "1b9129b05563879d6a6b67ec235b9e024f0c589e  Cryptopp-mobile.zip" | sha1sum -c - ;\
 	unzip -o Cryptopp-mobile.zip;\
 	. ./setenv-android.sh ;\
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
