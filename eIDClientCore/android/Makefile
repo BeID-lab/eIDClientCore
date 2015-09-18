@@ -61,7 +61,7 @@ $(LIBCURL): $(CURL_CONFIGURE) $(LIBCRYPTO)
 	$(MAKE) cross builddir=$(CURL_DIR)
 
 $(CRYPTO_MAKEFILE):
-	wget https://www.openssl.org/source/$(CRYPTO).tar.gz
+	wget --secure-protocol=tlsv1_2 https://www.openssl.org/source/$(CRYPTO).tar.gz
 	tar xvzf $(CRYPTO_DIR).tar.gz
 	wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
 	echo "7b00a9003c4b7136afaf87d3e6756ba691b8792b openssl-1.0.0c.tls-rsa-psk.tar" | sha1sum -c -
