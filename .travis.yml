@@ -3,7 +3,7 @@ language: c
 env:
   global:
     - PREFIX=$HOME/target
-    - INSECURE=1
+    - INSECURE=true
 
 compiler:
   - clang
