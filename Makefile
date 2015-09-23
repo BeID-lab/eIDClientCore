@@ -58,7 +58,7 @@ asn1c:
 libexpat:
 	wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 	if [ "$(INSECURE)" != "1" ]; then \
-		echo "b08197d146930a5543a7b99e871cba3da614f6f0 `pwd`/expat-2.1.0.tar.gz" | sha1sum -c -;\
+		echo "b08197d146930a5543a7b99e871cba3da614f6f0 expat-2.1.0.tar.gz" | sha1sum -c -;\
 	fi
 	tar xzf expat-2.1.0.tar.gz
 	cd expat-2.1.0 ;\
