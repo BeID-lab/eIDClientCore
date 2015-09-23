@@ -3,18 +3,17 @@ language: c
 env:
   global:
     - PREFIX=$HOME/target
-    - INSECURE=1
+    - INSECURE=true
 
 compiler:
   - clang
   - gcc
 
 install:
-  - make libexpat PREFIX=$PREFIX INSECURE=0
-  #- make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
+  - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
 
 script:
-  #- make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
+  - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
 
 cache:
   directories:
