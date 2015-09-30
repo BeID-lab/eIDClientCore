@@ -72,7 +72,7 @@ openssl:
 	./config --prefix=$(PREFIX) shared ;\
 	make ;\
 	make install_sw ;\
-	OpenSSL_1_0_2-stable/apps/openssl ciphers 'RSAPSK' -v ;\
+	apps/openssl ciphers 'RSAPSK' -v ;\
 	if test $$? -eq 1 ; then \
 	echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
 	exit 1 ;\
