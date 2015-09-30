@@ -9,10 +9,11 @@ production environments
 ## Tested platforms:
 
 * Windows
-* Linux
+* Linux 
 * Mac OS X
 * Android
 * iOS
+* Travis CI (Ubuntu Linux) [![Build Status](https://travis-ci.org/BeID-lab/eIDClientCore.svg?branch=master)](https://travis-ci.org/BeID-lab/eIDClientCore)
 
 ## Usage
 
