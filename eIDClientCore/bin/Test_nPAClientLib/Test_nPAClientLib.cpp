@@ -444,7 +444,7 @@ int getSamlResponse2(std::string & response)
 #if SAML_VERSION == NO_SAML
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 #else
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 #endif
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -494,7 +494,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -781,7 +781,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	//Send Form with selected Attributes
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -816,7 +816,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	//strResult = str_replace("https", "http", strResult);
 
 	//Get AuthnRequest
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
