@@ -66,8 +66,7 @@
 #define SAML_VERSION NO_SAML
 #endif
 
-static const char default_pin[] = "123456";
-const char *pin = default_pin;
+const char *pin = NULL;
 
 #define HEX(x) std::setw(2) << std::setfill('0') << std::hex << (int)(x)
 
@@ -606,7 +605,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
 {
-	if (input->pin_required) {
+	if (input->pin_required && pin != NULL) {
 		strncpy((char *) input->pin.pDataBuffer, pin, MAX_PIN_SIZE);
 		input->pin.bufferSize = strlen(pin);
 	}
