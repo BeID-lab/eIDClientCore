@@ -159,21 +159,21 @@ static int curl_my_trace(CURL *handle, curl_infotype type, char *data, size_t si
 		default: /* in case a new one is introduced to shock us */   
 			return 0;
 
-		/*case CURLINFO_HEADER_OUT:   
+		case CURLINFO_HEADER_OUT:   
 			text = "=> Send header";   
 			break;   
 		case CURLINFO_DATA_OUT:   
 			text = "=> Send data";   
-			break;*/
+			break;
 		case CURLINFO_SSL_DATA_OUT:   
 			text = "=> Send SSL data";
 			break;   
-		/*case CURLINFO_HEADER_IN:   
+		case CURLINFO_HEADER_IN:   
 			text = "<= Recv header";   
 			break;   
 		case CURLINFO_DATA_IN:   
 			text = "<= Recv data";   
-			break;*/
+			break;
 		case CURLINFO_SSL_DATA_IN:   
 			text = "<= Recv SSL data";   
 			break;   
