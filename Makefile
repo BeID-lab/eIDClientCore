@@ -73,9 +73,9 @@ openssl:
 	make ;\
 	make install_sw ;\
 	apps/openssl ciphers 'RSAPSK' -v ;\
-	if test $$? -eq 1 ; then \
-	echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
-	exit 1 ;\
+	if test $$? -ne 0 ; then \
+		echo "No RSA-PSK cipher suites found. OpenSSL build some somehow failed!" ;\
+		exit 1 ;\
 	fi
 
 libcurl:
