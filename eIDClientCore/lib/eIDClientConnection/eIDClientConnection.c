@@ -627,9 +627,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceivePAOS(EIDCLIENT_CONNECTI
 	header = curl_slist_append(header, "Expect:");
 	curlVal = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
 
-	//eCardCore_debug(DEBUG_LEVEL_PAOS, "Send PAOS: %s", data);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Send PAOS: %s", data);
 	rVal = eIDClientConnectionTransceiveHTTP(httpConn, data, dataLength, bufResult, nBufResultLength);
-	//eCardCore_debug(DEBUG_LEVEL_PAOS, "Receive PAOS: %s", bufResult);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Receive PAOS: %s", bufResult);
 
 	return rVal;
 #else
