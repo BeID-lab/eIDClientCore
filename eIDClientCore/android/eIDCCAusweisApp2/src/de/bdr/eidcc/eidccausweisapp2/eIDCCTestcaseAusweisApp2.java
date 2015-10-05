@@ -47,7 +47,7 @@ public class eIDCCTestcaseAusweisApp2 implements eIDCCTestcase{
 		return result;
 	}
 	
-	public String[] parseResult(String result){		
+	public static String[] parseResult(String result){		
 		String beginOfValueSearchString = "<td>";
 		String endOfValueSearchString = "</td>";
 		String [] searchStrings = {"<td>Titel:</td>", "<td>K&#252;nstlername:</td>",
