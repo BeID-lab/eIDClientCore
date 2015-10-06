@@ -1107,7 +1107,7 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 }
 
 void printStatistics(int retValue, unsigned int size, int serverErrorCounter, time_t startTime){
-	printf("Laufzeit: %f s\n", difftime(time(0), startTime));
+	printf("Duration for eID dialog: %f seconds\n", difftime(time(0), startTime));
 	printf("main -------------------- end of eID dialog --------------------\n");
 	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
 }
@@ -1325,8 +1325,8 @@ int main(int argc, char **argv)
 		diffSum += *it;
 	}
 
-	printf("Gesamte Dauer ueber alle %d Durchlaeufe: %f Sekunden\n", loopCount, (difftime(time(0), loopStart)));
-	printf("Durchschnittliche Dauer bei %d Durchlaeufen: %f Sekunden\n",
+	printf("Overall duration for all %d eID dialogs: %f seconds\n", loopCount, (difftime(time(0), loopStart)));
+	printf("Average time for %d eID dialogs: %f seconds\n",
 	   	diffv.size(), (diffv.size()==0 ? 0 : diffSum/diffv.size()));
 	sprintf(buffer, "########## Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, (unsigned int) diffv.size(), serverErrorCounter);
 	puts(buffer);
