@@ -46,6 +46,8 @@
 #include "eidui_cli.h"
 #endif
 
+#include "Test_nPAClientLib.h"
+
 #define SAML_1 1
 #define SAML_2 2
 #define NO_SAML 3
@@ -1065,14 +1067,15 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
-
+	
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
 	}
 	memset(sz, 0x00, READ_BUFFER);
+	
 	connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
-
+	
 	if(connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 	{
 		printf("%s:%d Error\n", __FILE__, __LINE__);
@@ -1111,6 +1114,47 @@ void printStatistics(int retValue, unsigned int size, int serverErrorCounter){
 	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
 }
 
+int performEID(std::string strServiceURL,
+		std::string strIdpAddress, 
+		std::string strSessionIdentifier,
+		std::string strPathSecurityParameters,
+		std::string strRef,
+		std::string cardReaderName,
+		std::string &response){
+	const char *serviceURL = strServiceURL.c_str();
+	if(strIdpAddress == "")
+		strIdpAddress = strServiceURL;
+	if(strSessionIdentifier == "")
+		strSessionIdentifier = static_cast<std::ostringstream*>( &(std::ostringstream() << rand()) )->str();
+
+	int retValue = 0;
+	
+#if SAML_VERSION == SAML_1
+	retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+#elif SAML_VERSION == SAML_2
+	retValue = getAuthenticationParams2(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+#elif SAML_VERSION == NO_SAML
+	strIdpAddress = strServiceURL + "mobileECardAPI";
+	strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
+#elif defined SELBSTAUSKUNFT_WUERZBURG
+	retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+#elif defined AUTENTAPP
+	retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+#endif
+	if(retValue != 0) return retValue;
+
+	retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+	//retValue = nPAeIdPerformAuthenticationProtocol(READER_EXTERNAL, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
+	if(retValue != NPACLIENT_ERROR_SUCCESS) return retValue;
+	if(g_samlResponseReturncode != 0) return NPACLIENT_ERRO;
+
+#if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
+	retValue = getSamlResponse2(response);
+#endif
+	return retValue;
+}
+
+#ifndef AS_LIBRARY
 int main(int argc, char **argv)
 {
 	int loopCount = 1;
@@ -1218,53 +1262,19 @@ int main(int argc, char **argv)
 		std::string strPathSecurityParameters("");
 		std::string strRef("");
 		std::string response;
-#if SAML_VERSION == SAML_1
-		retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif SAML_VERSION == SAML_2
-		retValue = getAuthenticationParams2(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif SAML_VERSION == NO_SAML
-		strIdpAddress = strServiceURL + "mobileECardAPI";
-		strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
-#elif defined SELBSTAUSKUNFT_WUERZBURG
-		retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif defined AUTENTAPP
-		retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#endif
-		if(retValue != 0)
-		{
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
-			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
-			continue;
-		}
 
-		retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
-		//retValue = nPAeIdPerformAuthenticationProtocol(READER_EXTERNAL, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
-		if(retValue != NPACLIENT_ERROR_SUCCESS)
-		{
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
-			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
-			continue;
-		}
+	retValue = performEID(strServiceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters,
+		strRef, cardReaderName, response);
 
-		if(g_samlResponseReturncode != 0)
-		{
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
-			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
-			continue;
-		}
-
-
+	//retValue may also be NPACLIENT_ERROR_SUCCESS or ECARD_SUCCESS. These are both also 0.
+	if(retValue != 0)
+	{
+		printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
+		serverErrorCounter++;
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+		continue;
+	}
 #if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
-		retValue = getSamlResponse2(response);
-		if(retValue != ECARD_SUCCESS) {
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
-			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
-			continue;
-		}
 #if !defined SELBSTAUSKUNFT_WUERZBURG && !defined AUTENTAPP
 		printf(response.c_str());
 #endif
@@ -1317,3 +1327,4 @@ int main(int argc, char **argv)
 	if (retValue != 0x00000000) std::exit(EXIT_FAILURE);
 	std::exit(EXIT_SUCCESS);
 }
+#endif
