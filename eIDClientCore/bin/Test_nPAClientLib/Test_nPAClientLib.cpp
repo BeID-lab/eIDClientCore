@@ -68,8 +68,7 @@
 #define SAML_VERSION NO_SAML
 #endif
 
-static const char default_pin[] = "123456";
-const char *pin = default_pin;
+const char *pin = NULL;
 
 #define HEX(x) std::setw(2) << std::setfill('0') << std::hex << (int)(x)
 
@@ -446,7 +445,7 @@ int getSamlResponse2(std::string & response)
 #if SAML_VERSION == NO_SAML
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
 #else
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 #endif
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
@@ -496,7 +495,7 @@ int getSamlResponse2(std::string & response)
 	memset(sz, 0, READ_BUFFER);
 	sz_len = READ_BUFFER;
 
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
 	}
@@ -608,7 +607,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input)
 {
-	if (input->pin_required) {
+	if (input->pin_required && pin != NULL) {
 		strncpy((char *) input->pin.pDataBuffer, pin, MAX_PIN_SIZE);
 		input->pin.bufferSize = strlen(pin);
 	}
@@ -783,7 +782,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	//Send Form with selected Attributes
-	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
@@ -818,7 +817,7 @@ int getAuthenticationParams2(const char *const SP_URL,
 	//strResult = str_replace("https", "http", strResult);
 
 	//Get AuthnRequest
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;

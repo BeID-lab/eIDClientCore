@@ -159,21 +159,21 @@ static int curl_my_trace(CURL *handle, curl_infotype type, char *data, size_t si
 		default: /* in case a new one is introduced to shock us */   
 			return 0;
 
-		/*case CURLINFO_HEADER_OUT:   
+		case CURLINFO_HEADER_OUT:   
 			text = "=> Send header";   
 			break;   
 		case CURLINFO_DATA_OUT:   
 			text = "=> Send data";   
-			break;*/
+			break;
 		case CURLINFO_SSL_DATA_OUT:   
 			text = "=> Send SSL data";
 			break;   
-		/*case CURLINFO_HEADER_IN:   
+		case CURLINFO_HEADER_IN:   
 			text = "<= Recv header";   
 			break;   
 		case CURLINFO_DATA_IN:   
 			text = "<= Recv data";   
-			break;*/
+			break;
 		case CURLINFO_SSL_DATA_IN:   
 			text = "<= Recv SSL data";   
 			break;   
@@ -627,9 +627,9 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceivePAOS(EIDCLIENT_CONNECTI
 	header = curl_slist_append(header, "Expect:");
 	curlVal = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
 
-	//eCardCore_debug(DEBUG_LEVEL_PAOS, "Send PAOS: %s", data);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Send PAOS: %s", data);
 	rVal = eIDClientConnectionTransceiveHTTP(httpConn, data, dataLength, bufResult, nBufResultLength);
-	//eCardCore_debug(DEBUG_LEVEL_PAOS, "Receive PAOS: %s", bufResult);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Receive PAOS: %s", bufResult);
 
 	return rVal;
 #else
