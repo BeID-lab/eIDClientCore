@@ -1106,7 +1106,9 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	return 0;
 }
 
-void printStatistics(int retValue, unsigned int size, int serverErrorCounter){
+void printStatistics(int retValue, unsigned int size, int serverErrorCounter, time_t startTime){
+	printf("Duration for eID dialog: %f seconds\n", difftime(time(0), startTime));
+	printf("main -------------------- end of eID dialog --------------------\n");
 	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
 }
 
@@ -1207,8 +1209,9 @@ int main(int argc, char **argv)
 
 	int n = 0;
 	srand(time(0));
+	time_t loopStart = time(0);
 	while (n < loopCount) {
-		time_t start = time(0);
+		time_t startTime = time(0);
 		retValue = 0;
 		++n;
 		std::string strServiceURL(serviceURL);
@@ -1217,6 +1220,7 @@ int main(int argc, char **argv)
 		std::string strPathSecurityParameters("");
 		std::string strRef("");
 		std::string response;
+		printf("main -------------------- start of %d. eID dialog --------------------\n", n);
 #if SAML_VERSION == SAML_1
 		retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 #elif SAML_VERSION == SAML_2
@@ -1233,7 +1237,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 			continue;
 		}
 
@@ -1243,7 +1247,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 			continue;
 		}
 
@@ -1251,7 +1255,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
 			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 			continue;
 		}
 
@@ -1259,25 +1263,26 @@ int main(int argc, char **argv)
 #if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
 		retValue = getSamlResponse2(response);
 		if(retValue != ECARD_SUCCESS) {
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, g_samlResponseReturncode);
+			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 			continue;
 		}
 #if !defined SELBSTAUSKUNFT_WUERZBURG && !defined AUTENTAPP
 		printf(response.c_str());
 #endif
 #endif
-		diffv.push_back(difftime(time(0), start));
-		printf("Laufzeit: %f s\n", diffv.back());
-#if defined(WIN32)
-        Sleep(2000);
-#else
-		usleep(2000);
-// as long as a bug in libc++ prevents clang from including chrono correctly, use usleep.
-// but chrono is the more portable way, as its c++11 standard
-//        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-#endif
+
+		if (response.find("<errorStatus>") != std::string::npos || response.find("ResultMajor>http://www.bsi.bund.de/ecard/api/1.1/resultmajor#error<") != std::string::npos ) {
+			// In case of faulty eID dialog the Service Provider shows via
+			// SAML-IF a <errorStatus> element
+			// SOAP-IF a <ResultMajor> element with content "http://www.bsi.bund.de/ecard/api/1.1/resultmajor#error"
+			printf("%s:%d Error: eID dialog with an error result detected\n", __FILE__, __LINE__);
+			serverErrorCounter++;
+		}
+
+		//FIXME: We have to push_back sometime, otherwise statistic output is faulty
+		diffv.push_back(difftime(time(0), startTime));
 
 #if defined AUTENTAPP
 	int found = response.find("<html");
@@ -1286,7 +1291,7 @@ int main(int argc, char **argv)
 		response = response.substr(found);
 	} else {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
-		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 		return -2;
 	}
 #endif
@@ -1299,7 +1304,18 @@ int main(int argc, char **argv)
 			printf(response.c_str());
 #endif
 		
-		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
+
+		printf("Wait 2 seconds before next request....\n");
+#if defined(WIN32)
+        Sleep(2000);
+#else
+		usleep(2000);
+// as long as a bug in libc++ prevents clang from including chrono correctly, use usleep.
+// but chrono is the more portable way, as its c++11 standard
+//        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+#endif
+
 	}
 
 	std::vector<double>::iterator it;
@@ -1309,7 +1325,8 @@ int main(int argc, char **argv)
 		diffSum += *it;
 	}
 
-	printf("Durchschnittliche Dauer bei %d Durchlaeufen: %f Sekunden\n",
+	printf("Overall duration for all %d eID dialogs: %f seconds\n", loopCount, (difftime(time(0), loopStart)));
+	printf("Average time for %d eID dialogs: %f seconds\n",
 	   	diffv.size(), (diffv.size()==0 ? 0 : diffSum/diffv.size()));
 	sprintf(buffer, "########## Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, (unsigned int) diffv.size(), serverErrorCounter);
 	puts(buffer);
