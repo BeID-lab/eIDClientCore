@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/BeID-lab/eIDClientCore.png?label=ready&title=Ready)](https://waffle.io/BeID-lab/eIDClientCore)
 # Welcome
 
 All relevant information about the eIDClientCore can be found at:
