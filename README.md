@@ -6,6 +6,8 @@ http://sar.informatik.hu-berlin.de/BeID-lab/eIDClientCore
 Warning: This is just proof-of-concept code and should _NOT_ be used in
 production environments
 
+[![Stories in Ready](https://badge.waffle.io/BeID-lab/eIDClientCore.png?label=ready&title=Ready)](https://waffle.io/BeID-lab/eIDClientCore)
+
 ## Tested platforms:
 
 * Windows
