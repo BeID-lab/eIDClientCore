@@ -1066,7 +1066,7 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	size_t sz_len = sizeof sz;
 
 	connection_status = eIDClientConnectionStartHttp(&connection, SP_URL, NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
-	
+
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
