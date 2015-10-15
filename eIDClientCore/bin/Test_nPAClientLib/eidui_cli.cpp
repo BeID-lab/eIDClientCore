@@ -168,21 +168,11 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 		return NPACLIENT_ERROR_SUCCESS;
 	}
 
-	std::cout << "Please enter your PIN: ";
- 
-	//std::string password;
-	//std::cin.clear();
-	//std::getline(std::cin, password);
-	//std::cin.unget();
-	std::cin.getline((char*) input->pin.pDataBuffer, MAX_PIN_SIZE);
-	input->pin.bufferSize = strlen((char*) input->pin.pDataBuffer);
-
-	//if (password.length() > MAX_PIN_SIZE) {
-	//	return NPACLIENT_ERROR_GUI_PIN_TOO_LONG;
-	//}
-
-	//memcpy(input->pin.pDataBuffer, password.data(), password.length());
-	//input->pin.bufferSize = password.length();
+	if(input->pin.bufferSize == 0){
+		std::cout << "Please enter your PIN: ";
+		std::cin.getline((char*) input->pin.pDataBuffer, MAX_PIN_SIZE);
+		input->pin.bufferSize = strlen((char*) input->pin.pDataBuffer);
+	}
 
 	return NPACLIENT_ERROR_SUCCESS;
 }

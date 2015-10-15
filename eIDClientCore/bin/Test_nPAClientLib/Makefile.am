@@ -1,6 +1,8 @@
 bin_PROGRAMS = Test_nPAClientLib_noSaml Test_nPAClientLib_Saml_1 Test_nPAClientLib_Saml_2 Test_nPAClientLib_Selbstauskunft_Wuerzburg Test_nPAClientLib_AutentApp
+lib_LTLIBRARIES = libTest_nPAClientLib_AutentApp.la
 
 noinst_HEADERS = eidui_cli.h
+include_HEADERS = Test_nPAClientLib.h
 
 Test_nPAClientLib_SOURCES  = Test_nPAClientLib.cpp eidui_cli.cpp
 Test_nPAClientLib_CPPFLAGS = $(EXPAT_CFLAGS) \
@@ -37,3 +39,7 @@ Test_nPAClientLib_Selbstauskunft_Wuerzburg_LDADD    = $(Test_nPAClientLib_LDADD)
 Test_nPAClientLib_AutentApp_SOURCES  = $(Test_nPAClientLib_SOURCES)
 Test_nPAClientLib_AutentApp_CPPFLAGS = $(Test_nPAClientLib_CPPFLAGS) -DAUTENTAPP
 Test_nPAClientLib_AutentApp_LDADD    = $(Test_nPAClientLib_LDADD)
+
+libTest_nPAClientLib_AutentApp_la_SOURCES  = $(Test_nPAClientLib_AutentApp_SOURCES)
+libTest_nPAClientLib_AutentApp_la_CPPFLAGS = $(Test_nPAClientLib_AutentApp_CPPFLAGS) -DAS_LIBRARY
+libTest_nPAClientLib_AutentApp_la_LIBADD    = $(Test_nPAClientLib_AutentApp_LDADD)

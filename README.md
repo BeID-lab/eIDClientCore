@@ -6,13 +6,16 @@ http://sar.informatik.hu-berlin.de/BeID-lab/eIDClientCore
 Warning: This is just proof-of-concept code and should _NOT_ be used in
 production environments
 
+[![Stories in Ready](https://badge.waffle.io/BeID-lab/eIDClientCore.png?label=ready&title=Ready)](https://waffle.io/BeID-lab/eIDClientCore)
+
 ## Tested platforms:
 
 * Windows
-* Linux
+* Linux 
 * Mac OS X
 * Android
 * iOS
+* Travis CI (Ubuntu Linux) [![Build Status](https://travis-ci.org/BeID-lab/eIDClientCore.svg?branch=master)](https://travis-ci.org/BeID-lab/eIDClientCore)
 
 ## Usage
 
@@ -86,7 +89,7 @@ the library.
 ### asn1c
 
 ```sh
-wget http://lionet.info/soft/asn1c-0.9.24.tar.gz
+wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODORSADomainValidationSecureServerCA.pem
 tar xzf asn1c-0.9.24.tar.gz
 cd asn1c-0.9.24
 ./configure --prefix=${PREFIX}
@@ -103,6 +106,7 @@ You need to change the commented lines so that they meet the version of asn1c.
 
 ```sh
 wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
+echo "b08197d146930a5543a7b99e871cba3da614f6f0 expat-2.1.0.tar.gz" | sha1sum -c -
 tar xzf expat-2.1.0.tar.gz
 cd expat-2.1.0
 ./configure --prefix=${PREFIX}
@@ -119,9 +123,7 @@ the library.
 cd ${PREFIX}/OpenSSL_1_0_2-stable
 git submodule init
 git submodule update
-patch -p1 <patches/openssl/1.0.2/0001-add-Christian-J.-Dietrichs-RSA-PSK-patch.patch
-patch -p1 <patches/openssl/1.0.2/0002-fix-space-vs-tabs-indent.patch
-patch -p1 <patches/openssl/1.0.2/0003-add-missing-RSA_PSK-cipher-suites.patch
+patch -p1 <patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch
 ./config --prefix=${PREFIX} shared
 make
 make install_sw
@@ -134,9 +136,9 @@ not support RSA-PSK.
 ### libcurl
 
 ```sh
-wget http://curl.haxx.se/download/curl-7.40.0.tar.gz
-tar xzf curl-7.40.0.tar.gz
-cd curl-7.40.0
+wget https://github.com/bagder/curl/releases/download/curl-7_44_0/curl-7.44.0.tar.gz
+tar xzf curl-7.44.0.tar.gz
+cd curl-7.44.0
 ./configure --prefix=${PREFIX} \
     PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig:${PREFIX}/lib64/pkgconfig
 make install
