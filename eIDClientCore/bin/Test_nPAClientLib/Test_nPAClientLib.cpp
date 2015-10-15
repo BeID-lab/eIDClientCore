@@ -1275,7 +1275,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
 			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter);
+			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
 			continue;
 		}
 #if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
