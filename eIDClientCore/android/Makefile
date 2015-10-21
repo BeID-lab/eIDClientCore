@@ -126,8 +126,8 @@ cross:
 		|| $(MAKE_STANDALONE_TOOLCHAIN) --install-dir=$(ANDROID_TOOL_DIR) --arch=$(ANDROID_ARCH) --platform=$(ANDROID_API) --stl=stlport --toolchain=arm-linux-androideabi-4.8
 	test -x $(builddir)/configure \
 		|| (cd $(builddir) && autoreconf -vis)
-	test -r $(builddir)/Makefile \
-		|| (cd $(builddir) \
+	# We should always reconfigure. It could be, that the Makefile was created by the Linux compiling process
+	(cd $(builddir) \
 			&& env ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			./configure \
 			--prefix=/ \
@@ -138,6 +138,9 @@ cross:
 			CPPFLAGS="-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TOOL_DIR)/include/gabi++/include -I$(ANDROID_TARGETDIR)/include" \
 			CXXFLAGS="-I$(ANDROID_TOOL_DIR)/include/g++ -lstlport_shared" \
 			LDFLAGS="-L$(ANDROID_TOOL_DIR)/lib -L$(ANDROID_TOOL_DIR)/sysroot/usr/lib -L$(ANDROID_TARGETDIR)/lib")
+	ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
+		$(MAKE) -C $(EIDCLIENTCORE_DIR) clean
+	endif
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(builddir)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
