@@ -138,9 +138,9 @@ cross:
 			CPPFLAGS="-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TOOL_DIR)/include/gabi++/include -I$(ANDROID_TARGETDIR)/include" \
 			CXXFLAGS="-I$(ANDROID_TOOL_DIR)/include/g++ -lstlport_shared" \
 			LDFLAGS="-L$(ANDROID_TOOL_DIR)/lib -L$(ANDROID_TOOL_DIR)/sysroot/usr/lib -L$(ANDROID_TARGETDIR)/lib")
-	ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
-		$(MAKE) -C $(EIDCLIENTCORE_DIR) clean
-	endif
+ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
+	$(MAKE) -C $(EIDCLIENTCORE_DIR) clean
+endif
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(builddir)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
