@@ -5,4 +5,4 @@ all:
 	ant debug
 
 install:
-	adb install -r bin/MainActivity-debug.apk
+	$(ANDROID_SDK_ROOT)/platform-tools/adb install -r bin/MainActivity-debug.apk

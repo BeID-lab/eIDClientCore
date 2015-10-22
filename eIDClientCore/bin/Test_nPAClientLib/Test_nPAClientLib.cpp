@@ -30,6 +30,7 @@
 #include <streambuf>
 
 #include <getopt.h>
+#include <ctype.h>
 
 #define XML_STATIC
 #include <expat.h>
