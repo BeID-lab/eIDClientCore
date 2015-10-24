@@ -4,6 +4,9 @@ env:
   global:
     - PREFIX=$HOME/target
     - INSECURE=true
+    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+    #   via the "travis encrypt" command using the project repo's public key
+    - secure: "CcF7eIP36fQIYXDl7re2SpckMq63RUcJaUUzIhpplDQ8fAa4qatZnYaq+voWEDYyIUpeWe3zxaD6nXM8bM1/o3FQbRTFZcI6OaSph1uCUUJM5ySVO03heyUX6M8GVkgUESZGxn8fZhzNWSmHGcAstJBYjszXPG3G62H3WmHib5c="
 
 compiler:
   - clang
@@ -13,8 +16,19 @@ install:
   - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
 
 script:
-  - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then
+      make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE;
+    fi
 
 cache:
   directories:
     - $HOME/target
+
+addons:
+  coverity_scan:
+    project:
+      name: "BeID-lab/eIDClientCore"
+      description: "BeID-lab/eIDClientCore"
+    notification_email: beid-lab@informatik.hu-berlin.de
+    build_command:   make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
+    branch_pattern: coverity_scan
