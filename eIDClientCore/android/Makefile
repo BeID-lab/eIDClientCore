@@ -1,5 +1,7 @@
 abs_builddir = $(shell pwd)
 
+SHELL=/bin/bash
+
 PACKAGE_TARNAME=eIDClientCore
 PACKAGE_VERSION=0.2
 ANDROID_ARCH ?= arm
@@ -45,7 +47,7 @@ all:
 $(EXPAT_CONFIGURE):
 	wget http://sourceforge.net/projects/expat/files/expat/$(EXPAT_VERSION)/$(EXPAT).tar.gz
 	echo "b08197d146930a5543a7b99e871cba3da614f6f0  expat-2.1.0.tar.gz" | sha1sum -c -
-	tar xvzf $(EXPAT_DIR).tar.gz
+	tar xzf $(EXPAT_DIR).tar.gz
 	touch $(EXPAT_CONFIGURE)
 
 $(LIBEXPAT): $(EXPAT_CONFIGURE)
@@ -53,7 +55,7 @@ $(LIBEXPAT): $(EXPAT_CONFIGURE)
 
 $(CURL_CONFIGURE):
 	wget https://github.com/bagder/curl/releases/download/curl-7_44_0/$(CURL).tar.gz
-	tar zxvf $(CURL_DIR).tar.gz
+	tar zxf $(CURL_DIR).tar.gz
 	rm -f $(CURL_DIR)/Makefile
 	touch $(CURL_CONFIGURE)
 
@@ -61,10 +63,13 @@ $(LIBCURL): $(CURL_CONFIGURE) $(LIBCRYPTO)
 	$(MAKE) cross builddir=$(CURL_DIR)
 
 $(CRYPTO_MAKEFILE):
-	wget --secure-protocol=tlsv1_2 https://www.openssl.org/source/$(CRYPTO).tar.gz
-	tar xvzf $(CRYPTO_DIR).tar.gz
+	#wget --secure-protocol=tlsv1_1 https://www.openssl.org/source/$(CRYPTO).tar.gz does not work on Travis, because wget is too old (1.13.4)
+	#That is why we use the hash method
+	wget http://www.openssl.org/source/$(CRYPTO).tar.gz
+	echo "ec5d20f1ee52ae765b9286e9d7951dcfc9548607  $(CRYPTO).tar.gz" | sha1sum -c -
+	tar xzf $(CRYPTO_DIR).tar.gz
 	wget http://blog.cj2s.de/openssl-1.0.0c.tls-rsa-psk.tar
-	echo "7b00a9003c4b7136afaf87d3e6756ba691b8792b openssl-1.0.0c.tls-rsa-psk.tar" | sha1sum -c -
+	echo "7b00a9003c4b7136afaf87d3e6756ba691b8792b  openssl-1.0.0c.tls-rsa-psk.tar" | sha1sum -c -
 	tar xf openssl-1.0.0c.tls-rsa-psk.tar
 	patch -d $(CRYPTO_DIR) -p1 < openssl-1.0.0c.tls-rsa-psk.patch || true
 	cd $(CRYPTO_DIR) \
@@ -126,8 +131,8 @@ cross:
 		|| $(MAKE_STANDALONE_TOOLCHAIN) --install-dir=$(ANDROID_TOOL_DIR) --arch=$(ANDROID_ARCH) --platform=$(ANDROID_API) --stl=stlport --toolchain=arm-linux-androideabi-4.8
 	test -x $(builddir)/configure \
 		|| (cd $(builddir) && autoreconf -vis)
-	test -r $(builddir)/Makefile \
-		|| (cd $(builddir) \
+	# We should always reconfigure. It could be, that the Makefile was created by the Linux compiling process
+	(cd $(builddir) \
 			&& env ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			./configure \
 			--prefix=/ \
@@ -138,6 +143,9 @@ cross:
 			CPPFLAGS="-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TOOL_DIR)/include/gabi++/include -I$(ANDROID_TARGETDIR)/include" \
 			CXXFLAGS="-I$(ANDROID_TOOL_DIR)/include/g++ -lstlport_shared" \
 			LDFLAGS="-L$(ANDROID_TOOL_DIR)/lib -L$(ANDROID_TOOL_DIR)/sysroot/usr/lib -L$(ANDROID_TARGETDIR)/lib")
+ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
+	$(MAKE) -C $(EIDCLIENTCORE_DIR) clean
+endif
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(builddir)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \

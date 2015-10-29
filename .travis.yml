@@ -1,20 +1,42 @@
 language: c
 
+sudo: required
+
 env:
   global:
     - PREFIX=$HOME/target
+    - PATH=$PREFIX/bin:$PATH
     - INSECURE=true
+    - ANDROID_API=android-19
 
 compiler:
   - clang
   - gcc
 
+before_install:
+  - wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+  - tar xzf android-sdk_r24.4.1-linux.tgz
+  - export ANDROID_SDK_ROOT=$PWD/android-sdk-linux/
+  - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter platform-tools
+  - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter android-19
+  - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter build-tools-19.1.0
+  - wget https://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin
+  - chmod +x android-ndk-r10e-linux-x86_64.bin
+  - ./android-ndk-r10e-linux-x86_64.bin | egrep -v ^Extracting
+  - export ANDROID_NDK_ROOT=$PWD/android-ndk-r10e/
+  #See https://github.com/JakeWharton/sdk-manager-plugin/issues/13
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libstdc++6:i386 lib32z1 expect
+  
 install:
   - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
 
 script:
   - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
-
+  - export CC=
+  - make -C eIDClientCore/android/ ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
+  - make -C eIDClientCore/android/eIDCCAusweisApp2 ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
+  
 cache:
   directories:
     - $HOME/target
