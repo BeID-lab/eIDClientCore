@@ -551,7 +551,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 		curlVal = curl_easy_setopt(curl, CURLOPT_WRITEHEADER, (void *)&header);
 	}
 
-	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %s", data);
+	eCardCore_debug(DEBUG_LEVEL_PAOS, "Http Send: %.*s", dataLength, data);
 
 	/* Perform the request*/
 	curlVal = curl_easy_perform(curl);
