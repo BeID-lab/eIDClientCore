@@ -57,4 +57,7 @@
 #define id_AT                               id_ROLES ".2"
 #define id_ST                               id_ROLES ".3"
 
+#define id_ECDSA_WITH_SHA224                "1.2.840.10045.4.3.1"
+#define id_ECDSA_WITH_SHA256                "1.2.840.10045.4.3.2"
+
 #endif
