@@ -335,6 +335,18 @@ ReadBinary::ReadBinary(void)
 	: DataUnitAPDU(INS_READ_BINARY)
 { }
 
+UpdateBinary::UpdateBinary(size_t offset, unsigned char sfid)
+	: DataUnitAPDU(INS_READ_BINARY, offset, sfid)
+{ }
+
+UpdateBinary::UpdateBinary(size_t offset)
+	: DataUnitAPDU(INS_READ_BINARY, offset)
+{ }
+
+UpdateBinary::UpdateBinary(void)
+	: DataUnitAPDU(INS_READ_BINARY)
+{ }
+
 SecurityCAPDU::SecurityCAPDU(unsigned char ins, unsigned char p1, unsigned char p2)
 	: CAPDU(0x00, ins, p1, p2)
 { }
@@ -422,7 +434,8 @@ std::vector<unsigned char> RAPDU::asBuffer(void) const
 
 bool RAPDU::isOK(void) const
 {
-	if (getSW() == RAPDU::ISO_SW_NORMAL
+	if ((getSW1() == RAPDU::ISO_SW_1_NORMAL
+			   	&& getSW2() == RAPDU::ISO_SW_2_NORMAL)
 		|| getSW1() == 0x61
 		|| getSW1() == 0x62
 		|| getSW1() == 0x63)
