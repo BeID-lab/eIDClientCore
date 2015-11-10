@@ -4,3 +4,8 @@ EXPORTS
   nPAeIdPerformAuthenticationProtocol
   encode_EstablishPACEChannelInput
   decode_EstablishPACEChannelOutput
+  USED_DEBUG_LEVEL
+  _hexdump
+  _eCardCore_info
+  _eCardCore_warn
+  _eCardCore_debug
