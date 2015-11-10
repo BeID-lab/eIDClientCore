@@ -34,12 +34,12 @@ bool ExternalReader::m_libload(void)
 			m_hDoPACE = (CardReaderDoPACE_t) GET_FUNCTION(m_hLib, CardReaderDoPACE);
 			m_hClose = (CardReaderClose_t) GET_FUNCTION(m_hLib, CardReaderClose);
 		} else {
-			eCardCore_warn(DEBUG_LEVEL_CARD, "could not load external reader library");
+			eCardCore_warn(DEBUG_LEVEL_READER, "could not load external reader library");
 		}
 	}
 
 	if (!m_hLib || !m_hOpen || !m_hSend || !m_hGetATR || !m_hSupportsPACE || !m_hDoPACE || !m_hClose) {
-		eCardCore_warn(DEBUG_LEVEL_CARD, "could not load external reader library functions");
+		eCardCore_warn(DEBUG_LEVEL_READER, "could not load external reader library functions");
 		m_libcleanup();
 	} else {
 		r = true;
@@ -113,7 +113,7 @@ bool ExternalReader::open(void)
 	if (ECARD_SUCCESS == m_hOpen(&m_hCardReader, "ExternalCardReader"))
 		r = true;
 	else
-		eCardCore_warn(DEBUG_LEVEL_CARD, "external open failed");
+		eCardCore_warn(DEBUG_LEVEL_READER, "external open failed");
 
 err:
 	return r;
@@ -139,7 +139,7 @@ std::vector<unsigned char> ExternalReader::getATRForPresentCard(void)
 	if (ECARD_SUCCESS == m_hGetATR(m_hCardReader, buffer, &nLengthResult))
 		atr.insert(atr.end(), buffer, buffer+nLengthResult);
 	else
-		eCardCore_warn(DEBUG_LEVEL_CARD, "external get atr failed");
+		eCardCore_warn(DEBUG_LEVEL_READER, "external get atr failed");
 
 err:
 	return atr;
@@ -155,7 +155,7 @@ std::vector<unsigned char> ExternalReader::transceive(const std::vector<unsigned
 		response.clear();
 		response.insert(response.end(), buffer, buffer+nLengthResult);
 	} else
-		eCardCore_warn(DEBUG_LEVEL_CARD, "external send failed");
+		eCardCore_warn(DEBUG_LEVEL_READER, "external send failed");
   
 	return response;
 }
@@ -167,7 +167,7 @@ bool ExternalReader::supportsPACEnative(void)
 	if (m_hSupportsPACE
 		   	&& ECARD_SUCCESS == m_hSupportsPACE(m_hCardReader)) {
 		r = true;
-		eCardCore_info(DEBUG_LEVEL_CARD, "Reader supports PACE");
+		eCardCore_info(DEBUG_LEVEL_READER, "Reader supports PACE");
 	}
 
     return r;
@@ -201,7 +201,7 @@ PaceOutput ExternalReader::establishPACEChannelNative(const PaceInput &input)
 				pinid = PI_PUK;
 				break;
 			default:
-				eCardCore_warn(DEBUG_LEVEL_CARD, "Unknown type of secret");
+				eCardCore_warn(DEBUG_LEVEL_READER, "Unknown type of secret");
 				break;
 		}
 		const nPADataBuffer_t pin = {
@@ -248,7 +248,7 @@ PaceOutput ExternalReader::establishPACEChannelNative(const PaceInput &input)
 			free(id_icc.pDataBuffer);
 			free(chat_used.pDataBuffer);
 		} else
-			eCardCore_warn(DEBUG_LEVEL_CARD, "external PACE failed");
+			eCardCore_warn(DEBUG_LEVEL_READER, "external PACE failed");
 	}
 
     return paceoutput;
