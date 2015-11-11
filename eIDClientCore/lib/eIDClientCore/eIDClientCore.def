@@ -9,3 +9,4 @@ EXPORTS
   _eCardCore_info
   _eCardCore_warn
   _eCardCore_debug
+  CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT
