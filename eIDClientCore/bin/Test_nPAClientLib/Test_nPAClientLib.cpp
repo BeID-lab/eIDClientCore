@@ -446,6 +446,8 @@ int getSamlResponse2(std::string & response)
 	size_t sz_len = sizeof sz;
 #if SAML_VERSION == NO_SAML
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+#elif defined SELBSTAUSKUNFT_WUERZBURG
+	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, FollowHttpRedirect);
 #else
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 #endif
@@ -469,16 +471,7 @@ int getSamlResponse2(std::string & response)
 	return 0;
 #endif
 
-#ifdef SELBSTAUSKUNFT_WUERZBURG
-	int pos = strResult.find("url=");
-	std::string url = strResult.substr(pos + 4, strResult.find("\"", pos + 5) - pos - 4);
-	std::string submits [1] = {"Weiter"};
-	//Empty baseUrl works, because url in action (which will come from server) starts with http.
-	std::string result = "";
-	connection_status = dealWithForms(submits, 1, url, "", &result);
-	response = result;
-	return connection_status;
-#elif defined AUTENTAPP
+#if defined AUTENTAPP || defined SELBSTAUSKUNFT_WUERZBURG
 	response = strResult;
 	return connection_status;
 #else
@@ -741,7 +734,7 @@ static EID_CLIENT_CONNECTION_ERROR dealWithForms(std::string *submits, int numbe
 		else
 			url = eIdObject.m_strAction;
 
-		connection_status = eIDClientConnectionStartHttp(&connection, url.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+		connection_status = eIDClientConnectionStartHttp(&connection, url.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
 		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 			printf("%s:%d Error\n", __FILE__, __LINE__);
 			return connection_status;
@@ -1003,46 +996,53 @@ int getAuthenticationParamsSelbstauskunftWuerzburg(const char *const SP_URL,
 {
 	std::string startUrl = SP_URL;
 	std::string baseUrl = "https://www.buergerserviceportal.de";
-	std::string  strResult = "";
+	std::string strResult = "";
+	EIDCLIENT_CONNECTION_HANDLE connection = 0x00;
 	EID_CLIENT_CONNECTION_ERROR connection_status;
+	char sz[READ_BUFFER];
+	size_t sz_len = sizeof sz;
 
 	//If cookie file exists, delete it, so we do not start an old session
 	remove(EIDCC_COOKIE_FILE);
 
-	std::string submits [4] = {"Weiter", "Online-Ausweisfunktion", "Weiter", "Weiter"};
-	connection_status = dealWithForms(submits, 4, startUrl, baseUrl, &strResult);
+	std::string submits [] = {"Weiter", "Online-Ausweisfunktion"};
+	connection_status = dealWithForms(submits, 2, startUrl, baseUrl, &strResult);
 	if(connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
 	{
 		printf("%s:%d Error\n", __FILE__, __LINE__);
 		return connection_status;
 	}
+	
+	//Parse strResult for the redirect URL
+	std::string tcTokenURL = "";
+	if (strResult.find("HTTP/1.1 302 Moved Temporarily") == 0){
+		std::string searchString = "Location: http://127.0.0.1:24727/eID-Client?tcTokenURL=";
+		int copyStart = strResult.find(searchString) + searchString.length();
+		int carriageReturn = strResult.find("\r", copyStart) - copyStart;
+		int newLine = strResult.find("\n", copyStart) - copyStart;
+		tcTokenURL = strResult.substr(copyStart, carriageReturn <= newLine ? carriageReturn : newLine);
+	}
+	
+	//Now download the tcToken
+	connection_status = eIDClientConnectionStartHttp(&connection, tcTokenURL.c_str(), NULL, NULL, DontGetHttpHeader, FollowHttpRedirect);
+	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+		printf("%s:%d Error\n", __FILE__, __LINE__);
+		return connection_status;
+	}
+	
+	memset(sz, 0x00, READ_BUFFER);
+	sz_len = sizeof sz;
+	connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
+	if(connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS)
+	{
+		printf("%s:%d Error\n", __FILE__, __LINE__);
+		return connection_status;
+	}
+	strResult = std::string(sz, sz_len);
 
 	//The data for starting eidcc should now be contained in strResult, we just need to get it out of there
-	std::string strTmp = strResult;
-	std::transform(strTmp.begin(), strTmp.end(), strTmp.begin(), static_cast<int ( *)(int)>(tolower));
-	int found = strTmp.find("<param");
-
-	if (found != std::string::npos) {
-		strResult = strResult.substr(found);
-	} else {
-		printf("%s:%d Error\n", __FILE__, __LINE__);
-		return -2;
-	}
-
 	CeIdObject eIdObject;
-	std::string response2 = strResult;
-	response2 = str_replace("<PSK>", "", response2);
-	response2 = str_replace("</PSK>", "", response2);
-	response2 = str_replace("&uuml;", "ü", response2);
-	response2 = str_replace("&ouml;", "ö", response2);
-	response2 = str_replace("</body>", "", response2);
-	response2 = str_replace("</div>", "", response2);
-	response2 = str_replace("<div>", "", response2);
-	response2 = str_replace("</object>", "", response2);
-	response2 = str_replace_ifnot("&", "&amp;", "&amp;", response2);
-	response2 = "<html>" + response2;
-
-	eIdObject.GetParams(response2);
+	eIdObject.GetParams(strResult);
 
 	strIdpAddress = eIdObject.m_strServerAddress;
 	strSessionIdentifier = eIdObject.m_strSessionID;
@@ -1095,7 +1095,6 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	//response2 = str_replace("<PSK>", "", response2);
 	//response2 = str_replace("</PSK>", "", response2);
 	//response2 = str_replace("&amp;", "", response2);
-	printf("response2: %s\n", response2.c_str());
 	eIdObject.GetParams(response2);
 	strIdpAddress = eIdObject.m_strServerAddress;
 	strSessionIdentifier = eIdObject.m_strSessionID;
@@ -1104,10 +1103,11 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	//dirty
 	//if(strRefresh.find("mode=") != strRefresh.find("&") + 1)
 	//	strRefresh.insert(strRefresh.find("mode="), "&");
-	printf("IdpAddress: %s\n", strIdpAddress.c_str());
-	printf("SessionID: %s\n", strSessionIdentifier.c_str());
-	printf("PSK: %s\n", strPathSecurityParameters.c_str());
-	printf("RefreshAddress: %s\n", strRefresh.c_str());
+	
+	//printf("IdpAddress: %s\n", strIdpAddress.c_str());
+	//printf("SessionID: %s\n", strSessionIdentifier.c_str());
+	//printf("PSK: %s\n", strPathSecurityParameters.c_str());
+	//printf("RefreshAddress: %s\n", strRefresh.c_str());
 	return 0;
 }
 
