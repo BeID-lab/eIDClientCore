@@ -90,7 +90,7 @@ $(LIBCRYPTOPP):
 	svn up -r 590 &&\
 	wget https://www.cryptopp.com/w/images/0/0a/Setenv-android.sh.zip --ca-certificate=../../trusted_ca/CAcert.pem &&\
 	unzip Setenv-android.sh.zip &&\
-	sed -i '' 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh &&\
+	sed -i'' 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh &&\
 	wget https://www.cryptopp.com/w/images/a/a0/Cryptopp-mobile.zip --ca-certificate=../../trusted_ca/CAcert.pem &&\
 	unzip -o Cryptopp-mobile.zip &&\
 	. ./setenv-android.sh &&\
