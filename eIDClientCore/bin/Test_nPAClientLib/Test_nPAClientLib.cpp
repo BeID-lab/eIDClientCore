@@ -50,36 +50,14 @@
 
 #include "Test_nPAClientLib.h"
 
-#define SAML_1 1
-#define SAML_2 2
-#define NO_SAML 3
-#define SAML_SELBSTAUSKUNFT_WUERZBURG 4
-#define SAML_AUTENTAPP 5
-
-#if defined SAML_VERSION_SAML_1
-#define SAML_VERSION SAML_1
-#elif defined SAML_VERSION_SAML_2
-#define SAML_VERSION SAML_2
-#elif defined SAML_VERSION_NO_SAML
-#define SAML_VERSION NO_SAML
-#elif defined SELBSTAUSKUNFT_WUERZBURG
-#define SAML_VERSION SAML_SELBSTAUSKUNFT_WUERZBURG
-#elif defined AUTENTAPP
-#define SAML_VERSION SAML_AUTENTAPP
-#else
-#define SAML_VERSION NO_SAML
-#endif
-
-const char *pin = NULL;
-
 #define HEX(x) std::setw(2) << std::setfill('0') << std::hex << (int)(x)
+
+unsigned char SAML_VERSION;
+const char *pin;
 
 static std::string str_replace(std::string rep, std::string wit, std::string in);
 static void urlEncode(std::string & toEncode);
-static std::string str_replace_ifnot(std::string rep, std::string wit, std::string ifnot, std::string in);
-#ifdef SELBSTAUSKUNFT_WUERZBURG
 static EID_CLIENT_CONNECTION_ERROR dealWithForms(std::string *submits, int numberOfSubmits, std::string startUrl, std::string baseUrl, std::string *result);
-#endif
 
 class CeIdObject
 {
@@ -195,38 +173,38 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 		return;
 	}
 
-#ifdef SELBSTAUSKUNFT_WUERZBURG
-	//Input
-	if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
-		std::string type = "";
-		for (int i = 0; papszAttrs[i]; i += 2) {
-			std::string  strParam(papszAttrs[i]);
+	if(SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG){
+		//Input
+		if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
+			std::string type = "";
+			for (int i = 0; papszAttrs[i]; i += 2) {
+				std::string  strParam(papszAttrs[i]);
 
-			type.assign(FindValue("type", papszAttrs).c_str());
+				type.assign(FindValue("type", papszAttrs).c_str());
 
-			if (strcmp(type.c_str(), "hidden") == 0) {
-				//Add name, value
-				AddData(FindValue("name", papszAttrs), FindValue("value", papszAttrs));
-			}
-
-			if(strcmp(type.c_str(), "submit") == 0 &&
-				strcmp(FindValue("value", papszAttrs).c_str(), m_submit.c_str()) == 0){
-				//Add name, value
-				if(strcmp(FindValue("name", papszAttrs).c_str(), "") != 0){
+				if (strcmp(type.c_str(), "hidden") == 0) {
+					//Add name, value
 					AddData(FindValue("name", papszAttrs), FindValue("value", papszAttrs));
 				}
-			}
 
-			if (strcmp(type.c_str(), "checkbox") == 0) {
-				//Add name, value
-				AddData(FindValue("name", papszAttrs), "on");
-			}
+				if(strcmp(type.c_str(), "submit") == 0 &&
+					strcmp(FindValue("value", papszAttrs).c_str(), m_submit.c_str()) == 0){
+					//Add name, value
+					if(strcmp(FindValue("name", papszAttrs).c_str(), "") != 0){
+						AddData(FindValue("name", papszAttrs), FindValue("value", papszAttrs));
+					}
+				}
 
+				if (strcmp(type.c_str(), "checkbox") == 0) {
+					//Add name, value
+					AddData(FindValue("name", papszAttrs), "on");
+				}
+
+			}
+			return;
 		}
-		return;
 	}
-#endif
-
+	
 	//Object Tag
 	else if (strcmp(m_strCurrentElement.c_str(), "param") == 0) {
 		for (int i = 0; papszAttrs[i]; i += 2) {
@@ -444,13 +422,13 @@ int getSamlResponse2(std::string & response)
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-#if SAML_VERSION == NO_SAML
-	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
-#elif defined SELBSTAUSKUNFT_WUERZBURG
+	if(SAML_VERSION == NO_SAML){
+		connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+	} else if(SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG) {
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, FollowHttpRedirect);
-#else
+	} else {
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
-#endif
+	}
 
 	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
 		return connection_status;
@@ -466,74 +444,73 @@ int getSamlResponse2(std::string & response)
 	connection_status = eIDClientConnectionEnd(connection);
 	connection = 0x00;
 
-#if SAML_VERSION == NO_SAML
-	response = strResult;
-	return 0;
-#endif
-
-#if defined AUTENTAPP || defined SELBSTAUSKUNFT_WUERZBURG
-	response = strResult;
-	return connection_status;
-#else
-
-	/*OL Server sends "location" with a small l... is that standard-conform?*/
-	size_t posLocationBegin = strResult.find("location: ");
-	if(posLocationBegin == std::string::npos)
-		return -1;
-	size_t posLocationEnd = strResult.find("\r\n", posLocationBegin);
-	if(posLocationEnd == std::string::npos)
-		return -2;
-
-	strResult = strResult.substr(posLocationBegin + strlen("location: "), posLocationEnd - (posLocationBegin + strlen("Location: ")));
-
-	/*You can stop here and copy strResult into your browser*/
-	memset(sz, 0, READ_BUFFER);
-	sz_len = READ_BUFFER;
-
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-		return connection_status;
+	if(SAML_VERSION == NO_SAML){
+		response = strResult;
+		return 0;
 	}
 
-	connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+	if(SAML_VERSION == SAML_AUTENTAPP || SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG){
+		response = strResult;
 		return connection_status;
+	} else {
+		/*OL Server sends "location" with a small l... is that standard-conform?*/
+		size_t posLocationBegin = strResult.find("location: ");
+		if(posLocationBegin == std::string::npos)
+			return -1;
+		size_t posLocationEnd = strResult.find("\r\n", posLocationBegin);
+		if(posLocationEnd == std::string::npos)
+			return -2;
+
+		strResult = strResult.substr(posLocationBegin + strlen("location: "), posLocationEnd - (posLocationBegin + strlen("Location: ")));
+
+		/*You can stop here and copy strResult into your browser*/
+		memset(sz, 0, READ_BUFFER);
+		sz_len = READ_BUFFER;
+
+		connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
+
+		connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
+
+		strResult = std::string(sz, sz_len);
+		connection_status = eIDClientConnectionEnd(connection);
+		connection = 0x00;
+
+		posLocationBegin = strResult.find("Location: ");
+		if(posLocationBegin == std::string::npos)
+			return -3;
+		posLocationEnd = strResult.find("\r\n", posLocationBegin);
+		if(posLocationEnd == std::string::npos)
+			return -4;
+
+		strResult = strResult.substr(posLocationBegin + strlen("Location: "), posLocationEnd - (posLocationBegin + strlen("Location: ")));
+
+		memset(sz, 0, READ_BUFFER);
+		sz_len = READ_BUFFER;
+
+		connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
+
+		connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
+		if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
+			return connection_status;
+		}
+
+		strResult = std::string(sz, sz_len);
+		connection_status = eIDClientConnectionEnd(connection);
+		connection = 0x00;
+
+		response = strResult;
+
+		return NPACLIENT_ERROR_SUCCESS;
 	}
-
-	strResult = std::string(sz, sz_len);
-	connection_status = eIDClientConnectionEnd(connection);
-	connection = 0x00;
-
-	posLocationBegin = strResult.find("Location: ");
-	if(posLocationBegin == std::string::npos)
-		return -3;
-	posLocationEnd = strResult.find("\r\n", posLocationBegin);
-	if(posLocationEnd == std::string::npos)
-		return -4;
-
-	strResult = strResult.substr(posLocationBegin + strlen("Location: "), posLocationEnd - (posLocationBegin + strlen("Location: ")));
-
-	memset(sz, 0, READ_BUFFER);
-	sz_len = READ_BUFFER;
-
-	connection_status = eIDClientConnectionStartHttp(&connection, strResult.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-		return connection_status;
-	}
-
-	connection_status = eIDClientConnectionTransceive(connection, NULL, 0, sz, &sz_len);
-	if (connection_status != EID_CLIENT_CONNECTION_ERROR_SUCCESS) {
-		return connection_status;
-	}
-
-	strResult = std::string(sz, sz_len);
-	connection_status = eIDClientConnectionEnd(connection);
-	connection = 0x00;
-
-	response = strResult;
-
-	return NPACLIENT_ERROR_SUCCESS;
-#endif
 }
 
 #ifdef _WIN32
@@ -553,21 +530,20 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	switch (state) {
 	case NPACLIENT_STATE_TA_PERFORMED:
-#if SAML_VERSION == SAML_1
+		if(SAML_VERSION == SAML_1){
 #ifdef _WIN32
-		hThread = CreateThread(
-			NULL,                   // default security attributes
-			0,                      // use default stack size
-			getSamlResponseThread,       // thread function name
-			NULL,          // argument to thread function
-			0,                      // use default creation flags
-			&dwThreadId);   // returns the thread identifier
-#else
-		if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
-			printf("Could not create getSamlResponseThread\n");
-
+			hThread = CreateThread(
+				NULL,                   // default security attributes
+				0,                      // use default stack size
+				getSamlResponseThread,       // thread function name
+				NULL,          // argument to thread function
+				0,                      // use default creation flags
+				&dwThreadId);   // returns the thread identifier
+		} else {
+			if (pthread_create(&hThread, NULL, getSamlResponseThread, NULL))
+				printf("Could not create getSamlResponseThread\n");
 #endif
-#endif //SAML_VERSION_1
+		}
 		break;
 	default:
 		break;
@@ -678,7 +654,6 @@ static void urlEncode(std::string & toEncode)
 	toEncode = str_replace("?", "%3F", toEncode);
 }
 
-#ifdef SELBSTAUSKUNFT_WUERZBURG
 static EID_CLIENT_CONNECTION_ERROR dealWithForms(std::string *submits, int numberOfSubmits, std::string startUrl, std::string baseUrl, std::string *result){
 	std::string  strResult = "";
 	std::string url = "";
@@ -763,7 +738,6 @@ static EID_CLIENT_CONNECTION_ERROR dealWithForms(std::string *submits, int numbe
 	*result = strResult;
 	return EID_CLIENT_CONNECTION_ERROR_SUCCESS;
 }
-#endif
 
 int getAuthenticationParams2(const char *const SP_URL,
 	std::string &strIdpAddress,
@@ -988,7 +962,6 @@ int getAuthenticationParams(const char *const SP_URL,
 	return 0;
 }
 
-#ifdef SELBSTAUSKUNFT_WUERZBURG
 int getAuthenticationParamsSelbstauskunftWuerzburg(const char *const SP_URL,
 	std::string &strIdpAddress,
 	std::string &strSessionIdentifier,
@@ -1054,7 +1027,6 @@ int getAuthenticationParamsSelbstauskunftWuerzburg(const char *const SP_URL,
 	//printf("RefreshAddress\t %s\n", strRefresh.c_str());
 	return 0;
 }
-#endif
 
 int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	std::string &strIdpAddress,
@@ -1111,12 +1083,6 @@ int getAuthenticationParamsAutentApp(const char *const SP_URL,
 	return 0;
 }
 
-void printStatistics(int retValue, unsigned int size, int serverErrorCounter, time_t startTime){
-	printf("Duration for eID dialog: %f seconds\n", difftime(time(0), startTime));
-	printf("main -------------------- end of eID dialog --------------------\n");
-	printf("Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, size, serverErrorCounter);
-}
-
 int performEID(std::string strServiceURL,
 		std::string strIdpAddress, 
 		std::string strSessionIdentifier,
@@ -1132,18 +1098,27 @@ int performEID(std::string strServiceURL,
 
 	int retValue = 0;
 	
-#if SAML_VERSION == SAML_1
-	retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif SAML_VERSION == SAML_2
-	retValue = getAuthenticationParams2(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif SAML_VERSION == NO_SAML
-	strIdpAddress = strServiceURL + "mobileECardAPI";
-	strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
-#elif defined SELBSTAUSKUNFT_WUERZBURG
-	retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#elif defined AUTENTAPP
-	retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
-#endif
+	switch(SAML_VERSION){
+		case SAML_1:
+			retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+			break;
+		case SAML_2:
+			retValue = getAuthenticationParams2(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+			break;
+		case NO_SAML:
+			strIdpAddress = strServiceURL + "mobileECardAPI";
+			strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
+			break;
+		case SAML_SELBSTAUSKUNFT_WUERZBURG:
+			retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+			break;
+		case SAML_AUTENTAPP:
+			retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
+			break;
+		default:
+			break;
+	}
+
 	if(retValue != 0) return retValue;
 
 	retValue = nPAeIdPerformAuthenticationProtocol(READER_PCSC, strIdpAddress.c_str(), strSessionIdentifier.c_str(), strPathSecurityParameters.c_str(), cardReaderName.c_str(), 0x00, nPAeIdUserInteractionCallback, nPAeIdProtocolStateCallback);
@@ -1151,204 +1126,11 @@ int performEID(std::string strServiceURL,
 	if(retValue != NPACLIENT_ERROR_SUCCESS) return retValue;
 	if(g_samlResponseReturncode != 0) return NPACLIENT_ERRO;
 
-#if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
-	retValue = getSamlResponse2(response);
-#endif
+	if(SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML
+		|| SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG 
+		|| SAML_VERSION == SAML_AUTENTAPP){
+		retValue = getSamlResponse2(response);
+	}
+	
 	return retValue;
 }
-
-#ifndef AS_LIBRARY
-int main(int argc, char **argv)
-{
-	int loopCount = 1;
-	int retValue = 0;
-	int serverErrorCounter = 0;
-	char buffer[500];
-	std::vector<double> diffv;
-
-#ifdef SELBSTAUSKUNFT_WUERZBURG
-	const char default_serviceURL[] = "https://www.buergerserviceportal.de/bayern/wuerzburg/bspx_selbstauskunft";
-#elif defined AUTENTAPP
-	const char default_serviceURL[] = "https://www.autentapp.de/AusweisAuskunft/WebServiceRequesterServlet?mode=autentappde";
-#else
-	const char default_serviceURL[] = "https://eidservices.bundesdruckerei.de"
-		":443"
-		"/ExampleSP/saml/Login?demo=Authentication+Request+Show-PKI";
-#endif
-	const char *serviceURL = default_serviceURL;
-	std::string cardReaderName;
-
-	std::string usageString = "Usage: ";
-	usageString.append(argv[0]);
-	usageString.append(" [OPTIONS]\n"
-	"\tOptions:\n"
-	"\t\t-s : Service Provider URL\n"
-	"\t\t-c : Part of Card Reader Name (This parameter may consist of multiple strings)\n"
-	"\t\t-p : PIN\n"
-	"\t\t-l : Loopcount\n"
-	"\t\t-a : Cancel after PAOS connection establishment\n"
-	"\t\t-v : Debug level (verbosity) as a number. Debug levels are:\n"
-	"\t\t\t APDU :\t\t1\n"
-	"\t\t\t CRYPTO :\t2\n"
-	"\t\t\t SSL :\t\t4\n"
-	"\t\t\t PAOS :\t\t8\n"
-	"\t\t\t CARD :\t\t16\n"
-	"\t\t\t CLIENT :\t32\n"
-	"\t\t\t To choose multiple Debug Levels at the same time, just sum "
-	"the corresponding numbers and take the result as parameter.\n");
-
-	USED_DEBUG_LEVEL = 0;
-	CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 0;
-	int c;
-	bool appendToCardReaderName = false;
-	while ((c = getopt (argc, argv, "-s:p:l:av:c:")) != -1){
-		if(c != 1){
-			appendToCardReaderName = false;
-		}
-		switch (c){
-			case 's':
-				serviceURL = optarg;
-				break;
-			case 'p':
-				pin = optarg;
-				break;
-			case 'l':
-				loopCount = atoi(optarg);
-				break;
-			case 'v':
-				USED_DEBUG_LEVEL = atoi(optarg);
-				break;
-			case 'a':
-				CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 1;
-				break;
-			case 'c':
-				cardReaderName.append(optarg);
-				appendToCardReaderName = true;
-				break;
-			//Get all the strings of the Card Reader Name
-			case 1:
-				if(appendToCardReaderName == true){
-					cardReaderName.push_back(' ');
-					cardReaderName.append(optarg);
-					break;
-				} else {
-					printf(usageString.c_str());
-					printf("Unknown non-option argument: %s\n", optarg);
-					return 1;
-				}
-			case '?':
-				printf(usageString.c_str());
-				if (isprint (optopt))
-				  fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-				else
-				  fprintf (stderr,
-						   "Unknown option character `\\x%x'.\n",
-						   optopt);
-				return 1;
-			default:
-				printf(usageString.c_str());
-				return 1;
-		}
-	}
-
-	printf("Connection Parameters:\n");
-	printf("SP URL\t\t%s\n", serviceURL);
-	printf("eID PIN\t\t%s\n", pin);
-	printf("Cardreader Substring\t%s\n", cardReaderName.c_str());
-	printf("Loop Count\t%i\n", loopCount);
-	printf("Debug Level\t%i\n", USED_DEBUG_LEVEL);
-
-	int n = 0;
-	srand(time(0));
-	time_t loopStart = time(0);
-	while (n < loopCount) {
-		time_t startTime = time(0);
-		retValue = 0;
-		++n;
-		std::string strServiceURL(serviceURL);
-		std::string strIdpAddress(strServiceURL);
-		std::string strSessionIdentifier = static_cast<std::ostringstream*>( &(std::ostringstream() << rand()) )->str();
-		std::string strPathSecurityParameters("");
-		std::string strRef("");
-		std::string response;
-
-		printf("main -------------------- start of %d. eID dialog --------------------\n", n);
-
-		retValue = performEID(strServiceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters,
-			strRef, cardReaderName, response);
-
-		//retValue may also be NPACLIENT_ERROR_SUCCESS or ECARD_SUCCESS. These are both also 0.
-		if(retValue != 0)
-		{
-			printf("%s:%d Error %08lX\n", __FILE__, __LINE__, retValue);
-			serverErrorCounter++;
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
-			continue;
-		}
-#if SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML || defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
-#if !defined SELBSTAUSKUNFT_WUERZBURG && !defined AUTENTAPP
-		printf(response.c_str());
-#endif
-#endif
-
-		if (response.find("<errorStatus>") != std::string::npos || response.find("ResultMajor>http://www.bsi.bund.de/ecard/api/1.1/resultmajor#error<") != std::string::npos ) {
-			// In case of faulty eID dialog the Service Provider shows via
-			// SAML-IF a <errorStatus> element
-			// SOAP-IF a <ResultMajor> element with content "http://www.bsi.bund.de/ecard/api/1.1/resultmajor#error"
-			printf("%s:%d Error: eID dialog with an error result detected\n", __FILE__, __LINE__);
-			serverErrorCounter++;
-		}
-
-		//FIXME: We have to push_back sometime, otherwise statistic output is faulty
-		diffv.push_back(difftime(time(0), startTime));
-
-#if defined AUTENTAPP
-		int found = response.find("<html");
-
-		if (found != std::string::npos) {
-			response = response.substr(found);
-		} else {
-			printf("%s:%d Error\n", __FILE__, __LINE__);
-			printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
-			return -2;
-		}
-#endif
-
-#if defined SELBSTAUSKUNFT_WUERZBURG || defined AUTENTAPP
-		std::stringstream stream;
-		response = str_replace_ifnot("\"", "\\\"", "\\\"", response);
-		stream <<"echo \""<<response.c_str()<<"\" | lynx -stdin -xhtml-parsing";
-		if(system(stream.str().c_str()))
-			printf(response.c_str());
-#endif
-
-		printStatistics(retValue, (unsigned int) diffv.size(), serverErrorCounter, startTime);
-
-		printf("Wait 2 seconds before next request....\n");
-#if defined(WIN32)
-        Sleep(2000);
-#else
-		usleep(2000);
-// as long as a bug in libc++ prevents clang from including chrono correctly, use usleep.
-// but chrono is the more portable way, as its c++11 standard
-//        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-#endif
-
-	}
-
-	std::vector<double>::iterator it;
-	double diffSum = 0;
-
-	for (it = diffv.begin(); it != diffv.end(); ++it) {
-		diffSum += *it;
-	}
-
-	printf("Overall duration for all %d eID dialogs: %f seconds\n", loopCount, (difftime(time(0), loopStart)));
-	printf("Average time for %d eID dialogs: %f seconds\n",
-	   	diffv.size(), (diffv.size()==0 ? 0 : diffSum/diffv.size()));
-	sprintf(buffer, "########## Error Code: %X - Read Count: %u - Server Errors: %u\n", retValue, (unsigned int) diffv.size(), serverErrorCounter);
-	puts(buffer);
-	if (retValue != 0x00000000) std::exit(EXIT_FAILURE);
-	std::exit(EXIT_SUCCESS);
-}
-#endif
