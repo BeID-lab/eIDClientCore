@@ -531,6 +531,13 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionTransceiveHTTP(void *connectionHa
 	header.size = 0;
 	body.memory = (char*) malloc(1);
 	body.size = 0;
+	
+	/* For debugging curl: Display the url, which curl is going to use
+	char *urlp;
+	curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &urlp);
+	if(urlp != NULL)
+		printf("curl url: <<%s>>\n", urlp);
+	*/
 
 	//if(dataLength > 0 && data[0] == '<') /* SAML1 don't working */
 	if(dataLength > 0 )

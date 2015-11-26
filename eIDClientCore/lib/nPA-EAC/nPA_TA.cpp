@@ -2,6 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
+#include "nPACommon.h"
+
 #include "nPAAPI.h"
 #include "nPAStatus.h"
 #include "nPACard.h"
@@ -12,7 +14,6 @@
 #include "PACEDomainParameterInfo.h"
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
-#include "nPACommon.h"
 
 #include <cstdio>
 #include <fstream>
