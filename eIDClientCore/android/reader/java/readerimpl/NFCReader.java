@@ -5,18 +5,37 @@
 package de.bdr.readerimpl;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
+import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import de.bdr.eidclient.Logging;
 import de.bdr.reader.Reader;
 
 public class NFCReader implements Reader {
+	private static final String TAG = NFCReader.class.getSimpleName();
+	public static final String NFC_A_STRING = "android.nfc.tech.NfcA";
+	public static final String NFC_B_STRING = "android.nfc.tech.NfcB";
+	public static final byte NFC_A = 1;
+	public static final byte NFC_B = 2;
 
 	private IsoDep icc;
-	private static final String TAG = NFCReader.class.getSimpleName();
+	private byte tech = 0;
 
 	public NFCReader(IsoDep icc) {
 		this.icc = icc;
+
+		Tag tag = icc.getTag();
+
+		if (tag != null) {
+			List<String> techList = Arrays.asList(tag.getTechList());
+			if (techList.contains(NFC_A_STRING)) {
+				tech = NFC_A;
+			} else if (techList.contains(NFC_B_STRING)) {
+				tech = NFC_B;
+			}
+		}
 
 		Logging.d(
 				TAG,
@@ -69,8 +88,14 @@ public class NFCReader implements Reader {
 	@Override
 	public byte[] getATR() {
 		Logging.d(TAG, "Reader get ATR");
-		// byte[] atr = icc.getHistoricalBytes();
-		byte[] atr = new byte[] { 0 };
+		byte[] atr;
+		if (NFC_A == tech) {
+			atr = icc.getHistoricalBytes();
+		} else if (NFC_B == tech) {
+			atr = icc.getHiLayerResponse();
+		} else {
+			atr = new byte[] { 0 };
+		}
 		Logging.d(TAG, "ATR: " + Util.bytesToHex(atr));
 		return atr;
 	}

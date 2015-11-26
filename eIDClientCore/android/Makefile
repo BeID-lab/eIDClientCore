@@ -86,11 +86,11 @@ $(LIBCRYPTO): $(CRYPTO_MAKEFILE)
 
 $(LIBCRYPTOPP):
 	svn checkout https://svn.code.sf.net/p/cryptopp/code/trunk/c5 $(CRYPTOPP_DIR)
-	cd $(CRYPTOPP_DIR) ;\
-	wget https://www.cryptopp.com/w/images/0/0a/Setenv-android.sh.zip --ca-certificate=../../trusted_ca/CAcert.pem ;\
-	unzip Setenv-android.sh.zip ;\
-	sed -i 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh ;\
-	. ./setenv-android.sh ;\
+	cd $(CRYPTOPP_DIR) &&\
+	wget https://www.cryptopp.com/w/images/0/0a/Setenv-android.sh.zip --ca-certificate=../../trusted_ca/CAcert.pem &&\
+	unzip Setenv-android.sh.zip &&\
+	sed -i'' 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh &&\
+	. ./setenv-android.sh &&\
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -f GNUmakefile-cross PREFIX=$(ANDROID_TARGETDIR) \
 			IS_ANDROID=1 ANDROID_STL_INC=$(ANDROID_TOOL_DIR)/include/g++ dynamic static install

@@ -9,12 +9,20 @@
 #include <time.h>
 #include <stdlib.h>
 #include "debug.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 unsigned char USED_DEBUG_LEVEL;
+
+//time measurement
+#ifdef _WIN32
+static FILETIME ft;
+static uint64_t timeValueStart = 0;
+static uint64_t timeValueStop = 0;
+#endif
 
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 #include <windows.h>
@@ -163,6 +171,32 @@ void _hexdump(const char *const caption,
 			done += BYTES_PER_LINE;
 			p += BYTES_PER_LINE;
 		}
+}
+
+//start time measurement, only one level is supported
+void _startTimer(){
+#ifdef _WIN32
+	GetSystemTimeAsFileTime(&ft);
+	timeValueStart = ft.dwHighDateTime;
+	timeValueStart <<= 32;
+	timeValueStart |= ft.dwLowDateTime;
+#endif
+}
+
+//stop time measurement and debug time difference in usec
+void _stopTimer(){
+#ifdef _WIN32
+	char line[35];
+
+	GetSystemTimeAsFileTime(&ft);
+	timeValueStop = ft.dwHighDateTime;
+	timeValueStop <<= 32;
+	timeValueStop |= ft.dwLowDateTime;
+
+	timeValueStop -= timeValueStart;
+	sprintf(line, "Card Operation time: %llu usec\n",timeValueStop/10);
+	OutputDebugStringA(line);
+#endif
 }
 
 void _eCardCore_info(const char *format, ...)

@@ -16,7 +16,7 @@ ICard::~ICard()
 
 void ICard::debug_CAPDU(const char *label, const CAPDU& capdu) const
 {
-	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sC-APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-5u  Ne=%u",
+	eCardCore_info(DEBUG_LEVEL_APDU, "%s%sC-APDU:  CLA=%02X  INS=%02X  P1=%02X  P2=%02X  Nc=%-' '5u  Ne=%u",
 			label, label ? " " : "", capdu.getCLA(), capdu.getINS(), capdu.getP1(),
 			capdu.getP2(), capdu.getData().size(), capdu.getNe());
 	hexdump(DEBUG_LEVEL_APDU, NULL,
@@ -33,7 +33,7 @@ void ICard::debug_RAPDU(const char *label, const RAPDU& rapdu) const
 }
 
 std::vector<std::vector<unsigned char> >
-ICard::get_buffers(std::vector<CAPDU> apdus)
+ICard::get_buffers(const std::vector<CAPDU> & apdus)
 {
 	std::vector<std::vector<unsigned char> > buffers;
 
@@ -46,7 +46,7 @@ ICard::get_buffers(std::vector<CAPDU> apdus)
 }
 
 std::vector<RAPDU>
-ICard::get_rapdus(std::vector<std::vector<unsigned char> > buffers)
+ICard::get_rapdus(const std::vector<std::vector<unsigned char> > & buffers)
 {
 	std::vector<RAPDU> rapdus;
 

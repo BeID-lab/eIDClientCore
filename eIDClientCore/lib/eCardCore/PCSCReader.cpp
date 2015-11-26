@@ -59,7 +59,7 @@ PCSCReader::PCSCReader(
 
 	if ((retValue = SCardEstablishContext(/*SCARD_SCOPE_USER*/ SCARD_SCOPE_SYSTEM,
 					0x0, 0x0, &m_hScardContext)) != SCARD_S_SUCCESS)
-		eCardCore_warn(DEBUG_LEVEL_CARD,  "SCardEstablishContext failed. 0x%08X (%s:%d)", retValue,
+		eCardCore_warn(DEBUG_LEVEL_READER,  "SCardEstablishContext failed. 0x%08X (%s:%d)", retValue,
 					   __FILE__, __LINE__);
 
 #if defined(UNICODE) || defined(_UNICODE)
@@ -75,7 +75,7 @@ PCSCReader::PCSCReader(
 #endif
 
 	if (retValue != SCARD_S_SUCCESS) {
-		eCardCore_warn(DEBUG_LEVEL_CARD,  "SCardConnect for %s failed. 0x%08X (%s:%d)",
+		eCardCore_warn(DEBUG_LEVEL_READER,  "SCardConnect for %s failed. 0x%08X (%s:%d)",
 					   m_readerName.c_str(), retValue,  __FILE__, __LINE__);
 	}
 
@@ -88,7 +88,7 @@ PCSCReader::PCSCReader(
 							recvbuf, sizeof(recvbuf), &recvlen);
 
 	if (retValue != SCARD_S_SUCCESS) {
-		eCardCore_warn(DEBUG_LEVEL_CARD,  "SCardControl for the reader's features failed. 0x%08X (%s:%d)",
+		eCardCore_warn(DEBUG_LEVEL_READER,  "SCardControl for the reader's features failed. 0x%08X (%s:%d)",
 					   retValue,  __FILE__, __LINE__);
 
 	} else {
@@ -98,7 +98,7 @@ PCSCReader::PCSCReader(
 	}
 
 	if (0 == m_ioctl_pace) {
-		eCardCore_info(DEBUG_LEVEL_CARD, "Reader does not support PACE");
+		eCardCore_info(DEBUG_LEVEL_READER, "Reader does not support PACE");
 
 	} else {
 		/* convert to host byte order to use for SCardControl */
@@ -106,17 +106,17 @@ PCSCReader::PCSCReader(
 
 		std::vector<unsigned char> sendbuf = getReadersPACECapabilities_getBuffer();
 
-		hexdump(DEBUG_LEVEL_CARD, "Execute PACE Input Data (FUNCTION=GetReadersPACECapabilities)", DATA(sendbuf), sendbuf.size());
+		hexdump(DEBUG_LEVEL_READER, "Execute PACE Input Data (FUNCTION=GetReadersPACECapabilities)", DATA(sendbuf), sendbuf.size());
 		recvlen = sizeof(recvbuf);
 		retValue = SCardControl(m_hCard, m_ioctl_pace, DATA(sendbuf), sendbuf.size(),
 								recvbuf, sizeof(recvbuf), &recvlen);
-		hexdump(DEBUG_LEVEL_CARD, "Execute PACE Output Data (FUNCTION=GetReadersPACECapabilities)", recvbuf, recvlen);
+		hexdump(DEBUG_LEVEL_READER, "Execute PACE Output Data (FUNCTION=GetReadersPACECapabilities)", recvbuf, recvlen);
 
 		if (retValue == SCARD_S_SUCCESS) {
 			if (!getReadersPACECapabilities_supportsPACE(recvbuf, recvlen))
 				m_ioctl_pace = 0;
 		} else {
-			eCardCore_warn(DEBUG_LEVEL_CARD, "Error executing GetReadersPACECapabilities");
+			eCardCore_warn(DEBUG_LEVEL_READER, "Error executing GetReadersPACECapabilities");
 			m_ioctl_pace = 0;
 		}
 	}
@@ -184,15 +184,25 @@ std::vector <unsigned char> PCSCReader::transceive(
 	std::vector <unsigned char> result;
 
 	if (0x00 == m_hCard) {
-		eCardCore_info(DEBUG_LEVEL_CARD, "Not connected to any card");
+		eCardCore_info(DEBUG_LEVEL_READER, "Not connected to any card");
 		throw WrongHandle();
 	}
+
+	hexdump(DEBUG_LEVEL_READER, "SCardTransmit data", DATA(cmd), cmd.size());
+
+	//startTimer on Smartcard Operationtime if Debugging
+	startTimer();
 
 	r = SCardTransmit(m_hCard, SCARD_PCI_T1, DATA(cmd),
 					  (DWORD) cmd.size(), NULL, res, &reslen);
 
+	//stopTimer on Smartcard Operationtime if Debugging
+	stopTimer();
+
 	if (r != SCARD_S_SUCCESS)
 		throw TransactionFailed();
+
+	hexdump(DEBUG_LEVEL_READER, "SCardTransmit response", res, reslen);
 
 	return std::vector<unsigned char>(res, res + reslen);
 }
@@ -248,11 +258,11 @@ PaceOutput PCSCReader::establishPACEChannelNative(const PaceInput &input)
 
 	std::vector<unsigned char> sendbuf = establishPACEChannel_getBuffer(input);
 
-	hexdump(DEBUG_LEVEL_CARD, "Execute PACE Input Data (FUNCTION=EstabishPACEChannel)", DATA(sendbuf), sendbuf.size());
+	hexdump(DEBUG_LEVEL_READER, "Execute PACE Input Data (FUNCTION=EstabishPACEChannel)", DATA(sendbuf), sendbuf.size());
 	recvlen = sizeof(recvbuf);
 	r = SCardControl(m_hCard, m_ioctl_pace, DATA(sendbuf), sendbuf.size(),
 					 recvbuf, sizeof(recvbuf), &recvlen);
-	hexdump(DEBUG_LEVEL_CARD, "Execute PACE Output Data (FUNCTION=EstabishPACEChannel)", recvbuf, recvlen);
+	hexdump(DEBUG_LEVEL_READER, "Execute PACE Output Data (FUNCTION=EstabishPACEChannel)", recvbuf, recvlen);
 
 	return establishPACEChannel_parseBuffer(recvbuf, recvlen);
 }

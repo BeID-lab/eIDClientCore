@@ -17,6 +17,8 @@ extern "C" {
 #define DEBUG_LEVEL_PAOS   0x08
 #define DEBUG_LEVEL_CARD   0x10
 #define DEBUG_LEVEL_CLIENT 0x20
+#define DEBUG_LEVEL_READER 0x40
+#define DEBUG_LEVEL_TIME   0x80
 #define DEBUG_LEVEL_ALL    (DEBUG_LEVEL_APDU|DEBUG_LEVEL_CRYPTO|DEBUG_LEVEL_SSL|DEBUG_LEVEL_PAOS|DEBUG_LEVEL_CARD|DEBUG_LEVEL_CLIENT)
 extern unsigned char USED_DEBUG_LEVEL;
 
@@ -29,6 +31,10 @@ extern unsigned char USED_DEBUG_LEVEL;
 
 #define hexdump(level, caption, buffer, length) { \
 		if (level & USED_DEBUG_LEVEL) _hexdump(caption, buffer, length); }
+#define startTimer(){ \
+	    if ( DEBUG_LEVEL_TIME & USED_DEBUG_LEVEL) _startTimer(); }
+#define stopTimer(){ \
+	    if ( DEBUG_LEVEL_TIME & USED_DEBUG_LEVEL) _stopTimer(); }
 #define eCardCore_info(level, ...) { \
 		if (level & USED_DEBUG_LEVEL) _eCardCore_info(__VA_ARGS__); }
 #define eCardCore_warn(level, ...) { \
@@ -48,6 +54,8 @@ void timestamp();
 #endif
 void _hexdump(const char *const caption,
 		const void *const buffer, size_t length);
+void _startTimer();
+void _stopTimer();
 void _eCardCore_info(const char *format, ...);
 void _eCardCore_warn(const char *format, ...);
 void _eCardCore_debug(const char *format, ...);

@@ -3,7 +3,7 @@
  */
 
 #if !defined(__NPASTATUS_INCLUDED__)
-#define _NPASTATUS_INCLUDED__
+#define __NPASTATUS_INCLUDED__
 
 #define EAC_INFO    0x21000000
 #define EAC_WARNING 0x22000000

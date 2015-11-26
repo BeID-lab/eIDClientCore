@@ -21,9 +21,9 @@ class ICard: public Transceiver<CAPDU, RAPDU>
 			const ICard &);
 
 		std::vector<std::vector<unsigned char> > get_buffers(
-				std::vector<CAPDU> apdus);
+				const std::vector<CAPDU> & apdus);
 		std::vector<RAPDU> get_rapdus(
-				std::vector<std::vector<unsigned char> > buffers);
+				const std::vector<std::vector<unsigned char> > & buffers);
 
 	protected:
 		IReader *m_subSystem;

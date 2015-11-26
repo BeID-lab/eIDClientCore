@@ -136,6 +136,16 @@ class ReadBinary : public DataUnitAPDU
 		ReadBinary(void);
 };
 
+class UpdateBinary : public DataUnitAPDU
+{
+	public:
+		static const unsigned char INS_READ_BINARY = 0xD6;
+
+		UpdateBinary(size_t offset, unsigned char sfid);
+		UpdateBinary(size_t offset);
+		UpdateBinary(void);
+};
+
 class SecurityCAPDU : public CAPDU
 {
 	public:
@@ -253,6 +263,8 @@ class RAPDU
 		static const size_t         RAPDU_SHORT_MAX    = DATA_SHORT_MAX + 2;
 
 		static const unsigned short ISO_SW_NORMAL      = 0x9000;
+		static const unsigned char  ISO_SW_1_NORMAL    = 0x90;
+		static const unsigned char  ISO_SW_2_NORMAL    = 0x00;
 
 		RAPDU(const std::vector<unsigned char> rapdu);
 		RAPDU(const std::vector<unsigned char> rdata, unsigned short sw);
