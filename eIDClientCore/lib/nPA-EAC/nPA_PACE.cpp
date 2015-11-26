@@ -2,6 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
+#include "nPACommon.h"
+
 #include "nPAAPI.h"
 #include "nPAStatus.h"
 #include "nPACard.h"
@@ -13,7 +15,6 @@
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 #include <ECParameters.h>
-#include "nPACommon.h"
 #include <CertificateDescription.h>
 #include <EstablishPACEChannelInput.h>
 #include <EstablishPACEChannelOutput.h>

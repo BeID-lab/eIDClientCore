@@ -22,12 +22,20 @@ ifdef(
 	]
 )
 
+AC_ARG_ENABLE([android],
+              [AS_HELP_STRING([--enable-android],[enable cross-compiling for android @<:@default=no@:>@])],
+              ,
+              [enable_android="no"])
+
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PATH_PROG(ASN1C, asn1c, false // Could not find asn1c //)
-AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
+# Do not use special C++11 settings when cross-compiling for android
+AS_IF([test "x$enable_android" = "xno"], [
+	AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
+])
 AX_PTHREAD([], AC_MSG_ERROR([pthread required])])
 AX_CHECK_OPENSSL([AC_MSG_NOTICE([openssl found])], [AC_MSG_WARN([openssl not found])])
 LIBCURL_CHECK_CONFIG()
@@ -167,7 +175,10 @@ AC_TYPE_SSIZE_T
 AC_TYPE_UINT32_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
+# Do not use malloc settings when cross-compiling for android
+AS_IF([test "x$enable_android" = "xno"], [
+	AC_FUNC_MALLOC
+])
 AC_FUNC_MKTIME
 AC_CHECK_FUNCS([memset select socket strchr strdup strerror strstr strtoul])
 #AC_CHECK_DECL(pthread_cancel,,, [#include <pthread.h>])

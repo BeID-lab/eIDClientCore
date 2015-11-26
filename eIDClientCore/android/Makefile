@@ -90,11 +90,9 @@ $(LIBCRYPTOPP):
 	wget https://www.cryptopp.com/w/images/0/0a/Setenv-android.sh.zip --ca-certificate=../../trusted_ca/CAcert.pem ;\
 	unzip Setenv-android.sh.zip ;\
 	sed -i 's/^_ANDROID_API=\"android-.*/_ANDROID_API=\"'$(ANDROID_API)'\"/' setenv-android.sh ;\
-	wget https://www.cryptopp.com/w/images/a/a0/Cryptopp-mobile.zip --ca-certificate=../../trusted_ca/CAcert.pem ;\
-	unzip -o Cryptopp-mobile.zip;\
 	. ./setenv-android.sh ;\
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
-		$(MAKE) PREFIX=$(ANDROID_TARGETDIR) \
+		$(MAKE) -f GNUmakefile-cross PREFIX=$(ANDROID_TARGETDIR) \
 			IS_ANDROID=1 ANDROID_STL_INC=$(ANDROID_TOOL_DIR)/include/g++ dynamic static install
 
 $(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
@@ -102,7 +100,7 @@ $(LIBEIDCLIENTCORE): $(LIBEXPAT) $(LIBCURL) $(LIBCRYPTOPP)
 	$(MAKE) crosscommand
 			
 crosscommand:
-	$(MAKE) cross builddir=$(EIDCLIENTCORE_DIR) EXTRA_OPTS="--enable-reader-external CRYPTOPP_LIBS=-lcryptopp CFLAGS='-D_EMULATE_TIMEGM'" \
+	$(MAKE) cross builddir=$(EIDCLIENTCORE_DIR) EXTRA_OPTS="--enable-reader-external --enable-android CRYPTOPP_LIBS=-lcryptopp CFLAGS='-D_EMULATE_TIMEGM'" \
 		|| env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			$(MAKE) -C $(EIDCLIENTCORE_DIR)/lib install DESTDIR=$(ANDROID_TARGETDIR)
 	
@@ -132,6 +130,9 @@ cross:
 	test -x $(builddir)/configure \
 		|| (cd $(builddir) && autoreconf -vis)
 	# We should always reconfigure. It could be, that the Makefile was created by the Linux compiling process
+ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
+	$(MAKE) -C $(EIDCLIENTCORE_DIR) clean || test ! -f $(builddir)/Makefile
+endif
 	(cd $(builddir) \
 			&& env ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 			./configure \
@@ -143,9 +144,6 @@ cross:
 			CPPFLAGS="-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TOOL_DIR)/include/gabi++/include -I$(ANDROID_TARGETDIR)/include" \
 			CXXFLAGS="-I$(ANDROID_TOOL_DIR)/include/g++ -lstlport_shared" \
 			LDFLAGS="-L$(ANDROID_TOOL_DIR)/lib -L$(ANDROID_TOOL_DIR)/sysroot/usr/lib -L$(ANDROID_TARGETDIR)/lib")
-ifeq ($(builddir),$(EIDCLIENTCORE_DIR))
-	$(MAKE) -C $(EIDCLIENTCORE_DIR) clean
-endif
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \
 		$(MAKE) -C $(builddir)
 	env PATH=$(ANDROID_TOOL_DIR)/bin:$${PATH} \

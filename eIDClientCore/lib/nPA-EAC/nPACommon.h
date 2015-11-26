@@ -5,10 +5,10 @@
 #if !defined(__NPACOMMON_INCLUDED__)
 #define __NPACOMMON_INCLUDED__
 
+#include "../crypto.h"
+
 #include <vector>
 #include <AlgorithmIdentifier.h>
-
-#include "../crypto.h"
 
 /**
  */
