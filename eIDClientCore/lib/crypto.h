@@ -2,6 +2,9 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
+#if !defined(__CRYPTO_INCLUDED__)
+#define __CRYPTO_INCLUDED__
+
 #if defined(WIN32)
 // CRYPTOPP includes
 #include <cryptopp-5.6.0/sha.h>
@@ -33,3 +36,5 @@ using CryptoPP::AutoSeededRandomPool;
 using CryptoPP::ECP;
 using CryptoPP::SHA1;
 using CryptoPP::SHA224;
+
+#endif

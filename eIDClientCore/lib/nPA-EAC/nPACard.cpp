@@ -2,8 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
-#include "nPACard.h"
 #include "nPACommon.h"
+#include "nPACard.h"
 
 static std::vector<unsigned char> buildDO87_AES(
 	const std::vector<unsigned char>& kEnc,

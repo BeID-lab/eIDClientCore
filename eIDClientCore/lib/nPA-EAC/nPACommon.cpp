@@ -2,8 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
-#include "eCardCore/ICard.h"
 #include "nPACommon.h"
+#include "eCardCore/ICard.h"
 #include "eidasn1/eIDHelper.h"
 #include "eidasn1/eIDOID.h"
 

@@ -2,6 +2,8 @@
  * Copyright (C) 2012 Bundesdruckerei GmbH
  */
 
+#include "../crypto.h"
+
 #include "eIDClientCore.h"
 #include "eIDECardClientPAOS.h"
 
@@ -14,8 +16,6 @@
 #include <CVCertificate.h>
 #include <eIDOID.h>
 #include <eIDHelper.h>
-
-#include "../crypto.h"
 
 #include "eIDUtils.h"
 using namespace Bundesdruckerei::eIDUtils;
