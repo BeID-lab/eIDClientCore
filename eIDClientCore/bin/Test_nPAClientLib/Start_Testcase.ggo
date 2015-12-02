@@ -1,0 +1,21 @@
+# Options
+option "service-provider" s "Service Provider URL" string typestr="URL" optional
+
+option "testcase" t "SAML/Testcase selection. This option is mandatory." values="No_SAML","SAML_1","SAML_2","Selbstauskunft_Wuerzburg","AutentApp" enum typestr="Testcase" required
+
+option "card-reader" c "Part of Card Reader Name. If the Card Reader Name contains spaces, embrace it with quotes, i.e. \"Card Reader Name\"" string optional
+
+option "pin" p "PIN" string optional
+
+option "loopcount" l "Loopcount" int optional
+
+option "cancel-after-paos" a "Cancel after PAOS connection establishment." flag off
+
+option "debug-level" v "Debug level (verbosity) as a number. Debug levels are:\n\
+\tAPDU :\t\t1\n\
+\tCRYPTO :\t2\n\
+\tSSL :\t\t4\n\
+\tPAOS :\t\t8\n\
+\tCARD :\t\t16\n\
+\tCLIENT :\t32\n\
+To choose multiple Debug Levels at the same time, just sum the corresponding numbers and take the result as parameter." int optional default="0"

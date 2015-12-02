@@ -20,7 +20,7 @@ libTest_nPAClientLib_la_CPPFLAGS	+= $(PTHREAD_CFLAGS)
 libTest_nPAClientLib_la_LIBADD		+= $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)
 endif
 
-Start_Testcase_SOURCES 	= Start_Testcase.cpp
+Start_Testcase_SOURCES 	= Start_Testcase.cpp cmdline.c
 Start_Testcase_CPPFLAGS	= -I$(top_srcdir)/lib
 Start_Testcase_LDADD	= $(top_builddir)/bin/Test_nPAClientLib/libTest_nPAClientLib.la \
 			  $(top_builddir)/lib/eIDClientCore/libeIDClientCore.la
