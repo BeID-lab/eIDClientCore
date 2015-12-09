@@ -4,6 +4,15 @@ bin_PROGRAMS = Start_Testcase
 noinst_HEADERS = eidui_cli.h
 include_HEADERS = Test_nPAClientLib.h
 
+if HAS_GENGETOPT
+BUILT_SOURCES = cmdline.c #cmdline.h is generated implicitly
+cmdline.c: Start_Testcase.ggo
+	gengetopt --include-getopt < Start_Testcase.ggo
+
+clean-local:
+	touch Start_Testcase.ggo #Do not delete cmdline.c and cmdline.h, but trigger rebuild of these two files
+endif
+
 libTest_nPAClientLib_la_SOURCES		= Test_nPAClientLib.cpp eidui_cli.cpp
 libTest_nPAClientLib_la_CPPFLAGS	= $(EXPAT_CFLAGS) \
 					-I$(top_srcdir)/lib \

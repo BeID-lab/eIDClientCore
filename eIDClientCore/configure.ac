@@ -32,6 +32,12 @@ AC_PROG_CXX
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PATH_PROG(ASN1C, asn1c, false // Could not find asn1c //)
+AC_CHECK_PROG(GENGETOPT_CHECK,gengetopt,yes)
+AM_CONDITIONAL([HAS_GENGETOPT], [test "${GENGETOPT_CHECK}" = "yes"])
+if test x"$GENGETOPT_CHECK" != x"yes" ; then
+	AC_MSG_WARN([Please install gengetopt before installing.])
+fi
+
 # Do not use special C++11 settings when cross-compiling for android
 AS_IF([test "x$enable_android" = "xno"], [
 	AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
