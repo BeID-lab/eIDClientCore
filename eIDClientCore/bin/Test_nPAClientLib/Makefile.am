@@ -1,5 +1,6 @@
 lib_LTLIBRARIES = libTest_nPAClientLib.la
 bin_PROGRAMS = Start_Testcase
+dist_bin_SCRIPTS = load_test.bash
 
 noinst_HEADERS = eidui_cli.h
 include_HEADERS = Test_nPAClientLib.h
