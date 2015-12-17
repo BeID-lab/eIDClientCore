@@ -5,17 +5,13 @@
 #   include <wincrypt.h>
 #else
 # include <unistd.h>
-# include <pthread.h>
 #endif
 
 #include <vector>
 #include <sstream>
 
 #include <string>
-#include <fstream>
-#include <streambuf>
 
-#include <getopt.h>
 #include <ctype.h>
 
 #include <debug.h>
@@ -41,110 +37,33 @@ int main(int argc, char **argv)
 	std::string cardReaderName;
 	
 	pin = NULL;
-
-	std::string usageString = "Usage: ";
-	usageString.append(argv[0]);
-	usageString.append(" [OPTIONS]\n"
-	"\tOptions:\n"
-	"\t\t-s : Service Provider URL\n"
-	"\t\t-t : SAML/Testcase selection. This option is mandatory. Testcases are:\n"
-	"\t\t\t NO_SAML :\t\t\t1\n"
-	"\t\t\t SAML_1 :\t\t\t2\n"
-	"\t\t\t SAML_2 :\t\t\t3\n"
-	"\t\t\t Selbstauskunft Würzburg :\t4\n"
-	"\t\t\t AutentApp :\t\t\t5\n"
-	"\t\t-c : Part of Card Reader Name (This parameter may consist of multiple strings)\n"
-	"\t\t-p : PIN\n"
-	"\t\t-l : Loopcount\n"
-	"\t\t-a : Cancel after PAOS connection establishment\n"
-	"\t\t-v : Debug level (verbosity) as a number. Debug levels are:\n"
-	"\t\t\t APDU :\t\t1\n"
-	"\t\t\t CRYPTO :\t2\n"
-	"\t\t\t SSL :\t\t4\n"
-	"\t\t\t PAOS :\t\t8\n"
-	"\t\t\t CARD :\t\t16\n"
-	"\t\t\t CLIENT :\t32\n"
-	"\t\t\t To choose multiple Debug Levels at the same time, just sum "
-	"the corresponding numbers and take the result as parameter.\n");
-
-	USED_DEBUG_LEVEL = 0;
-	CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 0;
-	int c;
-	bool appendToCardReaderName = false;
-	bool testCaseSet = false;
-	while ((c = getopt (argc, argv, "-s:t:p:l:av:c:")) != -1){
-		if(c != 1){
-			appendToCardReaderName = false;
-		}
-		switch (c){
-			case 's':
-				serviceURL = optarg;
-				break;
-			case 't':
-				{
-					int givenSamlVersion = atoi(optarg);
-					if(givenSamlVersion >= 1 && givenSamlVersion <= 5){
-						SAML_VERSION = givenSamlVersion;
-						testCaseSet = true;
-					} else {
-						fprintf(stderr, "Value for testcase must be one from 1 to 5.\n");
-						return 1;
-					}
-					break;
-				}
-			case 'p':
-				pin = optarg;
-				break;
-			case 'l':
-				loopCount = atoi(optarg);
-				break;
-			case 'v':
-				USED_DEBUG_LEVEL = atoi(optarg);
-				break;
-			case 'a':
-				CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = 1;
-				break;
-			case 'c':
-				cardReaderName.append(optarg);
-				appendToCardReaderName = true;
-				break;
-			//Get all the strings of the Card Reader Name
-			case 1:
-				if(appendToCardReaderName == true){
-					cardReaderName.push_back(' ');
-					cardReaderName.append(optarg);
-					break;
-				} else {
-					printf(usageString.c_str());
-					printf("Unknown non-option argument: %s\n", optarg);
-					return 1;
-				}
-			case '?':
-				printf(usageString.c_str());
-				if (isprint (optopt))
-				  fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-				else
-				  fprintf (stderr,
-						   "Unknown option character `\\x%x'.\n",
-						   optopt);
-				return 1;
-			default:
-				printf(usageString.c_str());
-				return 1;
-		}
-	}
 	
-	if(!testCaseSet){
-		fprintf(stderr, "Error: Please set the SAML version/testcase.\n");
-		return 1;
+	gengetopt_args_info args_info;
+	if(cmdline_parser(argc, argv, &args_info) != 0){
+		exit(1);
 	}
+	if(args_info.service_provider_given){
+		serviceURL = args_info.service_provider_arg;
+	}
+	SAML_VERSION = args_info.testcase_arg;
+	if(args_info.card_reader_given){
+		cardReaderName = std::string(args_info.card_reader_arg);
+	}
+	if(args_info.pin_given){
+		pin = args_info.pin_arg;
+	}
+	if(args_info.loopcount_given){
+		loopCount = args_info.loopcount_arg;
+	}
+	CANCEL_AFTER_PAOS_CONNECTION_ESTABLISHMENT = args_info.cancel_after_paos_given;
+	USED_DEBUG_LEVEL = args_info.debug_level_arg;
 
 	const char *default_serviceURL;
 	switch(SAML_VERSION){
-		case SAML_SELBSTAUSKUNFT_WUERZBURG:
+		case testcase_arg_Selbstauskunft_Wuerzburg:
 			default_serviceURL = "https://www.buergerserviceportal.de/bayern/wuerzburg/bspx_selbstauskunft";
 			break;
-		case SAML_AUTENTAPP:
+		case testcase_arg_AutentApp:
 			default_serviceURL = "https://www.autentapp.de/AusweisAuskunft/WebServiceRequesterServlet?mode=autentappde";
 			break;
 		default:
@@ -193,7 +112,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		if(SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML){
+		if(SAML_VERSION == testcase_arg_SAML_2 || SAML_VERSION == testcase_arg_No_SAML){
 			printf(response.c_str());
 		}
 
@@ -208,7 +127,7 @@ int main(int argc, char **argv)
 		//FIXME: We have to push_back sometime, otherwise statistic output is faulty
 		diffv.push_back(difftime(time(0), startTime));
 
-		if(SAML_VERSION == SAML_AUTENTAPP){
+		if(SAML_VERSION == testcase_arg_AutentApp){
 			int found = response.find("<html");
 
 			if (found != std::string::npos) {
@@ -220,7 +139,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if(SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG || SAML_VERSION == SAML_AUTENTAPP){
+		if(SAML_VERSION == testcase_arg_Selbstauskunft_Wuerzburg || SAML_VERSION == testcase_arg_AutentApp){
 			std::stringstream stream;
 			response = str_replace_ifnot("\"", "\\\"", "\\\"", response);
 			stream <<"echo \""<<response.c_str()<<"\" | lynx -stdin -xhtml-parsing";

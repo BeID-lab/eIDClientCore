@@ -202,6 +202,8 @@ android update project \
   --library path/to/eiDClientLib
 ```
 
+##Android example app
+* [eIDCCAusweisApp2](eIDClientCore/android/eIDCCAusweisApp2/#welcome)
 
 # TODO
 

@@ -10,26 +10,14 @@
 #   include <tchar.h>
 #   include <wininet.h>
 #   include <wincrypt.h>
-#else
-# include <unistd.h>
-# include <pthread.h>
 #endif
 
 #define READ_BUFFER 0x20000
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
-#include <ctime>
-#include <iomanip>
 #include <sstream>
-#include <vector>
 
-#include <string>
-#include <fstream>
-#include <streambuf>
-
-#include <getopt.h>
 #include <ctype.h>
 
 #define XML_STATIC
@@ -52,7 +40,7 @@
 
 #define HEX(x) std::setw(2) << std::setfill('0') << std::hex << (int)(x)
 
-unsigned char SAML_VERSION;
+enum enum_testcase SAML_VERSION;
 const char *pin;
 
 static std::string str_replace(std::string rep, std::string wit, std::string in);
@@ -173,7 +161,7 @@ void CeIdObject::OnStartElement(const XML_Char *pszName, const XML_Char **papszA
 		return;
 	}
 
-	if(SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG){
+	if(SAML_VERSION == testcase_arg_Selbstauskunft_Wuerzburg){
 		//Input
 		if (strcmp(m_strCurrentElement.c_str(), "input") == 0) {
 			std::string type = "";
@@ -422,9 +410,9 @@ int getSamlResponse2(std::string & response)
 	EID_CLIENT_CONNECTION_ERROR connection_status;
 	char sz[READ_BUFFER];
 	size_t sz_len = sizeof sz;
-	if(SAML_VERSION == NO_SAML){
+	if(SAML_VERSION == testcase_arg_No_SAML){
 		connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, DontFollowHttpRedirect);
-	} else if(SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG) {
+	} else if(SAML_VERSION == testcase_arg_Selbstauskunft_Wuerzburg) {
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, DontGetHttpHeader, FollowHttpRedirect);
 	} else {
 	connection_status = eIDClientConnectionStartHttp(&connection, strRefresh.c_str(), NULL, NULL, GetHttpHeader, DontFollowHttpRedirect);
@@ -444,12 +432,12 @@ int getSamlResponse2(std::string & response)
 	connection_status = eIDClientConnectionEnd(connection);
 	connection = 0x00;
 
-	if(SAML_VERSION == NO_SAML){
+	if(SAML_VERSION == testcase_arg_No_SAML){
 		response = strResult;
 		return 0;
 	}
 
-	if(SAML_VERSION == SAML_AUTENTAPP || SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG){
+	if(SAML_VERSION == testcase_arg_AutentApp || SAML_VERSION == testcase_arg_Selbstauskunft_Wuerzburg){
 		response = strResult;
 		return connection_status;
 	} else {
@@ -530,7 +518,7 @@ void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ER
 
 	switch (state) {
 	case NPACLIENT_STATE_TA_PERFORMED:
-		if(SAML_VERSION == SAML_1){
+		if(SAML_VERSION == testcase_arg_SAML_1){
 #ifdef _WIN32
 			hThread = CreateThread(
 				NULL,                   // default security attributes
@@ -1099,20 +1087,20 @@ int performEID(std::string strServiceURL,
 	int retValue = 0;
 	
 	switch(SAML_VERSION){
-		case SAML_1:
+		case testcase_arg_SAML_1:
 			retValue = getAuthenticationParams(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 			break;
-		case SAML_2:
+		case testcase_arg_SAML_2:
 			retValue = getAuthenticationParams2(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 			break;
-		case NO_SAML:
+		case testcase_arg_No_SAML:
 			strIdpAddress = strServiceURL + "mobileECardAPI";
 			strRefresh = strServiceURL + "getResult?sessionid=" + strSessionIdentifier;
 			break;
-		case SAML_SELBSTAUSKUNFT_WUERZBURG:
+		case testcase_arg_Selbstauskunft_Wuerzburg:
 			retValue = getAuthenticationParamsSelbstauskunftWuerzburg(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 			break;
-		case SAML_AUTENTAPP:
+		case testcase_arg_AutentApp:
 			retValue = getAuthenticationParamsAutentApp(serviceURL, strIdpAddress, strSessionIdentifier, strPathSecurityParameters);
 			break;
 		default:
@@ -1126,9 +1114,9 @@ int performEID(std::string strServiceURL,
 	if(retValue != NPACLIENT_ERROR_SUCCESS) return retValue;
 	if(g_samlResponseReturncode != 0) return NPACLIENT_ERRO;
 
-	if(SAML_VERSION == SAML_2 || SAML_VERSION == NO_SAML
-		|| SAML_VERSION == SAML_SELBSTAUSKUNFT_WUERZBURG 
-		|| SAML_VERSION == SAML_AUTENTAPP){
+	if(SAML_VERSION == testcase_arg_SAML_2 || SAML_VERSION == testcase_arg_No_SAML
+		|| SAML_VERSION == testcase_arg_Selbstauskunft_Wuerzburg
+		|| SAML_VERSION == testcase_arg_AutentApp){
 		retValue = getSamlResponse2(response);
 	}
 	
