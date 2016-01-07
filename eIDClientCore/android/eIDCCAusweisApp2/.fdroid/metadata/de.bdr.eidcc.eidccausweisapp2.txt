@@ -1,0 +1,24 @@
+Categories:Security,Development
+License:OpenSource-Lizenz der Humboldt-Universität zu Berlin für die Software „eIDClientCore“, https://github.com/BeID-lab/eIDClientCore/blob/master/eIDClientCore/COPYING
+Web Site:
+Source Code:https://github.com/BeID-lab/eIDClientCore/
+Issue Tracker:https://github.com/BeID-lab/eIDClientCore//issues
+
+Auto Name:eIDCC AusweisApp 2
+Summary:Selbstauskunft on your smartphone
+Description:
+This Android app allows to use Selbstauskunft Services on an Android smartphone. [https://github.com/BeID-lab/eIDClientCore/tree/master/eIDClientCore/android/eIDCCAusweisApp2#welcome Readme]
+
+Warning: This is just proof-of-concept code and should NOT be used in production environments
+.
+
+Repo Type:git
+Repo:https://github.com/BeID-lab/eIDClientCore/
+
+Build:1.0,1
+    commit=7e0ce4e4bd90ffe0d456565c12c0bab8717e49f0
+    subdir=eIDClientCore/android/eIDCCAusweisApp2
+    build=sed -i.org '/^libeIDClientConnection_la_CPPFLAGS/{/-DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION/! s/$$/ -DSKIP_PEER_VERIFICATION -DSKIP_HOSTNAME_VERIFICATION/}' ../../lib/eIDClientConnection/Makefile.am && make -C ../ ANDROID_NDK_ROOT=$$NDK$$ ANDROID_SDK_ROOT=$$SDK$$ ANDROID_API=android-21 AOSP_API=android-21 && $$SDK$$/tools/android update project --path . --target $ANDROID_API
+
+Auto Update Mode:None
+Update Check Mode:Tags
