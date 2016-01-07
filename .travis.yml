@@ -8,6 +8,7 @@ env:
     - PATH=$PREFIX/bin:$PATH
     - INSECURE=true
     - ANDROID_API=android-19
+    - AOSP_API=android-19
 
 compiler:
   - clang
