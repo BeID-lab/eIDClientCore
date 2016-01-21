@@ -9,6 +9,7 @@
 #include <sstream>
 #include "debug.h"
 #include <eidui_cli.h>
+#include <eidui_gui.h>
 #include <stdarg.h>
 #ifndef _WIN32
 #include <unistd.h>
@@ -43,8 +44,8 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input);
 
 
-static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback;
-static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback;
+static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback_gui;
+static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback_gui;
 
 //Loggingfunctions
 void debugOut(
@@ -384,7 +385,23 @@ static int begin_request_handler(struct mg_connection *conn) {
 	return 0;
 }
 
-int main(void) {
+int main(int argc, const char* argv[]) {
+	// parse arguments (default is gui)
+	if(argc == 2 && strcmp("cli", argv[1]) == 0) {
+		printf("SimpleClient started with cli.\n\n");
+		fnUserInteractionCallback = nPAeIdUserInteractionCallback;
+		fnCurrentStateCallback = nPAeIdProtocolStateCallback;
+	}
+	else if((argc == 2 && strcmp("gui", argv[1]) == 0) || argc == 1) {
+		printf("SimpleClient started with gui.\n\n");
+		fnUserInteractionCallback = nPAeIdUserInteractionCallback_gui;
+		fnCurrentStateCallback = nPAeIdProtocolStateCallback_gui;
+	}
+	else {
+		printf("Invalid arguments! Valid arguments are 'gui' and 'cli'. The default is 'gui'.\n\n");
+		exit(1);
+	}
+
 	struct mg_context *ctx;
 	struct mg_callbacks callbacks;
 

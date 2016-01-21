@@ -232,6 +232,7 @@ EOF
 
 AC_CONFIG_FILES([Makefile
                  bin/Makefile
+                 bin/SimpleClient/eidui_gui/Makefile
                  bin/Test_nPAClientLib/Makefile
                  bin/SimpleClient/Makefile
                  lib/Makefile

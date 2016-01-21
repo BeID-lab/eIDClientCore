@@ -1,1 +1,1 @@
-SUBDIRS = Test_nPAClientLib SimpleClient
+SUBDIRS = SimpleClient/eidui_gui Test_nPAClientLib SimpleClient
