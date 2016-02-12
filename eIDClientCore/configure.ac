@@ -82,6 +82,11 @@ PKG_CHECK_EXISTS([libpcsclite],
                  [PKG_CHECK_MODULES([PCSC], [libpcsclite])],
                  [AC_MSG_WARN([libpcsclite not found by pkg-config])])
 
+# FIXME since OpenSSL and Crypto++ are referenced in `lib/crypto.h`, all
+# sublibraries need to include the definitions though they may not need the
+# libraries
+CXXFLAGS="$CXXFLAGS $OPENSSL_INCLUDES $CRYPTOPP_CFLAGS"
+LIBS="$LIBS $CRYPTOPP_CFLAGS"
 
 AC_ARG_WITH(
     [cygwin-native],
