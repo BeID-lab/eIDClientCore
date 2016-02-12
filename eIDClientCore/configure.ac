@@ -38,6 +38,26 @@ if test x"$GENGETOPT_CHECK" != x"yes" ; then
 	AC_MSG_WARN([Please install gengetopt before installing.])
 fi
 
+AM_OPTIONS_WXCONFIG
+reqwx=2.4.0
+AM_PATH_WXCONFIG([$reqwx], [wxWin=1], [wxWin=0], [richtext])
+if test "$wxWin" != 1; then
+    AC_MSG_ERROR([
+        wxWidgets must be installed on your system.
+ 
+        Please check that wx-config is in path, the directory
+        where wxWidgets libraries are installed (returned by
+        'wx-config --libs' or 'wx-config --static --libs' command)
+        is in LD_LIBRARY_PATH or equivalent variable and
+        wxWidgets version is $reqwx or above.
+        ])
+fi
+ 
+CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
+CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
+CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
+LIBS="$LIBS $WX_LIBS"
+
 # Do not use special C++11 settings when cross-compiling for android
 AS_IF([test "x$enable_android" = "xno"], [
 	AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
@@ -149,7 +169,7 @@ LIBS="$LDFLAGS $EIDGUI_LIBS"
 AC_CHECK_HEADERS(eIDmfcUI.h, [],
                  [
                   AC_MSG_WARN([disabling eID GUI])
-                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if MFC eID GUI is disabled.])
                   DISABLE_EIDGUI=yes
                  ])
 
@@ -161,7 +181,7 @@ AC_TRY_LINK_FUNC(eIDmfcUIdoPace,
                  [
                   AC_MSG_RESULT([no])
                   AC_MSG_WARN([disabling eID GUI])
-                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if MFC eID GUI is disabled.])
                   DISABLE_EIDGUI=yes
                  ])
 AM_CONDITIONAL([DISABLE_EIDGUI], [test "${DISABLE_EIDGUI}" = "yes"])
@@ -224,7 +244,7 @@ LIBCURL:                   ${LIBCURL}
 LIBCURL_CPPFLAGS:          ${LIBCURL_CPPFLAGS}
 ASN1C:                     ${ASN1C}
 
-eID GUI disabled:          ${DISABLE_EIDGUI}
+eID MFC GUI disabled:      ${DISABLE_EIDGUI}
 PC/SC reader disabled:     ${DISABLE_PCSC}
 External reader enabled:   ${enable_reader_external}
 
