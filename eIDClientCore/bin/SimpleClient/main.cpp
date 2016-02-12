@@ -410,6 +410,10 @@ int main(int argc, const char* argv[]) {
 	// Prepare callbacks structure. We have only one callback, the rest are NULL.
 	memset(&callbacks, 0, sizeof(callbacks));
 	callbacks.begin_request = begin_request_handler;
+
+#if defined(_DEBUG) || defined(DEBUG)
+	USED_DEBUG_LEVEL = DEBUG_LEVEL_ALL;
+#endif
 	
 	CivetServer civetServer = CivetServer(options, &callbacks);
 	// Wait until user hits "enter". Server is running in separate thread.
