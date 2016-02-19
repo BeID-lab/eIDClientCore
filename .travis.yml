@@ -21,8 +21,24 @@ addons:
     - libstdc++6:i386
     - lib32z1
     - expect
-
+    - libpcsclite-dev
+    #For makedepend, needed when building OpenSSL
+    - xutils-dev
+    # For supporting C++11
+    - gcc-4.8
+    - g++-4.8
+    sources:
+      # For g++-4.8 (needed for C++11 support)
+      - ubuntu-toolchain-r-test
+      
 before_install:
+  - wget --no-check-certificate https://cmake.org/files/v3.0/cmake-3.0.2.tar.gz
+  - tar xzf cmake-3.0.2.tar.gz
+  - cd cmake-3.0.2
+  - ./bootstrap --system-curl --prefix=$PREFIX
+  - make
+  - make install
+  - cd -
   - wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
   - tar xzf android-sdk_r24.4.1-linux.tgz
   - export ANDROID_SDK_ROOT=$PWD/android-sdk-linux/
@@ -33,16 +49,17 @@ before_install:
   - chmod +x android-ndk-r10e-linux-x86_64.bin
   - ./android-ndk-r10e-linux-x86_64.bin | egrep -v ^Extracting
   - export ANDROID_NDK_ROOT=$PWD/android-ndk-r10e/
-  
-install:
-  - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
 
 script:
+  - if [ "$CC" = "gcc" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - mkdir build && cd build && cmake .. && make
+  - cd -
+  - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
   - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
   - export CC=
   - make -C eIDClientCore/android/ ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
   - make -C eIDClientCore/android/eIDCCAusweisApp2 ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
-  
+
 cache:
   directories:
     - $HOME/target
