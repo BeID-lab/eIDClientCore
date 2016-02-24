@@ -8,6 +8,7 @@
 #include <wx/window.h>
 #include <wx/textdlg.h> 
 #include <wx/checkbox.h>
+#include <wx/msgdlg.h>
 
 
 // For compilers that don't support precompilation, include "wx/wx.h"
@@ -96,7 +97,6 @@ enum at {
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(wxID_EXIT,  MainFrame::OnExit)
-    EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
     EVT_BUTTON ( wxID_BUTTON_OK, MainFrame::OnButtonOK)
     EVT_BUTTON ( wxID_BUTTON_CANCEL, MainFrame::OnButtonCancel)
 wxEND_EVENT_TABLE()
@@ -254,14 +254,14 @@ MainFrame::MainFrame(const SPDescription_t *description, UserInput_t *input, int
     wxMenu *menuFile = new wxMenu;
 
     // Menu
-    menuFile->Append(wxID_EXIT);
-    wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
-    wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append( menuFile, "&File" );
-    menuBar->Append( menuHelp, "&Help" );
-    SetMenuBar( menuBar );
-    CreateStatusBar();
+    // menuFile->Append(wxID_EXIT);
+    // wxMenu *menuHelp = new wxMenu;
+    // menuHelp->Append(wxID_ABOUT);
+    // wxMenuBar *menuBar = new wxMenuBar;
+    // menuBar->Append( menuFile, "&File" );
+    // menuBar->Append( menuHelp, "&Help" );
+    // SetMenuBar( menuBar );
+    // CreateStatusBar();
 
     // layout
     panel = new wxPanel(this, -1);
@@ -311,7 +311,7 @@ MainFrame::MainFrame(const SPDescription_t *description, UserInput_t *input, int
     wxBoxSizer *hbox6 = new wxBoxSizer(wxHORIZONTAL);
     wxButton *button_cancel = new wxButton(panel, wxID_BUTTON_CANCEL, wxT("Abbrechen"));
     hbox6->Add(button_cancel, 0);
-    wxButton *button_ok = new wxButton(panel, wxID_BUTTON_OK, wxT("Ausweisen"));
+    wxButton *button_ok = new wxButton(panel, wxID_BUTTON_OK, wxT("OK"));
     hbox6->Add(button_ok, 0, wxLEFT | wxBOTTOM , 5);
     vbox->Add(hbox6, 0, wxALIGN_RIGHT | wxRIGHT, 10);
 }
@@ -326,16 +326,16 @@ bool MainFrame::getPinFromUser() {
 
         // wxString pin = wxGetPasswordFromUser(_("Geben Sie bitte Ihre PIN ein!"), _("PIN-Eingabe"), wxEmptyString, NULL, 0, 0, true);
 
-        printf("\n\n PIN: %s\n\n", (const char*)pin.mb_str());
 
         if (pin == wxEmptyString) {
+            wxMessageDialog *dialog = new wxMessageDialog(NULL, wxT("Bitte geben Sie Ihre Pin ein."), wxT("Info"), wxOK | wxICON_EXCLAMATION);
+            dialog->ShowModal();
             return false;
         }
 
         strncpy ((char *)m_input->pin.pDataBuffer, (const char*)pin.mb_str(wxConvUTF8), MAX_PIN_SIZE);
         m_input->pin.bufferSize = strlen((char*) m_input->pin.pDataBuffer);
 
-        printf("\n\n PIN: %s \n\n", (char *)m_input->pin.pDataBuffer);
     }
         
     return true;
@@ -360,12 +360,6 @@ void MainFrame::OnButtonCancel(wxCommandEvent& event)
 {
     *m_status = -1;
     Close( true );
-}
-
-void MainFrame::OnAbout(wxCommandEvent& event)
-{
-    wxMessageBox( "This is the SimpleClient",
-                  "About", wxOK | wxICON_INFORMATION );
 }
 
 
