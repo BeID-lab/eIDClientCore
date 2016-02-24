@@ -81,6 +81,7 @@ class MainFrame: public wxFrame {
         wxPanel *panel;
         wxGridSizer *grid_sizer;
         wxTextCtrl *status_text;
+        wxTextCtrl* m_passwordEntry;
 
         wxCheckListBox *clb_terminal_info;
         list<wxCheckBox*> checkBoxes;

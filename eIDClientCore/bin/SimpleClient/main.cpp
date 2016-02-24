@@ -44,8 +44,10 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 	const SPDescription_t *description, UserInput_t *input);
 
 
-static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback_gui;
-static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback_gui;
+static nPAeIdUserInteractionCallback_t fnUserInteractionCallback = nPAeIdUserInteractionCallback;
+static nPAeIdProtocolStateCallback_t fnCurrentStateCallback = nPAeIdProtocolStateCallback;
+
+bool gui_enabled;
 
 //Loggingfunctions
 void debugOut(
@@ -160,7 +162,12 @@ NPACLIENT_ERROR nPAeIdUserInteractionCallback(
 		input->pin.bufferSize = gPin.length();
 	}
 
+	if(gui_enabled) {
+		return nPAeIdUserInteractionCallback_gui(description, input);
+	}
+
 	return nPAeIdUserInteractionCallback_ui(description, input);
+	
 }
 
 
@@ -389,13 +396,12 @@ int main(int argc, const char* argv[]) {
 	// parse arguments (default is gui)
 	if(argc == 2 && strcmp("cli", argv[1]) == 0) {
 		printf("SimpleClient started with cli.\n\n");
-		fnUserInteractionCallback = nPAeIdUserInteractionCallback;
-		fnCurrentStateCallback = nPAeIdProtocolStateCallback;
+		gui_enabled = false;
 	}
 	else if((argc == 2 && strcmp("gui", argv[1]) == 0) || argc == 1) {
 		printf("SimpleClient started with gui.\n\n");
-		fnUserInteractionCallback = nPAeIdUserInteractionCallback_gui;
-		fnCurrentStateCallback = nPAeIdProtocolStateCallback_gui;
+		gui_enabled = true;
+
 	}
 	else {
 		printf("Invalid arguments! Valid arguments are 'gui' and 'cli'. The default is 'gui'.\n\n");

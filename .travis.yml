@@ -21,7 +21,6 @@ addons:
     - libstdc++6:i386
     - lib32z1
     - expect
-    - libwxgtk2.8-dev
 
 before_install:
   - wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz

@@ -128,24 +128,17 @@ void MainFrame::ShowServiceInfo(wxPanel *panel, wxBoxSizer *hbox) {
     wxRichTextCtrl *status_text = new wxRichTextCtrl(panel, wxID_ANY, wxEmptyString, wxPoint(-1, -1), wxSize(-1, 300), wxTE_MULTILINE);
 
     status_text->BeginBold();
-    status_text->WriteText(_("Name: \n"));
-    status_text->EndBold();
     status_text->WriteText(wxString::FromUTF8(buf));
     status_text->WriteText(_("\n"));
+    status_text->EndBold();
 
     snprintf(buf, MAX(sizeof buf, m_description->url.bufferSize), (char *) m_description->url.pDataBuffer);
     buf[(sizeof buf) - 1] = '\0';
-    status_text->BeginBold();
-    status_text->WriteText(_("\nURL: \n"));
-    status_text->EndBold();
     status_text->WriteText(wxString::FromUTF8(buf));
     status_text->WriteText(_("\n"));
 
     snprintf(buf, MAX(sizeof buf, m_description->description.bufferSize), (char *) m_description->description.pDataBuffer);
     buf[(sizeof buf) - 1] = '\0';
-    status_text->BeginBold();
-    status_text->WriteText(_("\nZertifikat: \n"));
-    status_text->EndBold();
     status_text->WriteText(wxString::FromUTF8(buf));
     status_text->WriteText(_("\n"));
 
@@ -302,13 +295,25 @@ MainFrame::MainFrame(const SPDescription_t *description, UserInput_t *input, int
 
     vbox->Add(hbox_checkboxes, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
 
+
+    // pin
+    if(m_input->pin_required && m_input->pin.bufferSize == 0) {
+        wxBoxSizer *hbox5 = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText *label_pin = new wxStaticText(panel, wxID_ANY, wxT("Pin: "));
+        hbox5->Add(label_pin, 0);
+        m_passwordEntry = new wxTextCtrl(panel, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, wxTE_PASSWORD);
+        hbox5->Add(m_passwordEntry, 1);
+        vbox->Add(hbox5, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
+    }
+
+
     // buttons
-    wxBoxSizer *hbox5 = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *hbox6 = new wxBoxSizer(wxHORIZONTAL);
     wxButton *button_cancel = new wxButton(panel, wxID_BUTTON_CANCEL, wxT("Abbrechen"));
-    hbox5->Add(button_cancel, 0);
+    hbox6->Add(button_cancel, 0);
     wxButton *button_ok = new wxButton(panel, wxID_BUTTON_OK, wxT("Ausweisen"));
-    hbox5->Add(button_ok, 0, wxLEFT | wxBOTTOM , 5);
-    vbox->Add(hbox5, 0, wxALIGN_RIGHT | wxRIGHT, 10);
+    hbox6->Add(button_ok, 0, wxLEFT | wxBOTTOM , 5);
+    vbox->Add(hbox6, 0, wxALIGN_RIGHT | wxRIGHT, 10);
 }
 
 bool MainFrame::getPinFromUser() {
@@ -317,7 +322,9 @@ bool MainFrame::getPinFromUser() {
     }
 
     if(m_input->pin.bufferSize == 0){
-        wxString pin = wxGetPasswordFromUser(_("Geben Sie bitte Ihre PIN ein!"), _("PIN-Eingabe"), wxEmptyString, NULL, 0, 0, true);
+        wxString pin = m_passwordEntry->GetValue();
+
+        // wxString pin = wxGetPasswordFromUser(_("Geben Sie bitte Ihre PIN ein!"), _("PIN-Eingabe"), wxEmptyString, NULL, 0, 0, true);
 
         printf("\n\n PIN: %s\n\n", (const char*)pin.mb_str());
 
@@ -326,6 +333,9 @@ bool MainFrame::getPinFromUser() {
         }
 
         strncpy ((char *)m_input->pin.pDataBuffer, (const char*)pin.mb_str(wxConvUTF8), MAX_PIN_SIZE);
+        m_input->pin.bufferSize = strlen((char*) m_input->pin.pDataBuffer);
+
+        printf("\n\n PIN: %s \n\n", (char *)m_input->pin.pDataBuffer);
     }
         
     return true;
