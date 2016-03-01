@@ -42,6 +42,7 @@ before_install:
   - wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
   - tar xzf android-sdk_r24.4.1-linux.tgz
   - export ANDROID_SDK_ROOT=$PWD/android-sdk-linux/
+  - export ANDROID_HOME=$ANDROID_SDK_ROOT
   - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter platform-tools
   - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter android-19
   - echo "y" | android-sdk-linux/tools/android update sdk -s --no-ui --all --filter build-tools-19.1.0
