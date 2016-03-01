@@ -54,10 +54,11 @@ before_install:
 script:
   - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
   - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
+  - if [ "$CC" = "gcc" ]; then export CHANGE_GCC_FOR_CMAKE="true"; fi
   - export CC=
   - make -C eIDClientCore/android/ ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
   - make -C eIDClientCore/android/eIDCCAusweisApp2 ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
-  - if [ "$CC" = "gcc" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - if [ "$CHANGE_GCC_FOR_CMAKE" = "true" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - mkdir build && cd build && cmake .. && make
 
 cache:
