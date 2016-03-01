@@ -52,14 +52,13 @@ before_install:
   - export ANDROID_NDK_ROOT=$PWD/android-ndk-r10e/
 
 script:
-  - if [ "$CC" = "gcc" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-  - mkdir build && cd build && cmake .. && make
-  - cd -
   - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
   - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
   - export CC=
   - make -C eIDClientCore/android/ ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
   - make -C eIDClientCore/android/eIDCCAusweisApp2 ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
+  - if [ "$CC" = "gcc" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - mkdir build && cd build && cmake .. && make
 
 cache:
   directories:
