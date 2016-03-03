@@ -1,7 +1,7 @@
 #include "eidui_gui.h"
 #include "MainFrame.h"
+#include "ErrorMessages.h"
 
-//#include <eIDClientCore.h>
 #include <iomanip>
 #include <cstring>
 #include <string>
@@ -16,6 +16,7 @@
 
 void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIENT_ERROR error)
 {
+    char buffer[128];
     switch (state) {
         case NPACLIENT_STATE_INITIALIZE:
 
@@ -23,7 +24,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client successful initialized\n");
 
             } else {
-                printf("nPA client initialisation failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client initialisation failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
@@ -33,7 +35,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client got PACE info successfully\n");
 
             } else {
-                printf("nPA client got PACE info failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client got PACE info failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
@@ -43,7 +46,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client performed PACE successfully\n");
 
             } else {
-                printf("nPA client perform PACE failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client perform PACE failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
@@ -53,7 +57,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client performed TA successfully\n");
 
             } else {
-                printf("nPA client perform TA failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client perform TA failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
@@ -63,7 +68,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client performed CA successfully\n");
 
             } else {
-                printf("nPA client perform CA failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client perform CA failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
@@ -73,7 +79,8 @@ void nPAeIdProtocolStateCallback_gui(const NPACLIENT_STATE state, const NPACLIEN
                 printf("nPA client read attribute successfully\n");
 
             } else {
-                printf("nPA client read attributes failed with code : %08lX\n", error);
+                snprintf(buffer, sizeof(buffer), "nPA client read attributes failed with code : %08lX\n", error);
+                showErrorMessage(buffer);
             }
 
             break;
