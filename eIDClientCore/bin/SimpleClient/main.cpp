@@ -79,6 +79,10 @@ void errorOut(
 
 void nPAeIdProtocolStateCallback(const NPACLIENT_STATE state, const NPACLIENT_ERROR error)
 {
+	if(gui_enabled) {
+		return nPAeIdProtocolStateCallback_gui(state, error);
+	}
+
 	gError = error;
 	switch(state)
 	{
