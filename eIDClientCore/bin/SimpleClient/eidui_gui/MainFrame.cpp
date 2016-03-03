@@ -161,51 +161,51 @@ void MainFrame::ShowTerminalInfo(wxPanel *panel, wxBoxSizer *hbox) {
    
     switch (m_description->chat_required.type) {
         case TT_IS:
-            addCheckBox(is_read_finger, m_description->chat_required.authorization.is.read_finger, m_description->chat_optional.authorization.is.read_finger, "Read Fingerprint");
-            addCheckBox(is_read_iris, m_description->chat_required.authorization.is.read_iris, m_description->chat_optional.authorization.is.read_iris, "Read Iris");
-            addCheckBox(is_read_eid, m_description->chat_required.authorization.is.read_eid, m_description->chat_optional.authorization.is.read_eid, "Read eID");
+            addCheckBox(is_read_finger, m_description->chat_required.authorization.is.read_finger, m_description->chat_optional.authorization.is.read_finger, "Fingerabdruck lesen");
+            addCheckBox(is_read_iris, m_description->chat_required.authorization.is.read_iris, m_description->chat_optional.authorization.is.read_iris, "Iris lesen");
+            addCheckBox(is_read_eid, m_description->chat_required.authorization.is.read_eid, m_description->chat_optional.authorization.is.read_eid, "eID lesen");
             break;
 
         case TT_AT:
-            addCheckBox(at_age_verification, m_description->chat_required.authorization.at.age_verification, m_description->chat_optional.authorization.at.age_verification, "Verify Age");
-            addCheckBox(at_community_id_verification, m_description->chat_required.authorization.at.community_id_verification, m_description->chat_optional.authorization.at.community_id_verification, "Verify Community ID");
+            addCheckBox(at_age_verification, m_description->chat_required.authorization.at.age_verification, m_description->chat_optional.authorization.at.age_verification, "Altersnachweis");
+            addCheckBox(at_community_id_verification, m_description->chat_required.authorization.at.community_id_verification, m_description->chat_optional.authorization.at.community_id_verification, "Bestätigung des Wohnorts");
             addCheckBox(at_restricted_id, m_description->chat_required.authorization.at.restricted_id, m_description->chat_optional.authorization.at.restricted_id, "Restricted ID");
-            addCheckBox(at_privileged, m_description->chat_required.authorization.at.privileged, m_description->chat_optional.authorization.at.privileged, "Privileged Terminal");
-            addCheckBox(at_can_allowed, m_description->chat_required.authorization.at.can_allowed, m_description->chat_optional.authorization.at.can_allowed, "CAN allowed");
+            addCheckBox(at_privileged, m_description->chat_required.authorization.at.privileged, m_description->chat_optional.authorization.at.privileged, "Privilegiertes Terminal");
+            addCheckBox(at_can_allowed, m_description->chat_required.authorization.at.can_allowed, m_description->chat_optional.authorization.at.can_allowed, "CAN erlaubt");
             addCheckBox(at_pin_management, m_description->chat_required.authorization.at.pin_management, m_description->chat_optional.authorization.at.pin_management, "PIN Management");
-            addCheckBox(at_install_cert, m_description->chat_required.authorization.at.install_cert, m_description->chat_optional.authorization.at.install_cert, "Install Certificate");
-            addCheckBox(at_install_qualified_cert, m_description->chat_required.authorization.at.install_qualified_cert, m_description->chat_optional.authorization.at.install_qualified_cert, "Install Qualified Certificate");
-            addCheckBox(at_read_dg1, m_description->chat_required.authorization.at.read_dg1, m_description->chat_optional.authorization.at.read_dg1, "Read Document Type");
-            addCheckBox(at_read_dg2, m_description->chat_required.authorization.at.read_dg2, m_description->chat_optional.authorization.at.read_dg2, "Read Issuing State");
-            addCheckBox(at_read_dg3, m_description->chat_required.authorization.at.read_dg3, m_description->chat_optional.authorization.at.read_dg3, "Read Date of Expiry");
-            addCheckBox(at_read_dg4, m_description->chat_required.authorization.at.read_dg4, m_description->chat_optional.authorization.at.read_dg4, "Read Given Names");
-            addCheckBox(at_read_dg5, m_description->chat_required.authorization.at.read_dg5, m_description->chat_optional.authorization.at.read_dg5, "Read Family Names");
-            addCheckBox(at_read_dg6, m_description->chat_required.authorization.at.read_dg6, m_description->chat_optional.authorization.at.read_dg6, "Read Religious/Artistic Name");
-            addCheckBox(at_read_dg7, m_description->chat_required.authorization.at.read_dg7, m_description->chat_optional.authorization.at.read_dg7, "Read Academic Title");
-            addCheckBox(at_read_dg8, m_description->chat_required.authorization.at.read_dg8, m_description->chat_optional.authorization.at.read_dg8, "Read Date of Birth");
-            addCheckBox(at_read_dg9, m_description->chat_required.authorization.at.read_dg9, m_description->chat_optional.authorization.at.read_dg9, "Read Place of Birth");
-            addCheckBox(at_read_dg10, m_description->chat_required.authorization.at.read_dg10, m_description->chat_optional.authorization.at.read_dg10, "Read Nationality");
-            addCheckBox(at_read_dg11, m_description->chat_required.authorization.at.read_dg11, m_description->chat_optional.authorization.at.read_dg11, "Read Sex");
-            addCheckBox(at_read_dg12, m_description->chat_required.authorization.at.read_dg12, m_description->chat_optional.authorization.at.read_dg12, "Read OptionalDataR (DG12)");
-            addCheckBox(at_read_dg13, m_description->chat_required.authorization.at.read_dg13, m_description->chat_optional.authorization.at.read_dg13, "Read Birth Name");
-            addCheckBox(at_read_dg14, m_description->chat_required.authorization.at.read_dg14, m_description->chat_optional.authorization.at.read_dg14, "Read DG 14");
-            addCheckBox(at_read_dg15, m_description->chat_required.authorization.at.read_dg15, m_description->chat_optional.authorization.at.read_dg15, "Read DG 15");
-            addCheckBox(at_read_dg16, m_description->chat_required.authorization.at.read_dg16, m_description->chat_optional.authorization.at.read_dg16, "Read DG 16");
-            addCheckBox(at_read_dg17, m_description->chat_required.authorization.at.read_dg17, m_description->chat_optional.authorization.at.read_dg17, "Read Normal Place of Residence");
-            addCheckBox(at_read_dg18, m_description->chat_required.authorization.at.read_dg18, m_description->chat_optional.authorization.at.read_dg18, "Read Community ID");
-            addCheckBox(at_read_dg19, m_description->chat_required.authorization.at.read_dg19, m_description->chat_optional.authorization.at.read_dg19, "Read Residence Permit I");
-            addCheckBox(at_read_dg20, m_description->chat_required.authorization.at.read_dg20, m_description->chat_optional.authorization.at.read_dg20, "Read Residence Permit II");
-            addCheckBox(at_read_dg21, m_description->chat_required.authorization.at.read_dg21, m_description->chat_optional.authorization.at.read_dg21, "Read OptionalDataRW (DG21)");
-            addCheckBox(at_write_dg21, m_description->chat_required.authorization.at.write_dg21, m_description->chat_optional.authorization.at.write_dg21, "Write OptionalDataRW (DG21)");
-            addCheckBox(at_write_dg20, m_description->chat_required.authorization.at.write_dg20, m_description->chat_optional.authorization.at.write_dg20, "Write Residence Permit I");
-            addCheckBox(at_write_dg19, m_description->chat_required.authorization.at.write_dg19, m_description->chat_optional.authorization.at.write_dg19, "Write Residence Permit II");
-            addCheckBox(at_write_dg18, m_description->chat_required.authorization.at.write_dg18, m_description->chat_optional.authorization.at.write_dg18, "Write Community ID");
-            addCheckBox(at_write_dg17, m_description->chat_required.authorization.at.write_dg17, m_description->chat_optional.authorization.at.write_dg17, "Write Normal Place of Residence");
+            addCheckBox(at_install_cert, m_description->chat_required.authorization.at.install_cert, m_description->chat_optional.authorization.at.install_cert, "Zertifikat installieren");
+            addCheckBox(at_install_qualified_cert, m_description->chat_required.authorization.at.install_qualified_cert, m_description->chat_optional.authorization.at.install_qualified_cert, "Qualifiziertes Zertifikat installieren");
+            addCheckBox(at_read_dg1, m_description->chat_required.authorization.at.read_dg1, m_description->chat_optional.authorization.at.read_dg1, "Dokumententyp lesen");
+            addCheckBox(at_read_dg2, m_description->chat_required.authorization.at.read_dg2, m_description->chat_optional.authorization.at.read_dg2, "Ausstellenden Staat lesen");
+            addCheckBox(at_read_dg3, m_description->chat_required.authorization.at.read_dg3, m_description->chat_optional.authorization.at.read_dg3, "Ablaufdatum lesen");
+            addCheckBox(at_read_dg4, m_description->chat_required.authorization.at.read_dg4, m_description->chat_optional.authorization.at.read_dg4, "Vornamen lesen");
+            addCheckBox(at_read_dg5, m_description->chat_required.authorization.at.read_dg5, m_description->chat_optional.authorization.at.read_dg5, "Familiennamen lesen");
+            addCheckBox(at_read_dg6, m_description->chat_required.authorization.at.read_dg6, m_description->chat_optional.authorization.at.read_dg6, "Künstlernamen lesen");
+            addCheckBox(at_read_dg7, m_description->chat_required.authorization.at.read_dg7, m_description->chat_optional.authorization.at.read_dg7, "Akademischen Titel lesen");
+            addCheckBox(at_read_dg8, m_description->chat_required.authorization.at.read_dg8, m_description->chat_optional.authorization.at.read_dg8, "Geburtsdatum lesen");
+            addCheckBox(at_read_dg9, m_description->chat_required.authorization.at.read_dg9, m_description->chat_optional.authorization.at.read_dg9, "Geburtsort lesen");
+            addCheckBox(at_read_dg10, m_description->chat_required.authorization.at.read_dg10, m_description->chat_optional.authorization.at.read_dg10, "Staatszugehörigkeit lesen");
+            addCheckBox(at_read_dg11, m_description->chat_required.authorization.at.read_dg11, m_description->chat_optional.authorization.at.read_dg11, "Geschlecht lesen");
+            addCheckBox(at_read_dg12, m_description->chat_required.authorization.at.read_dg12, m_description->chat_optional.authorization.at.read_dg12, "DG12 lesen");
+            addCheckBox(at_read_dg13, m_description->chat_required.authorization.at.read_dg13, m_description->chat_optional.authorization.at.read_dg13, "DG13 lesen");
+            addCheckBox(at_read_dg14, m_description->chat_required.authorization.at.read_dg14, m_description->chat_optional.authorization.at.read_dg14, "DG14 lesen");
+            addCheckBox(at_read_dg15, m_description->chat_required.authorization.at.read_dg15, m_description->chat_optional.authorization.at.read_dg15, "DG15 lesen");
+            addCheckBox(at_read_dg16, m_description->chat_required.authorization.at.read_dg16, m_description->chat_optional.authorization.at.read_dg16, "DG16 lesen");
+            addCheckBox(at_read_dg17, m_description->chat_required.authorization.at.read_dg17, m_description->chat_optional.authorization.at.read_dg17, "Adresse lesen");
+            addCheckBox(at_read_dg18, m_description->chat_required.authorization.at.read_dg18, m_description->chat_optional.authorization.at.read_dg18, "Wohnort-ID lesen");
+            addCheckBox(at_read_dg19, m_description->chat_required.authorization.at.read_dg19, m_description->chat_optional.authorization.at.read_dg19, "Aufenthaltserlaubnis I lesen");
+            addCheckBox(at_read_dg20, m_description->chat_required.authorization.at.read_dg20, m_description->chat_optional.authorization.at.read_dg20, "Aufenthaltserlaubnis II lesen");
+            addCheckBox(at_read_dg21, m_description->chat_required.authorization.at.read_dg21, m_description->chat_optional.authorization.at.read_dg21, "DG21 lesen");
+            addCheckBox(at_write_dg21, m_description->chat_required.authorization.at.write_dg21, m_description->chat_optional.authorization.at.write_dg21, "DG21 ändern");
+            addCheckBox(at_write_dg20, m_description->chat_required.authorization.at.write_dg20, m_description->chat_optional.authorization.at.write_dg20, "Aufenthaltserlaubnis I ändern");
+            addCheckBox(at_write_dg19, m_description->chat_required.authorization.at.write_dg19, m_description->chat_optional.authorization.at.write_dg19, "Aufenthaltserlaubnis II ändern");
+            addCheckBox(at_write_dg18, m_description->chat_required.authorization.at.write_dg18, m_description->chat_optional.authorization.at.write_dg18, "Wohnort-ID ändern");
+            addCheckBox(at_write_dg17, m_description->chat_required.authorization.at.write_dg17, m_description->chat_optional.authorization.at.write_dg17, "Adresse ändern");
             break;
 
         case TT_ST:
-            addCheckBox(st_generate_signature, m_description->chat_required.authorization.st.generate_signature, m_description->chat_optional.authorization.st.generate_signature, "Generate electronic signature");
-            addCheckBox(st_generate_qualified_signature, m_description->chat_required.authorization.st.generate_qualified_signature, m_description->chat_optional.authorization.st.generate_qualified_signature, "Generate qualified electronic signature");
+            addCheckBox(st_generate_signature, m_description->chat_required.authorization.st.generate_signature, m_description->chat_optional.authorization.st.generate_signature, "Elektronische Signatur erzeugen");
+            addCheckBox(st_generate_qualified_signature, m_description->chat_required.authorization.st.generate_qualified_signature, m_description->chat_optional.authorization.st.generate_qualified_signature, "Qualifizierte elektronische Signatur erzeugen");
             break;
 
         default:
