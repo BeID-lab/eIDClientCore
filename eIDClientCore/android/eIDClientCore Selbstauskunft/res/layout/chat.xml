@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent">
+    
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" >
+
+		<Button
+			android:id="@+id/buttonShowServiceProviderInformation"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:text="@string/button_show_service_provider_information"
+			android:onClick="toggleSp" />
+
+		<TableLayout
+			android:id="@+id/showSpDescription"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:shrinkColumns="1"
+			android:visibility="gone">
+		</TableLayout>
+		
+		<Button
+			android:id="@+id/buttonShowChat"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:text="@string/button_show_chat"
+			android:onClick="toggleChat" />
+
+		<TableLayout
+			android:id="@+id/showChat"
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1"
+			android:shrinkColumns="1"
+			android:visibility="gone">
+
+			<CheckBox
+				android:id="@+id/checkboxAgeVerification"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/age_verification"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxCommunityIdVerification"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/community_id_verification"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRestrictedId"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/restricted_id"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxPrivileged"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/privileged"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxCanAllowed"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/can_allowed"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxPinManagement"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/pin_management"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxInstallCertificate"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/install_cert"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxInstallQualifiedCert"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/install_qualified_cert"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDocumentType"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_document_type"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadIssuingState"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_issuing_state"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDateOfExpiry"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_date_of_expiry"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadGivenNames"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_given_names"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadFamilyNames"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_family_names"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadArtisticName"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_artistic_name"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadAcademicTitle"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_academic_title"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDateOfBirth"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_date_of_birth"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadPlaceOfBirth"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_place_of_birth"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadNationality"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_nationality"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadSex"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_sex"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg12"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg12"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg13"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg13"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg14"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg14"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg15"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg15"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg16"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg16"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadPlaceOfResidence"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_place_of_residence"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadCommunityId"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_community_id"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadResidencePermit1"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_residence_permit_I"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadResidencePermit2"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_residence_permit_II"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxReadDg21"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/read_dg21"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxWritePlaceOfResidence"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/write_place_of_residence"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxWriteCommunityId"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/write_community_id"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxWriteResidencePermit1"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/write_residence_permit_I"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxWriteResidencePermit2"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/write_residence_permit_II"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxWriteDg21"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/write_dg21"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRfu1"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/RFU1"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRfu2"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/RFU2"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRfu3"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/RFU3"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRfu4"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/RFU4"
+				android:onClick="onCheckboxClicked" />
+
+			<CheckBox
+				android:id="@+id/checkboxRole"
+				style="?android:attr/textAppearanceMedium"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/role"
+				android:onClick="onCheckboxClicked" />
+		</TableLayout>
+
+		<LinearLayout android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" >
+
+			<TextView
+				android:id="@+id/pinTextView"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_weight="0"
+				android:textSize="17sp"
+				android:text="PIN: " />
+
+			<EditText
+				android:id="@+id/pinInput"
+				android:layout_height="wrap_content"
+				android:layout_width="0dp"
+				android:layout_weight="1"
+				android:inputType="numberPassword"
+				android:hint="PIN"
+				android:password="true"
+				android:maxLength="6" />
+
+		</LinearLayout>
+
+	</LinearLayout>
+	
+</ScrollView>

@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content" >
+
+	<TableLayout
+		android:id="@+id/showChat"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<CheckBox
+			android:id="@+id/checkboxConnectionToServiceProvider"
+			style="?android:attr/textAppearanceMedium"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/connectionToServiceProvider"
+			android:enabled="false" />
+
+		<CheckBox
+			android:id="@+id/checkboxPinCorrect"
+			style="?android:attr/textAppearanceMedium"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/pinCorrect"
+			android:enabled="false" />
+		
+		<CheckBox
+			android:id="@+id/checkboxTA"
+			style="?android:attr/textAppearanceMedium"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/TA"
+			android:enabled="false" />
+		
+		<CheckBox
+			android:id="@+id/checkboxCA"
+			style="?android:attr/textAppearanceMedium"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/CA"
+			android:enabled="false" />
+		
+		<CheckBox
+			android:id="@+id/checkboxReadAttributes"
+			style="?android:attr/textAppearanceMedium"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/readAttributes"
+			android:enabled="false" />
+	</TableLayout>
+
+	<TextView
+		android:id="@+id/pleaseTryAgainTextView"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:textSize="17sp"
+		android:text="Bitte versuchen Sie es noch einmal." />
+
+</LinearLayout> 

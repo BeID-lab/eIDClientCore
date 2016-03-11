@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">eIDClientCore Selbstauskunft</string>
+    <string name="button_show_service_provider_information">Dienstanbieterinformationen anzeigen</string>
+    <string name="button_hide_service_provider_information">Dienstanbieterinformationen ausblenden</string>
+    <string name="button_show_chat">Zugriffsberechtigungen anzeigen</string>
+    <string name="button_hide_chat">Zugriffsberechtigungen ausblenden</string>
+    <string name="progress_image_description">Dieses Bild zeigt den Fortschritt des Vorgangs an.</string>
+    <string name="title_activity_show_results">Ihre Ergebnisse</string>
+    <string name="age_verification">Altersnachweis</string>
+    <string name="community_id_verification">Bestätigung des Wohnorts</string>
+    <string name="restricted_id">Restricted ID</string>
+	<string name="privileged">Privilegiert</string>
+	<string name="can_allowed">CAN erlaubt</string>
+	<string name="pin_management">PIN Management</string>
+	<string name="install_cert">Zertifikat installieren</string>
+	<string name="install_qualified_cert">Qualifiziertes Zertifikat installieren</string>
+    <string name="read_document_type">Dokumententyp lesen</string>
+	<string name="read_issuing_state">Ausstellenden Staat lesen</string>
+	<string name="read_date_of_expiry">Ablaufdatum lesen</string>
+	<string name="read_given_names">Vornamen lesen</string>
+	<string name="read_family_names">Familiennamen lesen</string>
+	<string name="read_artistic_name">Künstlernamen lesen</string>
+	<string name="read_academic_title">Akademischen Titel lesen</string>
+	<string name="read_date_of_birth">Geburtsdatum lesen</string>
+	<string name="read_place_of_birth">Geburtsort lesen</string>
+	<string name="read_nationality">Staatszugehörigkeit lesen</string>
+	<string name="read_sex">Geschlecht lesen</string>
+	<string name="read_dg12">DG12 lesen</string>
+	<string name="read_dg13">DG13 lesen</string>
+	<string name="read_dg14">DG14 lesen</string>
+	<string name="read_dg15">DG15 lesen</string>
+	<string name="read_dg16">DG16 lesen</string>
+	<string name="read_place_of_residence">Adresse lesen</string>
+	<string name="read_community_id">Wohnort-ID lesen</string>
+	<string name="read_residence_permit_I">Aufenthaltserlaubnis I lesen</string>
+	<string name="read_residence_permit_II">Aufenthaltserlaubnis II lesen</string>
+	<string name="read_dg21">DG21 lesen</string>
+	<string name="write_place_of_residence">Adresse ändern</string>
+	<string name="write_community_id">Wohnort-ID ändern</string>
+	<string name="write_residence_permit_I">Aufenthaltserlaubnis I ändern</string>
+	<string name="write_residence_permit_II">Aufenthaltserlaubnis II ändern</string>
+	<string name="write_dg21">DG21 ändern</string>
+	<string name="RFU1">RFU1</string>
+	<string name="RFU2">RFU2</string>
+	<string name="RFU3">RFU3</string>
+	<string name="RFU4">RFU4</string>
+	<string name="role">role</string>
+	<string name="connectionToServiceProvider">Verbindung zum Dienstanbieter</string>
+	<string name="pinCorrect">PIN korrekt</string>
+	<string name="TA">Prüfung der Leseberechtigung</string>
+	<string name="CA">Echtheitsprüfung des Ausweises</string>
+	<string name="readAttributes">Daten ausgelesen</string>
+    
+</resources>
