@@ -50,5 +50,8 @@ if(CURL_FOUND)
 endif()
 find_package(OpenSSL REQUIRED)
 
+set(wxWidgets_CONFIG_OPTIONS --libs richtext)
+find_package(wxWidgets 3.0.2 REQUIRED)
+
 add_subdirectory(lib)
 add_subdirectory(bin)

@@ -8,7 +8,8 @@ env:
     - PATH=$PREFIX/bin:$PATH
     - INSECURE=true
     - ANDROID_API=android-19
-    - AOSP_API=android-19
+    #For the newer version of Cryptopp setenv-android.sh
+    - AOSP_API=$ANDROID_API
 
 compiler:
   - clang
@@ -36,7 +37,7 @@ before_install:
   - tar xzf cmake-3.0.2.tar.gz
   - cd cmake-3.0.2
   - ./bootstrap --system-curl --prefix=$PREFIX
-  - make
+  - make > /dev/null
   - make install
   - cd -
   - wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
@@ -55,16 +56,16 @@ before_install:
   - cd wxWidgets-3.1.0
   - mkdir gtk-build
   - cd gtk-build
-  - ../configure --enable-unicode --enable-debug
-  - make
+  - ../configure --enable-unicode --enable-debug --prefix=$PREFIX
+  - make > /dev/null
   - make install
-  - cd -
+  - cd ../..
+  - cp $PREFIX/share/aclocal/wxwin.m4 eIDClientCore/m4/
 
 install:
   - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
 
 script:
-  - make cryptopp libexpat openssl libcurl asn1c PREFIX=$PREFIX INSECURE=$INSECURE
   - make eIDClient PREFIX=$PREFIX INSECURE=$INSECURE
   - if [ "$CC" = "gcc" ]; then export CHANGE_GCC_FOR_CMAKE="true"; fi
   - export CC=
