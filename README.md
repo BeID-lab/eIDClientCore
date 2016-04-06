@@ -162,6 +162,9 @@ make install
 cd -
 ```
 
+# Building gui for SimpleClient
+To build the gui for SimpleClient you need to install the wxWidgets 3.0 developer package (wxWidgets-3_0-devel) manually.
+
 # Building for Android
 
 We added a Makefile to automatically build eIDClientCore and its prerequisites

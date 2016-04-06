@@ -79,29 +79,29 @@ void nPAeIdProtocolStateCallback_ui(const NPACLIENT_STATE state, const NPACLIENT
 
 }
 
-#define MAX(a,b) (a>b ? a : b)
+#define BUFFERSIZE 1024
 NPACLIENT_ERROR nPAeIdUserInteractionCallback_ui(
 	const SPDescription_t *description, UserInput_t *input)
 {
-	char buf[1024];
-	snprintf(buf, MAX(sizeof buf, description->name.bufferSize), (char *) description->name.pDataBuffer);
+	char buf[BUFFERSIZE];
+	snprintf(buf, BUFFERSIZE, "%.s", description->name.bufferSize, (char *) description->name.pDataBuffer);
 	buf[(sizeof buf) - 1] = '\0';
 	printf("serviceName: %s\n", buf);
-	snprintf(buf, MAX(sizeof buf, description->url.bufferSize), (char *) description->url.pDataBuffer);
+	snprintf(buf, BUFFERSIZE, "%.s", description->url.bufferSize, (char *) description->url.pDataBuffer);
 	buf[(sizeof buf) - 1] = '\0';
 	printf("serviceURL:  %s\n", buf);
-	snprintf(buf, MAX(sizeof buf, description->description.bufferSize), (char *) description->description.pDataBuffer);
+	snprintf(buf, BUFFERSIZE, "%.s", description->description.bufferSize, (char *) description->description.pDataBuffer);
 	buf[(sizeof buf) - 1] = '\0';
 	printf("certificateDescription:\n%s\n", buf);
 	if(description->transactionInfo.bufferSize > 0)
 	{
-		snprintf(buf, MAX(sizeof buf, description->transactionInfo.bufferSize), (char *) description->transactionInfo.pDataBuffer);
+		snprintf(buf, BUFFERSIZE, "%.s", description->transactionInfo.bufferSize, (char *) description->transactionInfo.pDataBuffer);
 		buf[(sizeof buf) - 1] = '\0';
 		printf("TransactionInfo:\n%s\n", buf);
 	}
 	if(description->transactionInfoHidden.bufferSize > 0)
 	{
-		snprintf(buf, MAX(sizeof buf, description->transactionInfoHidden.bufferSize), (char *) description->transactionInfoHidden.pDataBuffer);
+		snprintf(buf, BUFFERSIZE, "%.s", description->transactionInfoHidden.bufferSize, (char *) description->transactionInfoHidden.pDataBuffer);
 		buf[(sizeof buf) - 1] = '\0';
 		printf("TransactionInfoHidden:\n%s\n", buf);
 	}

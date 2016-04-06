@@ -38,6 +38,29 @@ if test x"$GENGETOPT_CHECK" != x"yes" ; then
 	AC_MSG_WARN([Please install gengetopt before installing.])
 fi
 
+# Do not look for wxWidgets when cross-compiling for android
+AS_IF([test "x$enable_android" = "xno"], [
+	AM_OPTIONS_WXCONFIG
+	reqwx=3.0.2
+	AM_PATH_WXCONFIG([$reqwx], [wxWin=1], [wxWin=0], [richtext])
+	if test "$wxWin" != 1; then
+	AC_MSG_ERROR([
+		wxWidgets must be installed on your system.
+	
+		Please check that wx-config is in path, the directory
+		where wxWidgets libraries are installed (returned by
+		'wx-config --libs' or 'wx-config --static --libs' command)
+		is in LD_LIBRARY_PATH or equivalent variable and
+		wxWidgets version is $reqwx or above.
+		])
+	fi
+	
+	CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
+	CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
+	CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
+	LIBS="$LIBS $WX_LIBS"
+])
+
 # Do not use special C++11 settings when cross-compiling for android
 AS_IF([test "x$enable_android" = "xno"], [
 	AX_CXX_COMPILE_STDCXX_11([ext],[mandatory])
@@ -62,6 +85,11 @@ PKG_CHECK_EXISTS([libpcsclite],
                  [PKG_CHECK_MODULES([PCSC], [libpcsclite])],
                  [AC_MSG_WARN([libpcsclite not found by pkg-config])])
 
+# FIXME since OpenSSL and Crypto++ are referenced in `lib/crypto.h`, all
+# sublibraries need to include the definitions though they may not need the
+# libraries
+CXXFLAGS="$CXXFLAGS $OPENSSL_INCLUDES $CRYPTOPP_CFLAGS"
+LIBS="$LIBS $CRYPTOPP_CFLAGS"
 
 AC_ARG_WITH(
     [cygwin-native],
@@ -149,7 +177,7 @@ LIBS="$LDFLAGS $EIDGUI_LIBS"
 AC_CHECK_HEADERS(eIDmfcUI.h, [],
                  [
                   AC_MSG_WARN([disabling eID GUI])
-                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if MFC eID GUI is disabled.])
                   DISABLE_EIDGUI=yes
                  ])
 
@@ -161,7 +189,7 @@ AC_TRY_LINK_FUNC(eIDmfcUIdoPace,
                  [
                   AC_MSG_RESULT([no])
                   AC_MSG_WARN([disabling eID GUI])
-                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if eID GUI is disabled.])
+                  AC_DEFINE([DISABLE_EIDGUI], [1], [Define if MFC eID GUI is disabled.])
                   DISABLE_EIDGUI=yes
                  ])
 AM_CONDITIONAL([DISABLE_EIDGUI], [test "${DISABLE_EIDGUI}" = "yes"])
@@ -224,7 +252,7 @@ LIBCURL:                   ${LIBCURL}
 LIBCURL_CPPFLAGS:          ${LIBCURL_CPPFLAGS}
 ASN1C:                     ${ASN1C}
 
-eID GUI disabled:          ${DISABLE_EIDGUI}
+eID MFC GUI disabled:      ${DISABLE_EIDGUI}
 PC/SC reader disabled:     ${DISABLE_PCSC}
 External reader enabled:   ${enable_reader_external}
 
@@ -232,6 +260,7 @@ EOF
 
 AC_CONFIG_FILES([Makefile
                  bin/Makefile
+                 bin/SimpleClient/eidui_gui/Makefile
                  bin/Test_nPAClientLib/Makefile
                  bin/SimpleClient/Makefile
                  lib/Makefile

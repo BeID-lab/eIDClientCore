@@ -73,8 +73,8 @@ $(CRYPTO_MAKEFILE):
 	tar xf openssl-1.0.0c.tls-rsa-psk.tar
 	patch -d $(CRYPTO_DIR) -p1 < openssl-1.0.0c.tls-rsa-psk.patch || true
 	cd $(CRYPTO_DIR) \
-		&& $(CRYPTO_DIR)/Configure no-asm shared --prefix="/" linux-generic32 -DL_ENDIAN --cross-compile-prefix=$(CROSS_COMPILE) \
-			-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TARGETDIR)/include \
+		&& $(CRYPTO_DIR)/Configure no-asm shared --prefix="/" linux-generic32 -DL_ENDIAN \
+			-I$(ANDROID_TOOL_DIR)/include -I$(ANDROID_TOOL_DIR)/sysroot/usr/include -I$(ANDROID_TARGETDIR)/include --cross-compile-prefix=$(CROSS_COMPILE) \
 			-L$(ANDROID_TOOL_DIR)/lib -L$(ANDROID_TOOL_DIR)/sysroot/usr/lib -L$(ANDROID_TARGETDIR)/lib
 	touch $(CRYPTO_MAKEFILE)
 
