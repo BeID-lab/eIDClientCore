@@ -70,7 +70,7 @@ script:
   - if [ "$CC" = "gcc" ]; then export CHANGE_GCC_FOR_CMAKE="true"; fi
   - export CC=
   - make -C eIDClientCore/android/ ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
-  - make -C eIDClientCore/android/eIDCCAusweisApp2 ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
+  - make -C eIDClientCore/android/eIDClientCore\ Selbstauskunft ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT ANDROID_API=$ANDROID_API
   - if [ "$CHANGE_GCC_FOR_CMAKE" = "true" ]; then export CXX="g++-4.8" CC="gcc-4.8"; else export CC="clang"; fi
   - mkdir build && cd build && cmake .. && make
 

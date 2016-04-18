@@ -206,7 +206,7 @@ android update project \
 ```
 
 ##Android example app
-* [eIDCCAusweisApp2](eIDClientCore/android/eIDCCAusweisApp2/#welcome)
+* [eIDClientCore Selbstauskunft](eIDClientCore/android/eIDClientCore%20Selbstauskunft/#welcome)
 
 # TODO
 
