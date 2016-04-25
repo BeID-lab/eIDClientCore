@@ -1,24 +1,28 @@
 #!/bin/bash
 
 usage() {
-	echo "Need exactly two parameters."
-	echo "Usage: $0 \"command\" number_of_threads"
-	echo "Example usage: $0 \"bin/Start_Testcase --testcase=AutentApp --cancel-after-paos\" 20"
+	echo "Need at least two parameters."
+	echo
+	echo "Usage: $0 number_of_threads command [arguments of command]"
+	echo
+	echo "Example usage: $0 20 bin/Start_Testcase --testcase=AutentApp --card-reader=\"Virtual PCD 00 00\""
 	exit 1
 }
 
-if [ $# -ne 2 ]
+if [ $# -lt 2 ]
 then
 	usage
 fi
 
-CMD=$1
-NUM_THREADS=$2
+NUM_THREADS=$1
 
-if [[ "$NUM_THREADS" -le 0 ]] 2>/dev/null; then
-	echo "Second argument has to be a positive integer."
+if ! [[ $NUM_THREADS =~ ^[1-9][0-9]*$ ]] ; then
+	echo "First argument \"$NUM_THREADS\" has to be a positive integer."
 	usage
 fi
+
+shift
+#"$@" now only contains: "command" ["argument of command"] ...
 
 #Waits for all PIDs in an array
 wait_for_pids() {
@@ -37,8 +41,10 @@ add_prefix() {
 
 # Prepend prefix
 start_with_prefix() {
-	CMD=$1
-	PREFIX=$2
+	PREFIX=$1
+	shift
+	#"$@" now only contains: "command" ["argument of command"] ...
+
 	# Create FIFOs for the command's stdout and stderr.
 	stdout=$(mktemp /tmp/eID_DOS.$$.stdout.XXXXXXXX -u)
 	stderr=$(mktemp /tmp/eID_DOS.$$.stderr.XXXXXXXX -u)
@@ -54,7 +60,7 @@ start_with_prefix() {
 	PIDs+=($!)
 
 	# Now execute the command, sending its stdout and stderr to the FIFOs.
-	$CMD 1> "$stdout" 2> "$stderr" &
+	"$@" 1> "$stdout" 2> "$stderr" &
 	PIDs+=($!)
 	
 	#It is important to wait for the add_prefix calls, because otherwise
@@ -72,7 +78,7 @@ start_with_prefix() {
 
 	for i in $(seq -f "%0${#NUM_THREADS}g" 1 $NUM_THREADS);
 	do
-		start_with_prefix "$CMD" "$i" &
+		start_with_prefix "$i" "$@" &
 		PIDs+=($!)
 	done
 
