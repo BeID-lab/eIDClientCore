@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-install(FILES load_test.bash DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+install(PROGRAMS load_test.bash DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
 if(GENGETOPT)
 	add_custom_command(OUTPUT cmdline.c cmdline.h switch_file COMMAND gengetopt --include-getopt < ${CMAKE_CURRENT_SOURCE_DIR}/Start_Testcase.ggo && echo "new" > switch_file)
