@@ -221,7 +221,7 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_clnt.c OpenSSL_1_0_2-stable_patched/ssl/s
 diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3_lib.c
 --- OpenSSL_1_0_2-stable/ssl/s3_lib.c	2015-08-18 16:32:46.000000000 +0200
 +++ OpenSSL_1_0_2-stable_patched/ssl/s3_lib.c	2015-09-03 13:48:47.627927582 +0200
-@@ -1711,6 +1711,76 @@ OPENSSL_GLOBAL SSL_CIPHER ssl3_ciphers[]
+@@ -1711,6 +1711,172 @@
       256,
       256,
       },
@@ -293,12 +293,108 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3
 +    256,
 +    256,
 +    },
++
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_AES_128_GCM_SHA256,
++     TLS1_CK_RSA_PSK_WITH_AES_128_GCM_SHA256,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_AES128GCM,
++     SSL_AEAD,
++     TLS1_2_VERSION, TLS1_2_VERSION,
++     DTLS1_2_VERSION, DTLS1_2_VERSION,
++     SSL_HIGH | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_SHA256 | TLS1_PRF_SHA256,
++     128,
++     128,
++     },
++     
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_AES_256_GCM_SHA384,
++     TLS1_CK_RSA_PSK_WITH_AES_256_GCM_SHA384,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_AES256GCM,
++     SSL_AEAD,
++     TLS1_2_VERSION, TLS1_2_VERSION,
++     DTLS1_2_VERSION, DTLS1_2_VERSION,
++     SSL_HIGH | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
++     256,
++     256,
++     },
++
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA256,
++     TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA256,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_AES128,
++     SSL_SHA256,
++     TLS1_VERSION, TLS1_2_VERSION,
++     DTLS1_VERSION, DTLS1_2_VERSION,
++     SSL_HIGH | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
++     128,
++     128,
++     },
++
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA384,
++     TLS1_CK_RSA_PSK_WITH_AES_256_CBC_SHA384,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_AES256,
++     SSL_SHA384,
++     TLS1_VERSION, TLS1_2_VERSION,
++     DTLS1_VERSION, DTLS1_2_VERSION,
++     SSL_HIGH | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
++     256,
++     256,
++     },
++
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_NULL_SHA256,
++     TLS1_CK_RSA_PSK_WITH_NULL_SHA256,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_eNULL,
++     SSL_SHA256,
++     TLS1_VERSION, TLS1_2_VERSION,
++     DTLS1_VERSION, DTLS1_2_VERSION,
++     SSL_STRONG_NONE | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_DEFAULT | TLS1_PRF,
++     0,
++     0,
++     },
++
++    {
++     1,
++     TLS1_TXT_RSA_PSK_WITH_NULL_SHA384,
++     TLS1_CK_RSA_PSK_WITH_NULL_SHA384,
++     SSL_kRSAPSK,
++     SSL_aRSA,
++     SSL_eNULL,
++     SSL_SHA384,
++     TLS1_VERSION, TLS1_2_VERSION,
++     DTLS1_VERSION, DTLS1_2_VERSION,
++     SSL_STRONG_NONE | SSL_FIPS,
++     SSL_HANDSHAKE_MAC_SHA384 | TLS1_PRF_SHA384,
++     0,
++     0,
++     },
 +#endif  /* OPENSSL_NO_RSA */
 +
  #endif                          /* OPENSSL_NO_PSK */
  
  #ifndef OPENSSL_NO_SEED
-@@ -4126,7 +4196,7 @@ SSL_CIPHER *ssl3_choose_cipher(SSL *s, S
+@@ -4126,7 +4292,7 @@
  #endif                          /* OPENSSL_NO_KRB5 */
  #ifndef OPENSSL_NO_PSK
          /* with PSK there must be server callback set */
@@ -307,6 +403,7 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/s3_lib.c OpenSSL_1_0_2-stable_patched/ssl/s3
              continue;
  #endif                          /* OPENSSL_NO_PSK */
  
+
 diff -rupN OpenSSL_1_0_2-stable/ssl/s3_srvr.c OpenSSL_1_0_2-stable_patched/ssl/s3_srvr.c
 --- OpenSSL_1_0_2-stable/ssl/s3_srvr.c	2015-08-18 16:32:46.000000000 +0200
 +++ OpenSSL_1_0_2-stable_patched/ssl/s3_srvr.c	2015-08-25 17:09:19.976316414 +0200
@@ -880,20 +977,29 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/ssl_locl.h OpenSSL_1_0_2-stable_patched/ssl/
 diff -rupN OpenSSL_1_0_2-stable/ssl/tls1.h OpenSSL_1_0_2-stable_patched/ssl/tls1.h
 --- OpenSSL_1_0_2-stable/ssl/tls1.h	2015-08-18 16:32:46.000000000 +0200
 +++ OpenSSL_1_0_2-stable_patched/ssl/tls1.h	2015-09-03 13:52:18.519710311 +0200
-@@ -411,6 +411,12 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
- # define TLS1_CK_PSK_WITH_3DES_EDE_CBC_SHA               0x0300008B
+@@ -412,6 +412,21 @@
  # define TLS1_CK_PSK_WITH_AES_128_CBC_SHA                0x0300008C
  # define TLS1_CK_PSK_WITH_AES_256_CBC_SHA                0x0300008D
+ 
 +/* RSA-PSK */
 +// FIXME: add RSA-PSK ciphers 92-94 here, too
 +#define TLS1_CK_RSA_PSK_WITH_RC4_128_SHA    0x03000092
 +#define TLS1_CK_RSA_PSK_WITH_3DES_EDE_CBC_SHA    0x03000093
 +#define TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA            0x03000094
 +#define TLS1_CK_RSA_PSK_WITH_AES_256_CBC_SHA            0x03000095
- 
++
++# define TLS1_CK_RSA_PSK_WITH_AES_128_GCM_SHA256         0x030000AC
++# define TLS1_CK_RSA_PSK_WITH_AES_256_GCM_SHA384         0x030000AD
++
++# define TLS1_CK_RSA_PSK_WITH_AES_128_CBC_SHA256         0x030000B6
++# define TLS1_CK_RSA_PSK_WITH_AES_256_CBC_SHA384         0x030000B7
++# define TLS1_CK_RSA_PSK_WITH_NULL_SHA256                0x030000B8
++# define TLS1_CK_RSA_PSK_WITH_NULL_SHA384                0x030000B9
++
  /*
   * Additional TLS ciphersuites from expired Internet Draft
-@@ -631,6 +637,11 @@ SSL_CTX_callback_ctrl(ssl,SSL_CTRL_SET_T
+  * draft-ietf-tls-56-bit-ciphersuites-01.txt (available if
+@@ -631,6 +646,19 @@
  # define TLS1_TXT_PSK_WITH_3DES_EDE_CBC_SHA              "PSK-3DES-EDE-CBC-SHA"
  # define TLS1_TXT_PSK_WITH_AES_128_CBC_SHA               "PSK-AES128-CBC-SHA"
  # define TLS1_TXT_PSK_WITH_AES_256_CBC_SHA               "PSK-AES256-CBC-SHA"
@@ -902,6 +1008,14 @@ diff -rupN OpenSSL_1_0_2-stable/ssl/tls1.h OpenSSL_1_0_2-stable_patched/ssl/tls1
 +#define TLS1_TXT_RSA_PSK_WITH_3DES_EDE_CBC_SHA   "RSA-PSK-3DES-EDE-CBC-SHA"
 +#define TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA    "RSA-PSK-AES128-CBC-SHA"
 +#define TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA    "RSA-PSK-AES256-CBC-SHA"
++
++# define TLS1_TXT_RSA_PSK_WITH_AES_128_GCM_SHA256        "RSA-PSK-AES128-GCM-SHA256"
++# define TLS1_TXT_RSA_PSK_WITH_AES_256_GCM_SHA384        "RSA-PSK-AES256-GCM-SHA384"
++
++# define TLS1_TXT_RSA_PSK_WITH_AES_128_CBC_SHA256        "RSA-PSK-AES128-CBC-SHA256"
++# define TLS1_TXT_RSA_PSK_WITH_AES_256_CBC_SHA384        "RSA-PSK-AES256-CBC-SHA384"
++# define TLS1_TXT_RSA_PSK_WITH_NULL_SHA256               "RSA-PSK-NULL-SHA256"
++# define TLS1_TXT_RSA_PSK_WITH_NULL_SHA384               "RSA-PSK-NULL-SHA384"
  
  /* SRP ciphersuite from RFC 5054 */
  # define TLS1_TXT_SRP_SHA_WITH_3DES_EDE_CBC_SHA          "SRP-3DES-EDE-CBC-SHA"
