@@ -148,6 +148,22 @@ cd -
 If you want to use your distributions version of curl will need to make sure it
 uses the patched version of OpenSSL at runtime (see above).
 
+### wxWidgets
+
+To build the SimpleClient wxWidgets (Release >= 3.0.0) is required. The name of the required package in OpenSuse is wxWidgets-3_0-devel.
+Alternatively wxWidgets can be downloaded and compiled manually ([https://wiki.wxwidgets.org/Install](https://wiki.wxwidgets.org/Install)):
+```sh
+wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.0/wxWidgets-3.1.0.tar.bz2
+tar -xjf wxWidgets-3.1.0.tar.bz2 
+cd wxWidgets-3.1.0
+mkdir gtk-build
+cd gtk-build
+../configure --enable-unicode --enable-debug --prefix=${PREFIX}
+make > /dev/null
+make install
+cd -
+```
+
 ## Compiling eIDClientCore from source
 
 ```sh
@@ -162,8 +178,6 @@ make install
 cd -
 ```
 
-# Building gui for SimpleClient
-To build the gui for SimpleClient you need to install the wxWidgets 3.0 developer package (wxWidgets-3_0-devel) manually.
 
 # Building for Android
 
