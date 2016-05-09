@@ -16,51 +16,51 @@
 using namespace std;
 
 const wxString tt_is[] = {
-    "Read Fingerprint",
-    "Read Iris",
-    "Read eID"
+    "Fingerabdruck lesen",
+    "Iris lesen",
+    "eID lesen"
 };
 
 const wxString tt_at[] = {
-    "Verify Age",
-    "Verify Community ID",
+    "Altersnachweis",
+    "Bestätigung des Wohnorts",
     "Restricted ID",
-    "Privileged Terminal",
-     "CAN allowed",
+    "Privilegiertes Terminal",
+     "CAN erlaubt",
      "PIN Management",
-     "Install Certificate",
-     "Install Qualified Certificate",
-     "Read Document Type",
-     "Read Issuing State",
-     "Read Date of Expiry",
-     "Read Given Names",
-     "Read Family Names",
-     "Read Religious/Artistic Name",
-     "Read Academic Title",
-     "Read Date of Birth",
-     "Read Place of Birth",
-     "Read Nationality",
-     "Read Sex",
-     "Read OptionalDataR (DG12)",
-     "Read Birth Name",
-     "Read DG 14",
-     "Read DG 15",
-     "Read DG 16",
-     "Read Normal Place of Residence",
-     "Read Community ID",
-     "Read Residence Permit I",
-     "Read Residence Permit II",
-     "Read OptionalDataRW (DG21)",
-     "Write OptionalDataRW (DG21)",
-     "Write Residence Permit I",
-     "Write Residence Permit II",
-     "Write Community ID",
-     "Write Normal Place of Residence"
+     "Zertifikat installieren",
+     "Qualifiziertes Zertifikat installieren",
+     "Dokumententyp lesen",
+     "Ausstellenden Staat lesen",
+     "Ablaufdatum lesen",
+     "Vornamen lesen",
+     "Familiennamen lesen",
+     "Künstlernamen lesen",
+     "Akademischen Titel lesen",
+     "Geburtsdatum lesen",
+     "Geburtsort lesen",
+     "Staatszugehörigkeit lesen",
+     "Geschlecht lesen",
+     "DG12 lesen",
+     "DG13 lesen",
+     "DG14 lesen",
+     "DG15 lesen",
+     "DG16 lesen",
+     "Adresse lesen",
+     "Wohnort-ID lesen",
+     "Aufenthaltserlaubnis I lesen",
+     "Aufenthaltserlaubnis II lesen",
+     "DG21 lesen",
+     "DG21 ändern",
+     "Aufenthaltserlaubnis I ändern",
+     "Aufenthaltserlaubnis II ändern",
+     "Wohnort-ID ändern",
+     "Adresse ändern"
 };
 
 const wxString tt_st[] = {
-    "Generate electronic signature",
-    "Generate qualified electronic signature"
+    "Elektronische Signatur erzeugen",
+    "Qualifizierte elektronische Signatur erzeugen"
 };
 
 class MainFrame: public wxFrame {
