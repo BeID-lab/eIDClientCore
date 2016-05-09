@@ -450,7 +450,7 @@ EID_CLIENT_CONNECTION_ERROR eIDClientConnectionStartHttp(P_EIDCLIENT_CONNECTION_
 	 * I would not recommend RC4 due to security reasons.
 	 */
 	if(psk != NULL){
-		curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "RSA-PSK-AES256-CBC-SHA:RSA-PSK-AES128-CBC-SHA:RSA-PSK-3DES-EDE-CBC-SHA");
+		curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "RSA-PSK-AES256-CBC-SHA384:RSA-PSK-AES128-CBC-SHA256:RSA-PSK-AES256-CBC-SHA:RSA-PSK-AES128-CBC-SHA:RSA-PSK-3DES-EDE-CBC-SHA");
 	} else {
 		curlVal = curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "HIGH");
 	}
