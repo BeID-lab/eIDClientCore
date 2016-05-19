@@ -147,8 +147,15 @@ void removeMessageID(const EIDCLIENT_CONNECTION_HANDLE hConnection)
 
 void WritePAOS_Response(std::stringstream &oss, std::stringstream &ss, const std::string &strRelatesTo)
 {
-	std::string           strUrnMessageID("urn:uuid");
-	strUrnMessageID += getRandomStringID(40);
+	//Similar structure as RelatesTo, which we got from the server.
+	//std::string           strUrnMessageID("urn:uuid");
+	//strUrnMessageID += getRandomStringID(40);
+	std::string           strUrnMessageID("urn:uuid:");
+	strUrnMessageID += getRandomStringID(8) + "-";
+	strUrnMessageID += getRandomStringID(4) + "-";
+	strUrnMessageID += getRandomStringID(4) + "-";
+	strUrnMessageID += getRandomStringID(4) + "-";
+	strUrnMessageID += getRandomStringID(12);
 	oss << "<S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\">";
 	oss << "<S:Header xmlns:A=\"http://www.w3.org/2005/03/addressing\">";
 	oss << "<PAOS S:actor=\"http://schemas.xmlsoap.org/soap/actor/next\" S:mustUnderstand=\"1\" xmlns=\"urn:liberty:paos:2006-08\">";
@@ -215,7 +222,7 @@ void WriteDIDAuthenticateResponse(std::stringstream &oss, std::stringstream &ssO
 	WritePAOS_Response(oss, ss, strMessageID);
 }
 
-void WriteEAC1Output(std::stringstream &oss, const std::string &strMessageID, const std::string &strUserChat, const std::string &strCertRef, const std::string &strEFCardAccess, const std::string &strIDPICC)
+void WriteEAC1Output(std::stringstream &oss, const std::string &strMessageID, const std::string &strUserChat, const std::string &strCertRef, const std::string &strEFCardAccess, const std::string &strIDPICC, const std::string &strChallenge)
 {
 	std::stringstream ss(std::stringstream::out);
 	ss << "<iso:AuthenticationProtocolData xsi:type=\"iso:EAC1OutputType\">";
@@ -224,6 +231,7 @@ void WriteEAC1Output(std::stringstream &oss, const std::string &strMessageID, co
 	ss << "<iso:CertificationAuthorityReference>" << strCertRef.c_str() << "</iso:CertificationAuthorityReference>";
 	ss << "<iso:EFCardAccess>" << strEFCardAccess.c_str() << "</iso:EFCardAccess>";
 	ss << "<iso:IDPICC>" << strIDPICC.c_str() << "</iso:IDPICC>";
+	ss << "<iso:Challenge>" << strChallenge.c_str() << "</iso:Challenge>";
 	ss << "</iso:AuthenticationProtocolData>";
 	WriteDIDAuthenticateResponse(oss, ss, strMessageID);
 }
@@ -381,6 +389,8 @@ bool doParse(const CParserObject* pCParserObject, const std::string &strXML)
         return false;
 }
 
+//Global variable, which is also used in the next step.
+CParserObject*  pCParserObject;
 EID_ECARD_CLIENT_PAOS_ERROR startPAOS(EIDCLIENT_CONNECTION_HANDLE hConnection,
                                       const char* const cSessionID)
 {
@@ -390,7 +400,7 @@ EID_ECARD_CLIENT_PAOS_ERROR startPAOS(EIDCLIENT_CONNECTION_HANDLE hConnection,
 	std::stringstream    ioss(std::stringstream::out);
     std::string          strSessionID(cSessionID);
     bool            bParseSuccess = false;
-    CParserObject*  pCParserObject = new CParserObject();
+    pCParserObject = new CParserObject();
    
 	WriteStartPaos(ioss, strSessionID);
 	std::string xml_str = ioss.str();
@@ -407,7 +417,7 @@ EID_ECARD_CLIENT_PAOS_ERROR startPAOS(EIDCLIENT_CONNECTION_HANDLE hConnection,
         }
     }
 
-    delete pCParserObject;
+    //delete pCParserObject;
     
     if( true == bParseSuccess )
         return EID_ECARD_CLIENT_PAOS_ERROR_SUCCESS;
@@ -422,13 +432,15 @@ EID_ECARD_CLIENT_PAOS_ERROR getEACSessionInfo(EIDCLIENT_CONNECTION_HANDLE hConne
 		return EID_ECARD_CLIENT_PAOS_CONNECTION_ERROR;
 
     bool bParseSuccess = false;
-	std::stringstream iossFrame(std::stringstream::out);
-	WriteInitializeFrameworkResponse(iossFrame, getMessageID(hConnection));
-	std::string xml_strFrame = iossFrame.str();
-	std::string ret = request_post(hConnection, xml_strFrame);
-    CParserObject*  pCParserObject = new CParserObject();
+	//Server does not expect this kind of message at this point anymore.
+	//std::stringstream iossFrame(std::stringstream::out);
+	//WriteInitializeFrameworkResponse(iossFrame, getMessageID(hConnection));
+	//std::string xml_strFrame = iossFrame.str();
+	//std::string ret = request_post(hConnection, xml_strFrame);
+    //CParserObject*  pCParserObject = new CParserObject();
 	
-    bParseSuccess = doParse(pCParserObject, ret);
+    //bParseSuccess = doParse(pCParserObject, ret);
+	bParseSuccess = true;
     
     if(true == bParseSuccess)
     {
@@ -525,7 +537,9 @@ EID_ECARD_CLIENT_PAOS_ERROR getTerminalAuthenticationData(EIDCLIENT_CONNECTION_H
                                                           const nPADataBuffer_t idPICC,
                                                           nPADataBuffer_t** list_certificates,
                                                           unsigned long* const list_size,
-                                                          nPADataBuffer_t* const Puk_IFD_DH_CA)
+                                                          nPADataBuffer_t* const Puk_IFD_DH_CA,
+							  const nPADataBuffer_t challenge,
+							  nPADataBuffer_t* const signature)
 {
     if( 0x00 == hConnection )
 		return EID_ECARD_CLIENT_PAOS_CONNECTION_ERROR;
@@ -534,13 +548,14 @@ EID_ECARD_CLIENT_PAOS_ERROR getTerminalAuthenticationData(EIDCLIENT_CONNECTION_H
 	std::string myIDPICC = Byte2Hex(idPICC.pDataBuffer, idPICC.bufferSize);
 	std::string myChat = Byte2Hex(selectedCHAT.pDataBuffer, selectedCHAT.bufferSize);
 	std::string myCAR = std::string((char*)cvCACHAR.pDataBuffer, cvCACHAR.bufferSize);
+	std::string myChallenge = Byte2Hex(challenge.pDataBuffer, challenge.bufferSize);
 //	std::string myCAR = Byte2Hex(cvCACHAR.pDataBuffer, cvCACHAR.bufferSize);
 //	hexdump(DEBUG_LEVEL_PAOS, "IDPICC", (void *) myIDPICC.c_str(), myIDPICC.size());
 //	hexdump(DEBUG_LEVEL_PAOS, "used Chat", (void *) myChat.c_str(), myChat.size());
     
     bool bParseSuccess = false;
 	std::stringstream iossFrame(std::stringstream::out);
-    WriteEAC1Output(iossFrame, getMessageID(hConnection), myChat, myCAR, myEFCardAccess, myIDPICC);
+    WriteEAC1Output(iossFrame, getMessageID(hConnection), myChat, myCAR, myEFCardAccess, myIDPICC, myChallenge);
 	std::string xml_strFrame = iossFrame.str();
 	std::string ret = request_post(hConnection, xml_strFrame);
     CParserObject*  pCParserObject = new CParserObject();
@@ -587,6 +602,19 @@ EID_ECARD_CLIENT_PAOS_ERROR getTerminalAuthenticationData(EIDCLIENT_CONNECTION_H
                 memcpy(Puk_IFD_DH_CA->pDataBuffer, DATA(vecPuk_IFD_DH_CA) , vecPuk_IFD_DH_CA.size() );
             }            
 //            hexdump(DEBUG_LEVEL_PAOS, "ephPubKey", DATA(vecPuk_IFD_DH_CA), vecPuk_IFD_DH_CA.size());
+        }
+        
+        if( pCParserObject->m_strSignature.length() > 0 )
+        {
+            std::vector<unsigned char>  vecSignature = Hex2Byte(pCParserObject->m_strSignature.c_str(), pCParserObject->m_strSignature.length());
+            
+            if( 0x00 != signature )
+            {
+                signature->bufferSize = vecSignature.size();
+                signature->pDataBuffer = (unsigned char*) malloc(signature->bufferSize);
+                memcpy(signature->pDataBuffer, DATA(vecSignature) , vecSignature.size() );
+            }
+            hexdump(DEBUG_LEVEL_PAOS, "Signature", DATA(vecSignature), vecSignature.size());
         }
         
         delete pCParserObject;

@@ -41,7 +41,9 @@ extern "C"
                                                               const nPADataBuffer_t idPICC,
                                                               nPADataBuffer_t** list_certificates,
                                                               unsigned long* const list_size,
-                                                              nPADataBuffer_t* const Puk_IFD_DH_CA);
+                                                              nPADataBuffer_t* const Puk_IFD_DH_CA,
+							      const nPADataBuffer_t challenge,
+							  nPADataBuffer_t* const signature);
 
     EID_ECARD_CLIENT_PAOS_ERROR createSignature(EIDCLIENT_CONNECTION_HANDLE hConnection,
                                                 const nPADataBuffer_t toBeSigned,
