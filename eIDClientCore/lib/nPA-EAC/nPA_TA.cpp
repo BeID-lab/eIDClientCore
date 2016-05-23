@@ -103,7 +103,8 @@ CAPDU build_TA_Step_E(
 	}
 
 	// x(Puk.IFD.CA)
-	encoded_Puk_IFD_DH.push_back(0x04);
+	//Not needed anymore, because the server already sends the key with 0x04 prefix.
+	//encoded_Puk_IFD_DH.push_back(0x04);
 	encoded_Puk_IFD_DH.insert(encoded_Puk_IFD_DH.end(), Puk_IFD_DH.begin(),	Puk_IFD_DH.end());
 	do91 = TLV_encode(0x91, calculate_ID_ICC(encoded_Puk_IFD_DH));
 	dataField.insert(dataField.end(), do91.begin(), do91.end());
@@ -184,43 +185,54 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 		std::vector<CAPDU> capdus;
 
 		/* TODO verify the chain of certificates in the middle ware */
+		/*
+		 * CAR was given as function argument. Then, it was set to the current CHR for the next certificate.
+		 * We now use getCAR to get the CAR for the current certificate.
+		 */
 		std::vector<unsigned char> _current_car = carCVCA;
 		if(!list_certificates.empty()){
-			for (size_t i = 0; i < list_certificates.size(); i++) {
+// 			for (size_t i = 0; i < list_certificates.size(); i++) {
+// 				_current_car = getCAR(list_certificates[i]);
+// 				hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
+// 				capdus.push_back(build_TA_Step_Set_CAR(_current_car));
+// 				capdus.push_back(build_TA_Step_Verify_Certificate(list_certificates[i]));
+// 			}
+			//Dirty: We just take the certificates in reversed order, because the server always sends them
+			//like that. The server could also send the certificates in another order
+			//TODO: Ordering of certificates.
+			for (int i = list_certificates.size() - 1; i >= 0; i--) {
+				_current_car = getCAR(list_certificates[i]);
 				hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
 	
 				capdus.push_back(build_TA_Step_Set_CAR(_current_car));
 	
 				capdus.push_back(build_TA_Step_Verify_Certificate(list_certificates[i]));
 	
-				_current_car = getCHR(list_certificates[i]);
+//				_current_car = getCHR(list_certificates[i]);
 			}
 		}
 
 		std::vector<unsigned char> chrTerm_ = getCHR(terminalCertificate);
 		/*Test if last Certificate is the Terminal Certificate
 		  Otherwise we have to append it to our list*/
-		if(chrTerm_.size() != _current_car.size()
-				|| memcmp(DATA(chrTerm_), DATA(_current_car), chrTerm_.size()) != 0)
-		{
-			appendTACert++;
-
-			/*To Do: Delete the code duplication by using a method*/
-			hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
-
-			capdus.push_back(build_TA_Step_Set_CAR(_current_car));
-
-			hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(terminalCertificate), terminalCertificate.size());
-
-			capdus.push_back(build_TA_Step_Verify_Certificate(terminalCertificate));
-
-			_current_car = getCHR(terminalCertificate);
-		}
-		hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", DATA(chrTerm_), chrTerm_.size());
-
-		capdus.push_back(build_TA_Step_E(_current_car, Puk_IFD_DH_CA, authenticatedAuxiliaryData));
-		capdus.push_back(build_TA_Step_F());
-
+// 		if(chrTerm_.size() != _current_car.size()
+// 				|| memcmp(DATA(chrTerm_), DATA(_current_car), chrTerm_.size()) != 0)
+// 		{
+// 			appendTACert++;
+// 			/*To Do: Delete the code duplication by using a method*/
+// 			hexdump(DEBUG_LEVEL_CRYPTO, "CAR", DATA(_current_car), _current_car.size());
+// 			capdus.push_back(build_TA_Step_Set_CAR(_current_car));
+// 			hexdump(DEBUG_LEVEL_CRYPTO, "certificate", DATA(terminalCertificate), terminalCertificate.size());
+// 			capdus.push_back(build_TA_Step_Verify_Certificate(terminalCertificate));
+// 			_current_car = getCHR(terminalCertificate);
+// 		}
+// 		hexdump(DEBUG_LEVEL_CRYPTO, "TERM CHR: ", DATA(chrTerm_), chrTerm_.size());
+		//Dirty: We just take the first certificate, because the server always sends the certificate containing
+		//the needed CHR first. The server could also send the certificates in another order
+		//TODO: Ordering of certificates.
+		capdus.push_back(build_TA_Step_E(getCHR(list_certificates[0]), Puk_IFD_DH_CA, authenticatedAuxiliaryData));
+		//Not needed anymore, because we sent the challenge earlier in the procedure
+		//capdus.push_back(build_TA_Step_F());
 
 		/* process all RAPDUs */
 		std::vector<RAPDU> rapdus = hCard.transceive(capdus);
@@ -242,11 +254,11 @@ ECARD_STATUS __STDCALL__ ePAPerformTA(
 
 		if (EAC_SUCCESS != (status = process_TA_Step_E(*it)))
 			return status;
-		++it;
-
-		if (EAC_SUCCESS != (status = process_TA_Step_F(toBeSigned,
-						*it)))
-			return status;
+		//Not needed anymore, see above at capdus.push_back(build_TA_Step_F());
+// 		++it;
+// 		if (EAC_SUCCESS != (status = process_TA_Step_F(toBeSigned,
+// 						*it)))
+// 			return status;
 
 		return status;
 
