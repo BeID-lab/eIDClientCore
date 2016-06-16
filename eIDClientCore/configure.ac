@@ -41,7 +41,7 @@ fi
 # Do not look for wxWidgets when cross-compiling for android
 AS_IF([test "x$enable_android" = "xno"], [
 	AM_OPTIONS_WXCONFIG
-	reqwx=3.0.2
+	reqwx=3.0.0
 	AM_PATH_WXCONFIG([$reqwx], [wxWin=1], [wxWin=0], [richtext])
 	if test "$wxWin" != 1; then
 	AC_MSG_ERROR([
