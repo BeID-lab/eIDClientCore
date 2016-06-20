@@ -60,17 +60,11 @@ libexpat:
 	make install
 	
 openssl:
-	cd OpenSSL_1_0_2-stable ;\
+	cd OpenSSL ;\
 	git submodule init ;\
 	git submodule update ;\
-	patch -p1 <../patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch ;\
-	find . -name "*.rej" | grep -e ".*" ;\
-	if test $$? -eq 0 ; then \
-		echo "Applying patches failed, rejects found. Sources and patch do not match!" ;\
-		exit 1 ;\
-	fi ;\
 	./config --prefix=$(PREFIX) shared ;\
-	make ;\
+	make -j8 ;\
 	make install_sw ;\
 	apps/openssl ciphers 'RSAPSK' -v ;\
 	if test $$? -ne 0 ; then \
