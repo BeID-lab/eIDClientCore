@@ -7,3 +7,6 @@
 [submodule "eIDClientCore/bin/Test_nPAClientLib/wingetopt"]
 	path = eIDClientCore/bin/Test_nPAClientLib/wingetopt
 	url = https://github.com/alex85k/wingetopt.git
+[submodule "OpenSSL"]
+	path = OpenSSL
+	url = https://github.com/misery/openssl.git
