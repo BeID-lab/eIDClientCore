@@ -120,14 +120,12 @@ the library.
 ### OpenSSL
 
 ```sh
-cd ${PREFIX}/OpenSSL_1_0_2-stable
-git submodule init
-git submodule update
-patch -p1 <patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch
-./config --prefix=${PREFIX} shared
-make
-make install_sw
-cd -
+cd ${PREFIX}/OpenSSL_1_0_2-stable 
+git submodule init 
+git submodule update 
+./config --prefix=$(PREFIX) shared 
+make 
+make install_sw 
 ```
 
 OpenSSL is the only library that needs to be patched since it does currently
