@@ -45,6 +45,7 @@ endif()
 set(OPENSSL_BUILD_COMMAND ${OPENSSL_BUILD_COMMAND} make -C ${OPENSSL_DOWNLOAD_DIR})
 ExternalProject_Add(openssl
 	GIT_REPOSITORY https://github.com/misery/openssl
+	GIT_TAG OpenSSL_1_0_2-stable
 	PREFIX ${BUILD_DIR}
 	CONFIGURE_COMMAND ${OPENSSL_DOWNLOAD_DIR}/config --prefix=${BUILD_DIR} shared
 	BUILD_IN_SOURCE 1
