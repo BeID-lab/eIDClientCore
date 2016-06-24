@@ -44,10 +44,8 @@ else()
 endif()
 set(OPENSSL_BUILD_COMMAND ${OPENSSL_BUILD_COMMAND} make -C ${OPENSSL_DOWNLOAD_DIR})
 ExternalProject_Add(openssl
-	GIT_REPOSITORY https://github.com/openssl/openssl
-	GIT_TAG 33dd08320648ac71d7d9d732be774ed3818dccc5
+	GIT_REPOSITORY https://github.com/misery/openssl
 	PREFIX ${BUILD_DIR}
-	PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/patches/openssl/1.0.2/adjusted-Christian-J.-Dietrichs-RSA-PSK-patch-for-openSSL_1_0_2d.patch
 	CONFIGURE_COMMAND ${OPENSSL_DOWNLOAD_DIR}/config --prefix=${BUILD_DIR} shared
 	BUILD_IN_SOURCE 1
 	BUILD_COMMAND ${OPENSSL_BUILD_COMMAND}
