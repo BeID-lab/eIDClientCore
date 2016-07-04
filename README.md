@@ -123,7 +123,7 @@ the library.
 cd ${PREFIX}/OpenSSL_1_0_2-stable 
 git submodule init 
 git submodule update 
-./config --prefix=$(PREFIX) shared 
+./config --prefix=${PREFIX} shared 
 make 
 make install_sw 
 ```
