@@ -22,7 +22,6 @@ using namespace Bundesdruckerei::eIDUtils;
 
 #include "eCardCore/eCardStatus.h"
 #include "eCardCore/eIdClientCardReader.h"
-#include "eCardCore/CardCommand.h"
 #include "nPA-EAC/nPACard.h"
 
 #ifndef DISABLE_PCSC
@@ -744,23 +743,7 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
         nPADataBuffer_t* pBufCertList = NULL;
         unsigned long list_size = 0;
 
-	//Get Challenge
-	GetChallenge getChallengeCApdu(GetChallenge::P1_NO_INFO);
-	#define TA_LENGTH_NONCE 8
-	getChallengeCApdu.setNe(TA_LENGTH_NONCE);
-	std::vector<CAPDU> capdus;
-	capdus.push_back(getChallengeCApdu);
-	std::vector<RAPDU> rapdus = hCard->transceive(capdus);
-	if (!rapdus[0].isOK())
-		return -1;
-	std::vector<unsigned char> challengeAsVector = rapdus[0].getData();
-	nPADataBuffer_t challenge = {0x00, 0};
-	challenge.bufferSize = challengeAsVector.size();
-	challenge.pDataBuffer = (unsigned char*) malloc(challenge.bufferSize);
-	memcpy(challenge.pDataBuffer, DATA(challengeAsVector) , challengeAsVector.size() );
-	
-	nPADataBuffer_t signature = {0x00, 0};
-		EID_ECARD_CLIENT_PAOS_ERROR err = getTerminalAuthenticationData(hConnection, efCardAccess, selectedCHAT, CAR, idPICC, &pBufCertList, &list_size, Puk_IFD_DH_CA, challenge, &signature);
+		EID_ECARD_CLIENT_PAOS_ERROR err = getTerminalAuthenticationData(hConnection, efCardAccess, selectedCHAT, CAR, idPICC, &pBufCertList, &list_size, Puk_IFD_DH_CA);
 		if(err != EID_ECARD_CLIENT_PAOS_ERROR_SUCCESS)
 			return err;
 
@@ -796,15 +779,14 @@ NPACLIENT_ERROR __STDCALL__ nPAPerformTerminalAuthentication(
                              caOID_, Puk_IFD_DH_, authenticatedAuxiliaryData_, toBeSigned);
         if( ECARD_SUCCESS == error )
         {
-	     //Not needed anymore, because we sent the challenge earlier in the procedure
-//           nPADataBuffer_t challenge = {0x00, 0};
-//           nPADataBuffer_t signature = {0x00, 0};
-//         
-//           challenge.bufferSize = toBeSigned.size();
-//           challenge.pDataBuffer = (unsigned char*) malloc(challenge.bufferSize);
-//           memcpy(challenge.pDataBuffer, DATA(toBeSigned) , toBeSigned.size() );
-//         
-//           createSignature(hConnection, challenge, &signature);
+          nPADataBuffer_t challenge = {0x00, 0};
+          nPADataBuffer_t signature = {0x00, 0};
+        
+          challenge.bufferSize = toBeSigned.size();
+          challenge.pDataBuffer = (unsigned char*) malloc(challenge.bufferSize);
+          memcpy(challenge.pDataBuffer, DATA(toBeSigned) , toBeSigned.size() );
+        
+          createSignature(hConnection, challenge, &signature);
         
           std::vector<unsigned char> sendSignature_;
         
@@ -1200,23 +1182,6 @@ extern "C" NPACLIENT_ERROR __STDCALL__ nPAeIdPerformAuthenticationProtocolWithPa
             delete hReader;
         return error;
 	}
-	
-	//Do MSE Set AT here, before doing PACE.
-	CAPDU selectMFCApdu = SelectFile(0x00, 0x0C, 0x3F00);
-	std::vector<unsigned char> dataField;
-	MSE mse(0xC1, MSE::P2_AT);
-	const unsigned char oid_ta_ecdsa_sha_1[] = {
-		0x80, 0x0A, 0x04, 0x00, 0x7F, 0x00, 0x07, 0x02, 0x02, 0x04, 0x02, 0x02, 0x83, 0x01, 0x03
-	};
-	dataField.insert(dataField.end(), oid_ta_ecdsa_sha_1,
-		   	oid_ta_ecdsa_sha_1 + sizeof oid_ta_ecdsa_sha_1);
-	mse.setData(dataField);
-	std::vector<CAPDU> capdus;
-	capdus.push_back(selectMFCApdu);
-	capdus.push_back(mse);
-	std::vector<RAPDU> rapdus = hCard->transceive(capdus);
-	if (!rapdus[1].isOK())
-		return -1;
  
     error = nPAPerformPACE(hCard, &inputNew.pin, &inputNew.chat_selected, &chatRequired, &chatOptional,
             &certificateDescriptionRaw, &transactionInfoHidden, &idPICC, &CAR,
