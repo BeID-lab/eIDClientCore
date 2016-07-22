@@ -45,9 +45,7 @@ CAPDU build_CA_Step_C(const std::vector<unsigned char>& Puk_IFD_DH)
 	authenticate.setNe(CAPDU::DATA_SHORT_MAX);
 
 	std::vector<unsigned char> puk;
-	//The server sends the public ephemeral key already with 0x04
-	//prefix. So we do not need to prepend it anymore.
-	//puk.push_back(0x04);
+	puk.push_back(0x04);
 	puk.insert(puk.end(), Puk_IFD_DH.begin(), Puk_IFD_DH.end());
 	
 	authenticate.setData(TLV_encode(0x7C, TLV_encode(0x80, puk)));
