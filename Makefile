@@ -52,8 +52,8 @@ asn1c:
 	make install
 
 libexpat:
-	wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
-	echo "b08197d146930a5543a7b99e871cba3da614f6f0  expat-2.1.0.tar.gz" | sha1sum -c - ;\
+	wget https://github.com/libexpat/libexpat/releases/download/R_2_1_0/expat-2.1.0.tar.gz
+	echo "823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86 expat-2.1.0.tar.gz" | sha256sum -c - ;\
 	tar xzf expat-2.1.0.tar.gz
 	cd expat-2.1.0 ;\
 	./configure --prefix=$(PREFIX) ;\
