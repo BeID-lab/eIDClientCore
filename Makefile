@@ -45,7 +45,7 @@ cryptopp:
 	make -C cryptopp install PREFIX=$(PREFIX)
 
 asn1c:
-	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODO-chain.pem
+	wget https://sourceforge.net/projects/asn1c/files/asn1c/asn1c-0.9.24/asn1c-0.9.24.tar.gz
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
 	./configure --prefix=$(PREFIX) ;\
