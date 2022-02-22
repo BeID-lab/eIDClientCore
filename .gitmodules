@@ -1,6 +1,6 @@
 [submodule "eIDClientCore/bin/SimpleClient/civetweb"]
 	path = eIDClientCore/bin/SimpleClient/civetweb
-	url = git://github.com/sunsetbrew/civetweb.git
+	url = https://github.com/civetweb/civetweb
 [submodule "eIDClientCore/bin/Test_nPAClientLib/wingetopt"]
 	path = eIDClientCore/bin/Test_nPAClientLib/wingetopt
 	url = https://github.com/alex85k/wingetopt.git

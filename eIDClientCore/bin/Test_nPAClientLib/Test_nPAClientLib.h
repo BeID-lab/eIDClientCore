@@ -12,6 +12,7 @@ int performEID(std::string strServiceURL,
 std::string str_replace_ifnot(std::string rep, std::string wit, std::string ifnot, std::string in);
 
 #include "cmdline.h"
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {

@@ -45,15 +45,15 @@ cryptopp:
 	make -C cryptopp install PREFIX=$(PREFIX)
 
 asn1c:
-	wget https://lionet.info/soft/asn1c-0.9.24.tar.gz --ca-certificate=trusted_ca/COMODO-chain.pem
+	wget https://sourceforge.net/projects/asn1c/files/asn1c/asn1c-0.9.24/asn1c-0.9.24.tar.gz
 	tar xzf asn1c-0.9.24.tar.gz
 	cd asn1c-0.9.24 ;\
 	./configure --prefix=$(PREFIX) ;\
 	make install
 
 libexpat:
-	wget http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
-	echo "b08197d146930a5543a7b99e871cba3da614f6f0  expat-2.1.0.tar.gz" | sha1sum -c - ;\
+	wget https://github.com/libexpat/libexpat/releases/download/R_2_1_0/expat-2.1.0.tar.gz
+	echo "823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86 expat-2.1.0.tar.gz" | sha256sum -c -
 	tar xzf expat-2.1.0.tar.gz
 	cd expat-2.1.0 ;\
 	./configure --prefix=$(PREFIX) ;\
