@@ -133,6 +133,7 @@ std::string getMessageID(const EIDCLIENT_CONNECTION_HANDLE hConnection)
 
 void setMessageID(const EIDCLIENT_CONNECTION_HANDLE hConnection, const std::string strMessageID)
 {
+    g_mapMassageID.erase(hConnection);
     g_mapMassageID.insert( std::pair<EIDCLIENT_CONNECTION_HANDLE, std::string>(hConnection,strMessageID) );
 
 //	std::string strTest = getMessageID(hConnection);
