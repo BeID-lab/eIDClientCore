@@ -133,6 +133,7 @@ std::string getMessageID(const EIDCLIENT_CONNECTION_HANDLE hConnection)
 
 void setMessageID(const EIDCLIENT_CONNECTION_HANDLE hConnection, const std::string strMessageID)
 {
+    g_mapMassageID.erase(hConnection);
     g_mapMassageID.insert( std::pair<EIDCLIENT_CONNECTION_HANDLE, std::string>(hConnection,strMessageID) );
 
 //	std::string strTest = getMessageID(hConnection);
@@ -359,7 +360,7 @@ void CharacterDataHandler(void *pUserData, const XML_Char *pszData, int nLength)
 		pParserObject->m_strSignature = std::string(pszData, nLength);
 //		eCardCore_debug(DEBUG_LEVEL_PAOS, "Signature : %s", pParserObject->m_strSignature.c_str());
         
-	} else if (strCurrentTag.find("InputAPDU") != std::string::npos) {
+	} else if (strCurrentTag.find("InputAPDU") != std::string::npos && strCurrentTag.find("InputAPDUInfo") == std::string::npos) {
 		std::string  strAPDU = std::string(pszData, nLength);
 		pParserObject->m_APDUList.push_back(strAPDU);
 //		eCardCore_debug(DEBUG_LEVEL_PAOS, "InputAPDU : %s", strAPDU.c_str());
