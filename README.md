@@ -217,7 +217,7 @@ android update project \
   --library path/to/eiDClientLib
 ```
 
-##Android example app
+## Android example app
 * [eIDClientCore Selbstauskunft](eIDClientCore/android/eIDClientCore%20Selbstauskunft/#welcome)
 
 # Projects using eIDClientCore
