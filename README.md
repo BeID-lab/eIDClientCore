@@ -217,8 +217,12 @@ android update project \
   --library path/to/eiDClientLib
 ```
 
-##Android example app
+## Android example app
 * [eIDClientCore Selbstauskunft](eIDClientCore/android/eIDClientCore%20Selbstauskunft/#welcome)
+
+# Projects using eIDClientCore
+
+The eIDClientCore is used in the project [Selbstauskunft in the middle](https://github.com/eriknellessen/Selbstauskunft-in-the-middle). This project provides a docker image containing the eIDClientCore to simplify performing the scenario "Selbstauskunft in the middle". The docker images for this project can be found [here](https://hub.docker.com/r/eriknellessen/selbstauskunft-in-the-middle). 
 
 # TODO
 
